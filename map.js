@@ -8,8 +8,8 @@ const GameDayMap = (function() {
   let markersLayer = null;
   let currentVenues = [];
 
-  // Home School base coordinates (Westfield High)
-  const HOME_COORDS = { lat: 40.71278, lng: -74.00594, name: 'Westfield High School' };
+  // Home School base coordinates (Sugar-Salem High School, Sugar City, ID)
+  const HOME_COORDS = { lat: 43.8744, lng: -111.7483, name: 'Sugar-Salem High School' };
 
   function initMap() {
     if (mapInstance) return;

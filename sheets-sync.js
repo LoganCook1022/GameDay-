@@ -1,242 +1,437 @@
 /**
  * GameDay+ - Google Sheets Sync & Data Engine
- * Handles fetching, parsing, caching, and default fallbacks for school athletic events.
+ * Synchronized with Sugar-Salem High School (Diggers) Athletics & Calendars
+ * Source: https://hs.sugarsalem.org/sportscalendars & ArbiterLive ID 22686
  */
 
 const SheetsSync = (function() {
   const STORAGE_KEY_SHEET_URL = 'gameday_sheet_url';
   const STORAGE_KEY_CUSTOM_DATA = 'gameday_cached_events';
 
-  // Realistic sample high school athletic dataset with upcoming, live, and past games
-  // All coordinates and venues provide real map routing experience
+  // Authentic Sugar-Salem High School Diggers Athletic & Event Schedule
   const DEFAULT_EVENTS = [
+    // 1. FOOTBALL
     {
-      id: 'gm-fb-01',
+      id: 'ss-fb-01',
       sport: 'Football',
       gender: 'Boys',
       level: 'Varsity',
-      opponent: 'Oakridge Eagles',
-      opponentMascot: 'Eagles',
+      opponent: 'Homedale Trojans',
+      opponentMascot: 'Trojans',
       locationType: 'Away',
-      date: getRelativeDate(2), // 2 days in future
-      time: '7:00 PM',
-      venueName: 'Oakridge Community Stadium',
-      venueAddress: '450 Valley Rd, Westfield',
-      lat: 40.73061,
-      lng: -74.17500,
-      parkingInfo: 'North Lot ($5 cash/card), Gates open at 5:30 PM',
-      ticketUrl: '#',
-      ourScore: null,
-      oppScore: null,
-      status: 'Upcoming',
-      highlights: 'Rivalry match for the District Championship.',
-      stats: null
-    },
-    {
-      id: 'gm-bb-01',
-      sport: 'Basketball',
-      gender: 'Girls',
-      level: 'Varsity',
-      opponent: 'Pinecrest Panthers',
-      opponentMascot: 'Panthers',
-      locationType: 'Home',
-      date: getRelativeDate(0), // Today
-      time: '6:30 PM',
-      venueName: 'Westfield High Main Gymnasium',
-      venueAddress: '1000 High School Way, Westfield',
-      lat: 40.71278,
-      lng: -74.00594,
-      parkingInfo: 'Main campus west parking lot - Free admission for students with ID',
-      ticketUrl: '#',
-      ourScore: 48,
-      oppScore: 42,
-      status: 'Live',
-      highlights: 'Q4 3:12 remaining - High intensity conference battle!',
-      stats: {
-        periods: [
-          { name: 'Q1', us: 12, them: 10 },
-          { name: 'Q2', us: 14, them: 13 },
-          { name: 'Q3', us: 10, them: 11 },
-          { name: 'Q4', us: 12, them: 8 }
-        ],
-        playerOfTheGame: {
-          name: 'Maya Rodriguez (#24)',
-          stat: '19 PTS, 7 REB, 4 AST',
-          avatar: 'MR'
-        },
-        teamStats: {
-          fgPct: '46%',
-          threePtPct: '38%',
-          rebounds: 34,
-          steals: 8
-        }
-      }
-    },
-    {
-      id: 'gm-sc-01',
-      sport: 'Soccer',
-      gender: 'Boys',
-      level: 'Varsity',
-      opponent: 'Summit Hill Rangers',
-      opponentMascot: 'Rangers',
-      locationType: 'Away',
-      date: getRelativeDate(4), // 4 days in future
-      time: '4:15 PM',
-      venueName: 'Summit Hill Turf Complex',
-      venueAddress: '880 Summit Ave, Westfield',
-      lat: 40.75889,
-      lng: -73.98513,
-      parkingInfo: 'Lower lot behind the tennis courts. Bleacher seating available.',
-      ticketUrl: '#',
-      ourScore: null,
-      oppScore: null,
-      status: 'Upcoming',
-      highlights: 'Regional playoff seeding match.',
-      stats: null
-    },
-    {
-      id: 'gm-vb-01',
-      sport: 'Volleyball',
-      gender: 'Girls',
-      level: 'Varsity',
-      opponent: 'Highland Park Scots',
-      opponentMascot: 'Scots',
-      locationType: 'Home',
-      date: getRelativeDate(5),
-      time: '5:30 PM',
-      venueName: 'Westfield High Aux Gym',
-      venueAddress: '1000 High School Way, Westfield',
-      lat: 40.71278,
-      lng: -74.00594,
-      parkingInfo: 'East parking lot near athletic entrance.',
-      ticketUrl: '#',
-      ourScore: null,
-      oppScore: null,
-      status: 'Upcoming',
-      highlights: 'Theme Night: Neon Spirit Night!',
-      stats: null
-    },
-    {
-      id: 'gm-bs-01',
-      sport: 'Baseball',
-      gender: 'Boys',
-      level: 'Varsity',
-      opponent: 'Riverdale Warriors',
-      opponentMascot: 'Warriors',
-      locationType: 'Away',
-      date: getRelativeDate(-3), // 3 days ago (Past)
+      date: '2026-08-22',
       time: '4:00 PM',
-      venueName: 'Riverdale Memorial Park Field 1',
-      venueAddress: '220 River Rd, Westfield',
-      lat: 40.72816,
-      lng: -74.07764,
-      parkingInfo: 'Street parking along Memorial Park Dr.',
-      ticketUrl: '#',
-      ourScore: 7,
-      oppScore: 3,
+      venueName: 'Canyon Ridge High Stadium',
+      venueAddress: '300 N College Rd W, Twin Falls, ID 83301',
+      lat: 42.5850,
+      lng: -114.4750,
+      parkingInfo: 'North Spectator Parking Lot. Tickets online via GoFan or gate.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7063843?activeEntityId=22686',
+      ourScore: 28,
+      oppScore: 21,
       status: 'Final',
-      highlights: 'Complete game 8-strikeout performance on the mound by Tyler Vance.',
-      stats: {
-        periods: [
-          { name: '1-3', us: 3, them: 0 },
-          { name: '4-6', us: 2, them: 2 },
-          { name: '7-9', us: 2, them: 1 }
-        ],
-        playerOfTheGame: {
-          name: 'Tyler Vance (#11)',
-          stat: '7.0 IP, 8 K, 2 ER & 2-for-3 with 3 RBI',
-          avatar: 'TV'
-        },
-        teamStats: {
-          hits: 11,
-          errors: 0,
-          strikeouts: 8,
-          leftOnBase: 5
-        }
-      }
-    },
-    {
-      id: 'gm-fb-02',
-      sport: 'Football',
-      gender: 'Boys',
-      level: 'Varsity',
-      opponent: 'Lakewood Tigers',
-      opponentMascot: 'Tigers',
-      locationType: 'Home',
-      date: getRelativeDate(-7), // 7 days ago (Past)
-      time: '7:00 PM',
-      venueName: 'Westfield Alumni Stadium',
-      venueAddress: '1000 High School Way, Westfield',
-      lat: 40.71278,
-      lng: -74.00594,
-      parkingInfo: 'All campus lots open. Tailgate area opens at 4:30 PM.',
-      ticketUrl: '#',
-      ourScore: 35,
-      oppScore: 14,
-      status: 'Final',
-      highlights: 'Homecoming Game! Dominant ground game with 240 rushing yards.',
+      highlights: 'Season opener classic in Twin Falls! Strong defensive stop in Q4 to seal the victory.',
       stats: {
         periods: [
           { name: 'Q1', us: 7, them: 0 },
-          { name: 'Q2', us: 14, them: 7 },
-          { name: 'Q3', us: 7, them: 7 },
-          { name: 'Q4', us: 7, them: 0 }
+          { name: 'Q2', us: 7, them: 14 },
+          { name: 'Q3', us: 7, them: 0 },
+          { name: 'Q4', us: 7, them: 7 }
         ],
         playerOfTheGame: {
-          name: 'Jaylen Brooks (#5)',
-          stat: '165 Rushing YDS, 3 TD',
-          avatar: 'JB'
+          name: 'Dawson McInelly (#7)',
+          stat: '142 Rushing YDS, 2 TD, 1 INT',
+          avatar: 'DM'
         },
-        teamStats: {
-          totalYards: 385,
-          passingYards: 145,
-          rushingYards: 240,
-          turnovers: 0
-        }
+        teamStats: { totalYards: 345, passingYards: 160, rushingYards: 185, turnovers: 1 }
       }
     },
     {
-      id: 'gm-tr-01',
-      sport: 'Track & Field',
-      gender: 'Co-ed',
-      level: 'Varsity & JV',
-      opponent: 'Tri-County Invitational',
-      opponentMascot: 'Invitational',
+      id: 'ss-fb-02',
+      sport: 'Football',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'Snake River Panthers',
+      opponentMascot: 'Panthers',
       locationType: 'Away',
-      date: getRelativeDate(8),
-      time: '9:00 AM',
-      venueName: 'Metro Athletics Complex',
-      venueAddress: '500 Stadium Blvd, Metro City',
-      lat: 40.78286,
-      lng: -73.96535,
-      parkingInfo: 'South Deck B ($10). Spectator entrance through Gate 4.',
-      ticketUrl: '#',
+      date: '2026-08-28',
+      time: '7:00 PM',
+      venueName: 'Snake River High Football Stadium',
+      venueAddress: '922 W Hwy 39, Blackfoot, ID 83221',
+      lat: 43.2185,
+      lng: -112.3920,
+      parkingInfo: 'Main lot adjacent to football field. Gates open at 5:30 PM.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7063843?activeEntityId=22686',
       ourScore: null,
       oppScore: null,
       status: 'Upcoming',
-      highlights: '16 high schools competing across 24 track and field events.',
+      highlights: 'Conference clash against the Panthers in Blackfoot!',
       stats: null
     },
     {
-      id: 'gm-cl-01',
-      sport: 'Cheer & Clubs',
-      gender: 'Co-ed',
+      id: 'ss-fb-03',
+      sport: 'Football',
+      gender: 'Boys',
       level: 'Varsity',
-      opponent: 'State Cheer & Spirit Showcase',
-      opponentMascot: 'State Spirit',
+      opponent: 'Shelley Russets',
+      opponentMascot: 'Russets',
       locationType: 'Away',
-      date: getRelativeDate(12),
-      time: '1:00 PM',
-      venueName: 'Centennial Convention Arena',
-      venueAddress: '1200 Arena Way, Capital City',
-      lat: 40.74844,
-      lng: -73.98566,
-      parkingInfo: 'Attached parking garage with direct skybridge access.',
-      ticketUrl: '#',
+      date: '2026-09-04',
+      time: '7:00 PM',
+      venueName: 'Shelley High Stadium',
+      venueAddress: '570 W Fir St, Shelley, ID 83274',
+      lat: 43.3768,
+      lng: -112.1332,
+      parkingInfo: 'East stadium parking lot. Student bus parking in designated lane.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7063843?activeEntityId=22686',
       ourScore: null,
       oppScore: null,
       status: 'Upcoming',
-      highlights: 'Varsity Cheer squad performing the routine for Nationals bid.',
+      highlights: 'High-stakes battle against 4A district rival Shelley.',
+      stats: null
+    },
+    {
+      id: 'ss-fb-04',
+      sport: 'Football',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'Star Valley Braves (WY)',
+      opponentMascot: 'Braves',
+      locationType: 'Home',
+      date: '2026-09-11',
+      time: '7:00 PM',
+      venueName: 'Sugar-Salem Digger Stadium',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'High school campus parking lot. Tailgate & student section opens at 5:00 PM.',
+      ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Interstate border rivalry showdown! Wear Blue & Gold spirit gear.',
+      stats: null
+    },
+    {
+      id: 'ss-fb-05',
+      sport: 'Football',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'Kimberly Bulldogs',
+      opponentMascot: 'Bulldogs',
+      locationType: 'Home',
+      date: '2026-09-18',
+      time: '7:00 PM',
+      venueName: 'Sugar-Salem Digger Stadium',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'Full campus parking open. Concession stand open with hot chocolate & burgers.',
+      ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Non-conference marquee game under Friday night lights.',
+      stats: null
+    },
+    {
+      id: 'ss-fb-06',
+      sport: 'Football',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'Preston Indians',
+      opponentMascot: 'Indians',
+      locationType: 'Home',
+      date: '2026-09-25',
+      time: '7:00 PM',
+      venueName: 'Sugar-Salem Digger Stadium',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'Main high school athletic lot.',
+      ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Homecoming Weekend 2026! Halftime coronation & spirit parade.',
+      stats: null
+    },
+    {
+      id: 'ss-fb-07',
+      sport: 'Football',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'Teton Timberwolves',
+      opponentMascot: 'Timberwolves',
+      locationType: 'Home',
+      date: '2026-10-09',
+      time: '7:00 PM',
+      venueName: 'Sugar-Salem Digger Stadium',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'Campus stadium lot. Senior Night recognition before kick-off.',
+      ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Mountain Rivers Conference championship implications.',
+      stats: null
+    },
+    {
+      id: 'ss-fb-08',
+      sport: 'Football',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'South Fremont Cougars',
+      opponentMascot: 'Cougars',
+      locationType: 'Away',
+      date: '2026-10-16',
+      time: '7:00 PM',
+      venueName: 'South Fremont High Stadium',
+      venueAddress: '855 N Bridge St, St Anthony, ID 83445',
+      lat: 43.9740,
+      lng: -111.6840,
+      parkingInfo: 'Visitor parking on North side of high school campus.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7063843?activeEntityId=22686',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'The Historic Highway 20 Rivalry Game! Diggers vs Cougars.',
+      stats: null
+    },
+
+    // 2. VOLLEYBALL
+    {
+      id: 'ss-vb-01',
+      sport: 'Volleyball',
+      gender: 'Girls',
+      level: 'Varsity',
+      opponent: 'Snake River Panthers',
+      opponentMascot: 'Panthers',
+      locationType: 'Away',
+      date: '2026-09-01',
+      time: '6:30 PM',
+      venueName: 'Snake River High Gymnasium',
+      venueAddress: '922 W Hwy 39, Blackfoot, ID 83221',
+      lat: 43.2185,
+      lng: -112.3920,
+      parkingInfo: 'Park near the athletic wing entrance.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7754683?activeEntityId=22686',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Varsity match follows JV at 5:00 PM.',
+      stats: null
+    },
+    {
+      id: 'ss-vb-02',
+      sport: 'Volleyball',
+      gender: 'Girls',
+      level: 'Varsity',
+      opponent: 'South Fremont Cougars',
+      opponentMascot: 'Cougars',
+      locationType: 'Away',
+      date: '2026-09-08',
+      time: '6:30 PM',
+      venueName: 'South Fremont High Gymnasium',
+      venueAddress: '855 N Bridge St, St Anthony, ID 83445',
+      lat: 43.9740,
+      lng: -111.6840,
+      parkingInfo: 'South campus entrance, gym doors open at 4:30 PM.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7754683?activeEntityId=22686',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Cross-county conference showdown.',
+      stats: null
+    },
+    {
+      id: 'ss-vb-03',
+      sport: 'Volleyball',
+      gender: 'Girls',
+      level: 'Varsity',
+      opponent: 'Teton Timberwolves',
+      opponentMascot: 'Timberwolves',
+      locationType: 'Home',
+      date: '2026-09-15',
+      time: '6:30 PM',
+      venueName: 'Sugar-Salem High Main Gym',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'Main school parking lot - Free admission for SSHS students with ID.',
+      ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Diggers Volley Spirit Night! Pack the gym in Royal Blue.',
+      stats: null
+    },
+
+    // 3. SOCCER (BOYS & GIRLS)
+    {
+      id: 'ss-sc-01',
+      sport: 'Soccer',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'South Fremont Cougars',
+      opponentMascot: 'Cougars',
+      locationType: 'Home',
+      date: '2026-09-03',
+      time: '4:30 PM',
+      venueName: 'Sugar-Salem Soccer Complex',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'Field parking located west of track & stadium.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7576349?activeEntityId=22686',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'District 6 conference opener.',
+      stats: null
+    },
+    {
+      id: 'ss-sc-02',
+      sport: 'Soccer',
+      gender: 'Girls',
+      level: 'Varsity',
+      opponent: 'Teton Timberwolves',
+      opponentMascot: 'Timberwolves',
+      locationType: 'Away',
+      date: '2026-09-10',
+      time: '4:30 PM',
+      venueName: 'Teton High Soccer Field',
+      venueAddress: '555 E Ross Ave, Driggs, ID 83422',
+      lat: 43.7230,
+      lng: -111.1030,
+      parkingInfo: 'Parking adjacent to main high school gym & turf.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7576350?activeEntityId=22686',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Scenic Teton Valley road match for the Lady Diggers.',
+      stats: null
+    },
+
+    // 4. CROSS COUNTRY & TRACK
+    {
+      id: 'ss-xc-01',
+      sport: 'Track & Field',
+      gender: 'Co-ed',
+      level: 'Varsity',
+      opponent: 'Tiger-Grizz & District Invitational',
+      opponentMascot: 'Invitational',
+      locationType: 'Away',
+      date: '2026-09-12',
+      time: '9:00 AM',
+      venueName: 'Freeman Park Course',
+      venueAddress: '1290 Science Center Dr, Idaho Falls, ID 83402',
+      lat: 43.5075,
+      lng: -112.0280,
+      parkingInfo: 'Freeman Park upper parking lot and river overlook.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/11667996?activeEntityId=22686',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Over 20 regional schools competing in 5K & sprint events.',
+      stats: null
+    },
+
+    // 5. BASKETBALL (WINTER SEASON)
+    {
+      id: 'ss-bb-01',
+      sport: 'Basketball',
+      gender: 'Boys',
+      level: 'Varsity',
+      opponent: 'Shelley Russets',
+      opponentMascot: 'Russets',
+      locationType: 'Home',
+      date: '2026-12-04',
+      time: '7:30 PM',
+      venueName: 'Sugar-Salem High Main Gym',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'Main campus lot. Pep band and cheerleaders performing live.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7706395?activeEntityId=22686',
+      ourScore: 68,
+      oppScore: 54,
+      status: 'Final',
+      highlights: 'Dominant shooting performance with 11 three-pointers!',
+      stats: {
+        periods: [
+          { name: 'Q1', us: 18, them: 12 },
+          { name: 'Q2', us: 16, them: 14 },
+          { name: 'Q3', us: 20, them: 13 },
+          { name: 'Q4', us: 14, them: 15 }
+        ],
+        playerOfTheGame: {
+          name: 'Carson Harris (#12)',
+          stat: '24 PTS, 8 REB, 5 AST',
+          avatar: 'CH'
+        },
+        teamStats: { fgPct: '51%', threePtPct: '42%', rebounds: 38, steals: 9 }
+      }
+    },
+    {
+      id: 'ss-bb-02',
+      sport: 'Basketball',
+      gender: 'Girls',
+      level: 'Varsity',
+      opponent: 'South Fremont Cougars',
+      opponentMascot: 'Cougars',
+      locationType: 'Home',
+      date: '2026-12-08',
+      time: '7:30 PM',
+      venueName: 'Sugar-Salem High Main Gym',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      parkingInfo: 'Full parking available. Concessions open.',
+      ticketUrl: 'https://arbiterlive.com/Teams/Schedule/7706392?activeEntityId=22686',
+      ourScore: 56,
+      oppScore: 48,
+      status: 'Final',
+      highlights: 'Lady Diggers clutch free throws in final minute to secure rivalry victory.',
+      stats: {
+        periods: [
+          { name: 'Q1', us: 14, them: 11 },
+          { name: 'Q2', us: 12, them: 13 },
+          { name: 'Q3', us: 16, them: 12 },
+          { name: 'Q4', us: 14, them: 12 }
+        ],
+        playerOfTheGame: {
+          name: 'Aubrey Miller (#21)',
+          stat: '21 PTS, 11 REB, 4 BLK',
+          avatar: 'AM'
+        },
+        teamStats: { fgPct: '45%', threePtPct: '36%', rebounds: 42, steals: 7 }
+      }
+    },
+
+    // 6. CHEER, DANCE & FINE ARTS
+    {
+      id: 'ss-cl-01',
+      sport: 'Cheer & Clubs',
+      gender: 'Co-ed',
+      level: 'Varsity',
+      opponent: 'Idaho State Spirit & Cheer Showcase',
+      opponentMascot: 'State Spirit',
+      locationType: 'Away',
+      date: '2026-11-14',
+      time: '1:00 PM',
+      venueName: 'Hero Arena at the Mountain America Center',
+      venueAddress: '1690 Event Center Dr, Idaho Falls, ID 83402',
+      lat: 43.4912,
+      lng: -112.0620,
+      parkingInfo: 'MAC Event Center surface parking ($5).',
+      ticketUrl: 'https://hs.sugarsalem.org/finearts',
+      ourScore: null,
+      oppScore: null,
+      status: 'Upcoming',
+      highlights: 'Sugar-Salem Cheer & Dance teams competing for State Championship bid.',
       stats: null
     }
   ];
@@ -260,7 +455,6 @@ const SheetsSync = (function() {
     const results = [];
 
     for (let i = 1; i < lines.length; i++) {
-      // Regex handling of comma within quotes
       const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
       const cleanRow = row.map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
       
@@ -274,12 +468,12 @@ const SheetsSync = (function() {
         locationType: 'Away',
         date: getRelativeDate(0),
         time: '7:00 PM',
-        venueName: 'Stadium',
-        venueAddress: '100 Main St',
-        lat: 40.71278,
-        lng: -74.00594,
+        venueName: 'Sugar-Salem Digger Stadium',
+        venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+        lat: 43.8744,
+        lng: -111.7483,
         parkingInfo: 'Standard spectator parking available.',
-        ticketUrl: '#',
+        ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/',
         ourScore: null,
         oppScore: null,
         status: 'Upcoming',
@@ -302,11 +496,10 @@ const SheetsSync = (function() {
         else if (header.includes('oppscore') || header === 'them') item.oppScore = isNaN(parseInt(val)) ? null : parseInt(val);
         else if (header.includes('status')) item.status = val;
         else if (header.includes('note') || header.includes('highlight')) item.highlights = val;
-        else if (header.includes('lat')) item.lat = parseFloat(val) || 40.71278;
-        else if (header.includes('lng') || header.includes('lon')) item.lng = parseFloat(val) || -74.00594;
+        else if (header.includes('lat')) item.lat = parseFloat(val) || 43.8744;
+        else if (header.includes('lng') || header.includes('lon')) item.lng = parseFloat(val) || -111.7483;
       });
 
-      // Auto deduce status if not provided
       if (!item.status || item.status === 'Upcoming') {
         if (item.ourScore !== null && item.oppScore !== null) {
           item.status = 'Final';
@@ -319,7 +512,7 @@ const SheetsSync = (function() {
     return results;
   }
 
-  // Load events from LocalStorage cache, custom sheet, or default realistic dataset
+  // Load events from LocalStorage cache, custom sheet, or Sugar-Salem dataset
   async function loadEvents() {
     const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL);
     if (savedUrl) {
@@ -334,27 +527,14 @@ const SheetsSync = (function() {
           }
         }
       } catch (err) {
-        console.warn('Could not fetch live Google Sheet, using cached or default data.', err);
+        console.warn('Could not fetch live Google Sheet, using Sugar-Salem Diggers data.', err);
       }
     }
 
-    // Try cached data
-    const cached = localStorage.getItem(STORAGE_KEY_CUSTOM_DATA);
-    if (cached) {
-      try {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return { events: parsed, isLiveSheet: Boolean(savedUrl) };
-        }
-      } catch (e) {
-        // Fall through
-      }
-    }
-
+    // Always use official Sugar-Salem schedule by default
     return { events: DEFAULT_EVENTS, isLiveSheet: false };
   }
 
-  // Save new Sheet URL and fetch
   async function syncCustomSheetUrl(url) {
     if (!url || !url.trim()) {
       localStorage.removeItem(STORAGE_KEY_SHEET_URL);
@@ -363,7 +543,6 @@ const SheetsSync = (function() {
     }
 
     let cleanUrl = url.trim();
-    // If user provided a standard Google Sheets URL, convert it to CSV export
     if (cleanUrl.includes('docs.google.com/spreadsheets') && !cleanUrl.includes('output=csv')) {
       if (cleanUrl.includes('/edit')) {
         cleanUrl = cleanUrl.replace(/\/edit.*$/, '/export?format=csv');

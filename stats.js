@@ -96,9 +96,9 @@ const GameDayStats = (function() {
       const themPeriodScores = stats.periods ? stats.periods.map(p => `<td>${p.them}</td>`).join('') : `<td>${game.oppScore ?? '-'}</td>`;
 
       const playerPotg = stats.playerOfTheGame || {
-        name: 'Team Effort',
+        name: 'Diggers Squad',
         stat: 'Balanced scoring & lockdown defense',
-        avatar: 'W'
+        avatar: 'SS'
       };
 
       return `
@@ -124,7 +124,7 @@ const GameDayStats = (function() {
             </thead>
             <tbody>
               <tr>
-                <td class="team-name-col">Westfield High</td>
+                <td class="team-name-col">Sugar-Salem High</td>
                 ${usPeriodScores}
                 <td class="final-score-col">${game.ourScore ?? '-'}</td>
               </tr>
@@ -163,9 +163,9 @@ const GameDayStats = (function() {
         { name: '2H', us: Math.ceil(ourScore / 2), them: Math.ceil(oppScore / 2) }
       ],
       playerOfTheGame: {
-        name: 'Varsity Squad',
+        name: 'Diggers Squad',
         stat: `${ourScore} - ${oppScore} Final`,
-        avatar: 'W'
+        avatar: 'SS'
       }
     };
   }

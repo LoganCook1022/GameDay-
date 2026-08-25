@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!nextGame) return;
 
     heroMatchupEl.innerHTML = `
-      <h2>${nextGame.sport}: Westfield vs ${nextGame.opponent}</h2>
+      <h2>${nextGame.sport}: Sugar-Salem vs ${nextGame.opponent}</h2>
       <p>
         <span><i class="fa-regular fa-calendar"></i> ${formatFriendlyDate(nextGame.date)}</span>
         <span><i class="fa-regular fa-clock"></i> ${nextGame.time}</span>
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           <div class="matchup-row">
             <div class="team-box">
-              <span class="team-name">Westfield High</span>
+              <span class="team-name">Sugar-Salem High</span>
               <span class="team-type">${isHome ? '🏠 Home' : '🚌 Away'}</span>
             </div>
             <div style="text-align: center;">
@@ -423,7 +423,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (loadDefaultBtn) {
       loadDefaultBtn.addEventListener('click', async () => {
         SheetsSync.resetToSampleData();
-        showToast('Reset to Westfield High sample athletic schedule.', 'info');
+        showToast('Reset to Sugar-Salem High Diggers schedule.', 'info');
         sheetModal.style.display = 'none';
         await loadAndDistributeData();
       });
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
 
       <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem;">
-        Westfield High <span style="color:var(--primary);">vs</span> ${game.opponent}
+        Sugar-Salem High <span style="color:var(--primary);">vs</span> ${game.opponent}
       </h2>
 
       ${hasScores ? `

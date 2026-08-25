@@ -186,7 +186,7 @@ const GameDayCalendar = (function() {
 
           <div class="matchup-row">
             <div class="team-box">
-              <span class="team-name">Westfield High</span>
+              <span class="team-name">Sugar-Salem High</span>
               <span class="team-type">${isHome ? 'Host' : 'Visitor'}</span>
             </div>
             <span class="match-vs">${evt.status === 'Final' ? `${evt.ourScore ?? '-'} : ${evt.oppScore ?? '-'}` : 'VS'}</span>
@@ -246,8 +246,8 @@ const GameDayCalendar = (function() {
   }
 
   function generateGoogleCalendarUrl(evt) {
-    const title = encodeURIComponent(`Westfield vs ${evt.opponent} (${evt.sport})`);
-    const details = encodeURIComponent(`${evt.sport} Match - ${evt.highlights || 'High School Athletics'}\nVenue: ${evt.venueName}\nParking: ${evt.parkingInfo || ''}`);
+    const title = encodeURIComponent(`Sugar-Salem vs ${evt.opponent} (${evt.sport})`);
+    const details = encodeURIComponent(`${evt.sport} Match - ${evt.highlights || 'Sugar-Salem High School Athletics'}\nVenue: ${evt.venueName}\nParking: ${evt.parkingInfo || ''}`);
     const location = encodeURIComponent(`${evt.venueName}, ${evt.venueAddress}`);
     
     // Construct approximate ISO timestamps for Google Cal
