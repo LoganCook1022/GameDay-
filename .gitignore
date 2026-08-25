@@ -1,0 +1,37 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node / Web dependencies & build outputs
+node_modules/
+dist/
+build/
+.next/
+out/
+.turbo/
+.cache/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# IDE & Editor files
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sublime-workspace
+*.swp
