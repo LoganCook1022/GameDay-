@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="spirit">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GameDay+ | High School Sports & Event Hub</title>
+  <meta name="description" content="Never miss a high school game! Live schedules, scores, player stats, away game directions, and interactive maps.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header / Navigation Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-badge">
+          <i class="fa-solid fa-trophy brand-icon"></i>
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-wrap">
+            <h1 class="brand-title">GameDay<span>+</span></h1>
+            <span class="school-tag" id="schoolNameTag">Westfield High</span>
+          </div>
+          <p class="brand-subtitle">High School Sports & Event Center</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Google Sheet Sync Status -->
+        <button id="btnOpenSheetModal" class="action-btn sheet-btn" title="Sync / Connect Google Sheet">
+          <i class="fa-solid fa-table-cells"></i>
+          <span class="btn-text">Sheet Sync</span>
+          <span class="live-dot" id="sheetStatusDot"></span>
+        </button>
+
+        <!-- Theme Toggle Dropdown -->
+        <div class="theme-switcher">
+          <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Switch Theme">
+            <i class="fa-solid fa-wand-magic-sparkles theme-icon"></i>
+            <span id="currentThemeLabel">School Spirit</span>
+            <i class="fa-solid fa-chevron-down caret-icon"></i>
+          </button>
+          <div class="theme-dropdown" id="themeDropdown">
+            <button class="theme-option" data-theme="spirit">
+              <i class="fa-solid fa-shield-halved"></i> School Spirit
+            </button>
+            <button class="theme-option" data-theme="dark">
+              <i class="fa-solid fa-moon"></i> Dark Mode
+            </button>
+            <button class="theme-option" data-theme="light">
+              <i class="fa-solid fa-sun"></i> Light Mode
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Next Game Banner / Countdown -->
+  <section class="hero-section" id="heroCountdownSection">
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="pulse-indicator"></span> NEXT BIG MATCHUP
+        </div>
+        <div class="hero-matchup" id="heroMatchup">
+          <!-- Populated by JS -->
+        </div>
+        <div class="countdown-grid" id="countdownGrid">
+          <div class="countdown-box"><span id="cdDays">00</span><label>Days</label></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-box"><span id="cdHours">00</span><label>Hours</label></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-box"><span id="cdMinutes">00</span><label>Mins</label></div>
+          <div class="countdown-sep">:</div>
+          <div class="countdown-box"><span id="cdSeconds">00</span><label>Secs</label></div>
+        </div>
+      </div>
+      <div class="hero-quick-actions" id="heroQuickActions">
+        <!-- Quick action buttons like directions and add to calendar -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    
+    <!-- Navigation Tabs -->
+    <nav class="view-tabs" role="tablist" aria-label="Main Navigation Tabs">
+      <button class="tab-btn active" data-tab="feed" role="tab" id="tabFeed">
+        <i class="fa-solid fa-list-check"></i> Schedule & Scores
+      </button>
+      <button class="tab-btn" data-tab="calendar" role="tab" id="tabCalendar">
+        <i class="fa-regular fa-calendar-days"></i> Interactive Calendar
+      </button>
+      <button class="tab-btn" data-tab="map" role="tab" id="tabMap">
+        <i class="fa-solid fa-map-location-dot"></i> Away Maps & Venues
+      </button>
+      <button class="tab-btn" data-tab="stats" data-sport="" role="tab" id="tabStats">
+        <i class="fa-solid fa-chart-column"></i> Stats & Box Scores
+      </button>
+    </nav>
+
+    <!-- Filters & Search Toolbar -->
+    <div class="toolbar-section">
+      <!-- Sports Filter Pill Bar -->
+      <div class="sports-filter-scroll-wrapper">
+        <div class="sports-filter-bar" id="sportsFilterBar" role="group" aria-label="Filter by sport">
+          <button class="sport-pill active" data-sport="all">
+            <i class="fa-solid fa-border-all"></i> All Events
+          </button>
+          <button class="sport-pill" data-sport="football">
+            <i class="fa-solid fa-football"></i> Football
+          </button>
+          <button class="sport-pill" data-sport="basketball">
+            <i class="fa-solid fa-basketball"></i> Basketball
+          </button>
+          <button class="sport-pill" data-sport="soccer">
+            <i class="fa-solid fa-futbol"></i> Soccer
+          </button>
+          <button class="sport-pill" data-sport="baseball">
+            <i class="fa-solid fa-baseball-bat-ball"></i> Baseball / Softball
+          </button>
+          <button class="sport-pill" data-sport="volleyball">
+            <i class="fa-solid fa-volleyball"></i> Volleyball
+          </button>
+          <button class="sport-pill" data-sport="track">
+            <i class="fa-solid fa-person-running"></i> Track & Field
+          </button>
+          <button class="sport-pill" data-sport="clubs">
+            <i class="fa-solid fa-bullhorn"></i> Cheer & Clubs
+          </button>
+        </div>
+      </div>
+
+      <!-- Secondary Search & Time Window Bar -->
+      <div class="controls-row">
+        <div class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" id="searchInput" placeholder="Search opponent, venue, date, or sport..." aria-label="Search events">
+          <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" style="display:none;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="time-filter-group">
+          <button class="time-filter-btn active" data-time="all">All</button>
+          <button class="time-filter-btn" data-time="upcoming">Upcoming</button>
+          <button class="time-filter-btn" data-time="today">Today</button>
+          <button class="time-filter-btn" data-time="past">Past Results</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 1: SCHEDULE & SCORES FEED -->
+    <section class="tab-pane active" id="paneFeed">
+      <div class="feed-header">
+        <div class="feed-title-wrap">
+          <h2 id="feedSectionTitle">All Events & Games</h2>
+          <span class="event-count-badge" id="eventCountBadge">0 games</span>
+        </div>
+        <div class="feed-quick-view-toggle">
+          <label class="toggle-switch" title="Show Away Games Only">
+            <input type="checkbox" id="awayOnlyToggle">
+            <span class="slider"></span>
+            <span class="toggle-label">Away Games Only <i class="fa-solid fa-bus"></i></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Events Grid -->
+      <div class="events-grid" id="eventsGrid">
+        <!-- Event Cards will be dynamically inserted here -->
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+        <h3>No Events Found</h3>
+        <p>Try adjusting your search query, sport category, or time filter.</p>
+        <button class="btn-primary" id="resetFiltersBtn"><i class="fa-solid fa-rotate-left"></i> Reset All Filters</button>
+      </div>
+    </section>
+
+    <!-- TAB 2: INTERACTIVE CALENDAR VIEW -->
+    <section class="tab-pane" id="paneCalendar">
+      <div class="calendar-card">
+        <div class="calendar-header">
+          <div class="calendar-title-group">
+            <h2 id="calMonthYearLabel">Month Year</h2>
+            <div class="cal-nav-buttons">
+              <button id="calPrevBtn" class="cal-nav-btn" aria-label="Previous Month"><i class="fa-solid fa-chevron-left"></i></button>
+              <button id="calTodayBtn" class="cal-today-btn">Today</button>
+              <button id="calNextBtn" class="cal-nav-btn" aria-label="Next Month"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+          </div>
+          <div class="cal-legend">
+            <span class="legend-item"><span class="dot dot-football"></span> Football</span>
+            <span class="legend-item"><span class="dot dot-basketball"></span> Basketball</span>
+            <span class="legend-item"><span class="dot dot-soccer"></span> Soccer</span>
+            <span class="legend-item"><span class="dot dot-baseball"></span> Baseball</span>
+            <span class="legend-item"><span class="dot dot-other"></span> Other</span>
+          </div>
+        </div>
+
+        <!-- Days of Week Header -->
+        <div class="calendar-weekdays">
+          <div>Sun</div>
+          <div>Mon</div>
+          <div>Tue</div>
+          <div>Wed</div>
+          <div>Thu</div>
+          <div>Fri</div>
+          <div>Sat</div>
+        </div>
+
+        <!-- Calendar Days Grid -->
+        <div class="calendar-grid" id="calendarDaysGrid">
+          <!-- Populated by calendar.js -->
+        </div>
+      </div>
+
+      <!-- Selected Date Events Drawer / List -->
+      <div class="selected-date-events" id="selectedDateEventsSection">
+        <div class="date-events-header">
+          <h3 id="selectedDateTitle">Events for Today</h3>
+          <span class="badge" id="selectedDateCount">0 events</span>
+        </div>
+        <div class="selected-events-list" id="selectedEventsList">
+          <!-- Populated by calendar.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: AWAY MAPS & VENUES -->
+    <section class="tab-pane" id="paneMap">
+      <div class="map-layout">
+        <div class="map-sidebar">
+          <div class="sidebar-header">
+            <h3><i class="fa-solid fa-location-crosshairs"></i> Game Venues & Away Stadiums</h3>
+            <p>Click any venue for instant directions, travel time, parking tips, and ticket gates.</p>
+          </div>
+          <div class="venue-filter-box">
+            <select id="venueSelect" class="venue-select" aria-label="Select venue to view on map">
+              <option value="all">📍 Show All Stadiums & Arenas</option>
+              <!-- Populated by map.js -->
+            </select>
+          </div>
+          <div class="venues-list" id="venuesList">
+            <!-- Populated by map.js -->
+          </div>
+        </div>
+
+        <div class="map-view-container">
+          <div id="leafletMap" class="leaflet-map-element"></div>
+          <div class="map-overlay-card" id="mapOverlayCard" style="display:none;">
+            <button class="close-overlay-btn" id="closeMapOverlayBtn"><i class="fa-solid fa-xmark"></i></button>
+            <div id="mapOverlayContent"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: STATS & BOX SCORES -->
+    <section class="tab-pane" id="paneStats">
+      <div class="stats-container">
+        <!-- Sport Stats Selector -->
+        <div class="stats-nav-bar" id="statsSportBar">
+          <button class="stats-nav-btn active" data-stat-sport="football">🏈 Football</button>
+          <button class="stats-nav-btn" data-stat-sport="basketball">🏀 Basketball</button>
+          <button class="stats-nav-btn" data-stat-sport="soccer">⚽ Soccer</button>
+          <button class="stats-nav-btn" data-stat-sport="baseball">⚾ Baseball</button>
+          <button class="stats-nav-btn" data-stat-sport="volleyball">🏐 Volleyball</button>
+        </div>
+
+        <!-- Standings and Season Summary -->
+        <div class="stats-summary-grid" id="statsSummaryGrid">
+          <!-- Populated by stats.js -->
+        </div>
+
+        <!-- Recent Box Scores & Game Recaps -->
+        <div class="stats-section-title">
+          <h3><i class="fa-solid fa-receipt"></i> Recent Game Box Scores & Top Performers</h3>
+        </div>
+        <div class="box-scores-grid" id="boxScoresGrid">
+          <!-- Populated by stats.js -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL 1: Game Detail & Directions Modal -->
+  <div class="modal-backdrop" id="gameModal" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeGameModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-body" id="gameModalBody">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Google Sheets Sync & Configuration -->
+  <div class="modal-backdrop" id="sheetModal" style="display: none;">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeSheetModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      <div class="modal-header">
+        <div class="modal-icon-wrap"><i class="fa-solid fa-table-cells"></i></div>
+        <div>
+          <h2>Google Sheets Live Sync</h2>
+          <p>Connect your school's Google Sheet to publish schedules, scores, and stats instantly.</p>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="sheet-form-group">
+          <label for="googleSheetUrlInput">Google Sheet Published CSV URL / Sheet ID:</label>
+          <input type="text" id="googleSheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" class="input-text">
+          <small class="form-help">
+            <strong>How to publish:</strong> In Google Sheets, go to <em>File &rarr; Share &rarr; Publish to web &rarr; Comma-separated values (.csv)</em>, then paste the link here.
+          </small>
+        </div>
+
+        <div class="sheet-actions-row">
+          <button id="btnFetchSheet" class="btn-primary"><i class="fa-solid fa-arrows-rotate"></i> Sync Live Sheet Now</button>
+          <button id="btnLoadDefaultData" class="btn-secondary"><i class="fa-solid fa-database"></i> Reset to Sample Data</button>
+        </div>
+
+        <div class="sheet-template-info">
+          <h4><i class="fa-solid fa-circle-info"></i> Sheet Column Header Format</h4>
+          <div class="table-responsive">
+            <table class="template-table">
+              <thead>
+                <tr>
+                  <th>Sport</th>
+                  <th>Opponent</th>
+                  <th>Date (YYYY-MM-DD)</th>
+                  <th>Time</th>
+                  <th>Location (Home/Away)</th>
+                  <th>Venue Name</th>
+                  <th>Venue Address</th>
+                  <th>Our Score</th>
+                  <th>Opp Score</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Football</td>
+                  <td>Oakridge Eagles</td>
+                  <td>2026-09-04</td>
+                  <td>7:00 PM</td>
+                  <td>Away</td>
+                  <td>Oakridge Stadium</td>
+                  <td>450 Valley Rd, Westfield</td>
+                  <td>28</td>
+                  <td>21</td>
+                  <td>Final</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="template-note">Any updates to your Google Sheet will reflect automatically when students open the app!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-left">
+        <div class="footer-logo"><i class="fa-solid fa-trophy"></i> GameDay<span>+</span></div>
+        <p>Designed for High School Athletics, Boosters, Students & Families.</p>
+      </div>
+      <div class="footer-right">
+        <p>No login required &bull; Works offline &bull; Real-time directions</p>
+        <span class="sync-timestamp" id="lastUpdatedLabel">Synced with athletic calendar</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="sheets-sync.js"></script>
+  <script src="map.js"></script>
+  <script src="calendar.js"></script>
+  <script src="stats.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
