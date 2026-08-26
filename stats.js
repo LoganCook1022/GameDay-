@@ -42,9 +42,18 @@ const GameDayStats = (function() {
     const container = document.getElementById('statsSummaryGrid');
     if (!container) return;
 
-    const data = SPORT_STANDINGS[currentSport] || {
+    const defaultData = SPORT_STANDINGS[currentSport] || {
       record: '5 - 2', conference: '3 - 1', rank: 'Top 5', ppg: '-', oppPpg: '-', streak: 'W2'
     };
+    const completedGames = allEvents.filter(event =>
+      event.sport.toLowerCase().includes(currentSport) &&
+      event.ourScore !== null && event.oppScore !== null
+    );
+    const wins = completedGames.filter(event => event.ourScore > event.oppScore).length;
+    const losses = completedGames.filter(event => event.ourScore < event.oppScore).length;
+    const data = completedGames.length > 0
+      ? { ...defaultData, record: `${wins} - ${losses}` }
+      : defaultData;
 
     container.innerHTML = `
       <div class="stat-metric-card">
@@ -100,6 +109,17 @@ const GameDayStats = (function() {
         stat: 'Balanced scoring & lockdown defense',
         avatar: 'SS'
       };
+      const teamStats = stats.teamStats ? Object.entries(stats.teamStats) : [];
+      const teamStatsHtml = teamStats.length > 0 ? `
+        <div class="team-stats-row">
+          ${teamStats.map(([label, value]) => `
+            <div class="team-stat">
+              <span>${formatStatLabel(label)}</span>
+              <strong>${value}</strong>
+            </div>
+          `).join('')}
+        </div>
+      ` : '';
 
       return `
         <div class="box-score-card">
@@ -144,6 +164,8 @@ const GameDayStats = (function() {
             </div>
           </div>
 
+          ${teamStatsHtml}
+
           ${game.highlights ? `
             <div style="font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 0.5rem;">
               <i class="fa-solid fa-quote-left" style="color: var(--primary);"></i> ${game.highlights}
@@ -168,6 +190,10 @@ const GameDayStats = (function() {
         avatar: 'SS'
       }
     };
+  }
+
+  function formatStatLabel(label) {
+    return label.replace(/([A-Z])/g, ' $1').replace(/^./, character => character.toUpperCase());
   }
 
   return {

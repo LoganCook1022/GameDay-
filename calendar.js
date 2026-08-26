@@ -213,6 +213,9 @@ const GameDayCalendar = (function() {
             <a href="${gcalLink}" target="_blank" rel="noopener" class="btn-card btn-card-secondary" title="Add to Google Calendar">
               <i class="fa-solid fa-calendar-plus"></i> Add to Cal
             </a>
+            <button class="btn-card btn-card-secondary" type="button" onclick="GameDayCalendar.downloadICS('${escapeQuotes(evt.id)}')" title="Download calendar file">
+              <i class="fa-solid fa-download"></i> .ics
+            </button>
           </div>
         </div>
       `;
@@ -250,12 +253,55 @@ const GameDayCalendar = (function() {
     const details = encodeURIComponent(`${evt.sport} Match - ${evt.highlights || 'Sugar-Salem High School Athletics'}\nVenue: ${evt.venueName}\nParking: ${evt.parkingInfo || ''}`);
     const location = encodeURIComponent(`${evt.venueName}, ${evt.venueAddress}`);
     
-    // Construct approximate ISO timestamps for Google Cal
     const dateFormatted = evt.date.replace(/-/g, '');
-    const startTime = `${dateFormatted}T180000Z`;
-    const endTime = `${dateFormatted}T203000Z`;
+    const startTime = `${dateFormatted}T${formatTimeForCalendar(evt.time)}Z`;
+    const endTime = `${dateFormatted}T${formatTimeForCalendar(evt.time, 90)}Z`;
 
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${details}&location=${location}`;
+  }
+
+  function formatTimeForCalendar(timeText, durationMinutes = 0) {
+    const match = (timeText || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!match) return '180000'.slice(0, 6);
+
+    let hours = Number(match[1]) % 12;
+    const minutes = Number(match[2]);
+    if (match[3].toUpperCase() === 'PM') hours += 12;
+    const date = new Date(2000, 0, 1, hours, minutes + durationMinutes);
+    return `${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}00`;
+  }
+
+  function downloadICS(eventId) {
+    const evt = allEvents.find(event => event.id === eventId);
+    if (!evt) return;
+
+    const start = `${evt.date.replace(/-/g, '')}T${formatTimeForCalendar(evt.time)}`;
+    const end = `${evt.date.replace(/-/g, '')}T${formatTimeForCalendar(evt.time, 90)}`;
+    const lines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//GameDay+//Athletics Calendar//EN',
+      'BEGIN:VEVENT',
+      `UID:${evt.id}@gameday-plus`,
+      `DTSTART:${start}`,
+      `DTEND:${end}`,
+      `SUMMARY:${escapeICS(`Sugar-Salem vs ${evt.opponent} (${evt.sport})`)}`,
+      `LOCATION:${escapeICS(`${evt.venueName}, ${evt.venueAddress || ''}`)}`,
+      `DESCRIPTION:${escapeICS(evt.highlights || 'Sugar-Salem High School Athletics')}`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ];
+
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${evt.date}-${evt.sport.toLowerCase()}-gameday.ics`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  function escapeICS(value) {
+    return String(value || '').replace(/[\\;,\n]/g, match => match === '\n' ? '\\n' : `\\${match}`);
   }
 
   function escapeQuotes(str) {
@@ -264,7 +310,8 @@ const GameDayCalendar = (function() {
 
   return {
     initCalendar,
-    updateEvents
+    updateEvents,
+    downloadICS
   };
 })();
 
