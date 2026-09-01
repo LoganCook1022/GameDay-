@@ -209,6 +209,40 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
+    // Search Modal Toggle
+    const searchModal = document.getElementById('searchModal');
+    const searchToggleBtn = document.getElementById('searchToggleBtn');
+    const searchModalClose = document.getElementById('searchModalClose');
+
+    if (searchToggleBtn) {
+      searchToggleBtn.addEventListener('click', () => {
+        searchModal.style.display = 'flex';
+        document.getElementById('searchInput').focus();
+      });
+    }
+
+    if (searchModalClose) {
+      searchModalClose.addEventListener('click', () => {
+        searchModal.style.display = 'none';
+      });
+    }
+
+    // Close modal when clicking outside the content
+    if (searchModal) {
+      searchModal.addEventListener('click', (e) => {
+        if (e.target === searchModal) {
+          searchModal.style.display = 'none';
+        }
+      });
+    }
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && searchModal && searchModal.style.display === 'flex') {
+        searchModal.style.display = 'none';
+      }
+    });
+
     // Search Input
     const searchInput = document.getElementById('searchInput');
     const clearSearchBtn = document.getElementById('clearSearchBtn');

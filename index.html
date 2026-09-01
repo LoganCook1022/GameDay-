@@ -21,6 +21,22 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Search Modal Overlay -->
+  <div id="searchModal" class="search-modal" style="display: none;">
+    <div class="search-modal-content">
+      <button id="searchModalClose" class="search-modal-close" aria-label="Close search">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="search-modal-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search opponent, venue, date, or sport..." aria-label="Search events" autofocus>
+        <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" style="display:none;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Header / Navigation Bar -->
   <header class="app-header">
     <div class="header-container">
@@ -147,13 +163,10 @@
 
       <!-- Secondary Search & Time Window Bar -->
       <div class="controls-row">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="searchInput" placeholder="Search opponent, venue, date, or sport..." aria-label="Search events">
-          <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" style="display:none;">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
+        <!-- Search Button -->
+        <button id="searchToggleBtn" class="search-toggle-btn" title="Open search" aria-label="Search events">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
 
         <div class="time-filter-group">
           <button class="time-filter-btn active" data-time="all">All</button>
