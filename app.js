@@ -37,43 +37,37 @@ document.addEventListener('DOMContentLoaded', async () => {
     const savedTheme = localStorage.getItem('gameday_theme') || 'spirit';
     setTheme(savedTheme);
 
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const themeDropdown = document.getElementById('themeDropdown');
-    const themeSwitcher = document.querySelector('.theme-switcher');
-
-    if (themeToggleBtn && themeSwitcher) {
-      themeToggleBtn.addEventListener('click', (e) => {
+    // Initialize More Menu (3-dots)
+    const moreMenuBtn = document.getElementById('moreMenuBtn');
+    const moreMenu = document.querySelector('.more-menu');
+    
+    if (moreMenuBtn && moreMenu) {
+      moreMenuBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        themeSwitcher.classList.toggle('open');
+        moreMenu.classList.toggle('open');
       });
 
       document.addEventListener('click', () => {
-        themeSwitcher.classList.remove('open');
-      });
-
-      document.querySelectorAll('.theme-option').forEach(option => {
-        option.addEventListener('click', (e) => {
-          e.stopPropagation();
-          const chosenTheme = option.dataset.theme;
-          setTheme(chosenTheme);
-          themeSwitcher.classList.remove('open');
-          showToast(`Switched to ${option.textContent.trim()} mode!`, 'info');
-        });
+        moreMenu.classList.remove('open');
       });
     }
+
+    // Theme options in the new menu structure
+    document.querySelectorAll('.theme-option').forEach(option => {
+      option.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const chosenTheme = option.dataset.theme;
+        setTheme(chosenTheme);
+        if (moreMenu) moreMenu.classList.remove('open');
+        showToast(`Switched to ${option.textContent.trim()} mode!`, 'info');
+      });
+    });
   }
 
   function setTheme(theme) {
     state.currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('gameday_theme', theme);
-
-    const label = document.getElementById('currentThemeLabel');
-    if (label) {
-      if (theme === 'spirit') label.textContent = 'School Spirit';
-      else if (theme === 'dark') label.textContent = 'Dark Mode';
-      else if (theme === 'light') label.textContent = 'Light Mode';
-    }
   }
 
   // --- Data Loading & Distribution ---
@@ -236,7 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    // Close modal on ESC key
+    // Close search modal on ESC key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && searchModal && searchModal.style.display === 'flex') {
         searchModal.style.display = 'none';
@@ -565,6 +559,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       setTimeout(() => toast.remove(), 300);
     }, 3200);
   }
+  window.showToast = showToast;
 
   // --- Utility Functions ---
   function getTodayISO() {
