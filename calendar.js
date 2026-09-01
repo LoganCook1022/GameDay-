@@ -223,17 +223,16 @@ const GameDayCalendar = (function() {
   }
 
   function getSportColor(sport) {
-    switch (sport) {
-      case 'football': return 'var(--sport-football)';
-      case 'basketball': return 'var(--sport-basketball)';
-      case 'soccer': return 'var(--sport-soccer)';
-      case 'baseball':
-      case 'softball': return 'var(--sport-baseball)';
-      case 'volleyball': return 'var(--sport-volleyball)';
-      case 'track':
-      case 'track & field': return 'var(--sport-track)';
-      default: return 'var(--sport-clubs)';
-    }
+    if (sport.includes('foot')) return 'var(--sport-football)';
+    if (sport.includes('basket')) return 'var(--sport-basketball)';
+    if (sport.includes('socc')) return 'var(--sport-soccer)';
+    if (sport.includes('base') || sport.includes('soft')) return 'var(--sport-baseball)';
+    if (sport.includes('volley')) return 'var(--sport-volleyball)';
+    if (sport.includes('cross') || sport.includes('track')) return 'var(--sport-track)';
+    if (sport.includes('wrest')) return '#dc2626';
+    if (sport.includes('tenni')) return '#14b8a6';
+    if (sport.includes('fine') || sport.includes('music') || sport.includes('gala') || sport.includes('concert')) return '#a855f7';
+    return 'var(--sport-clubs)';
   }
 
   function formatDateToISO(d) {
