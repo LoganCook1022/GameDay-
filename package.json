@@ -1,0 +1,16 @@
+{
+  "name": "gameday-plus-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Background sync service for GameDay+ athletic events from an iCal feed.",
+  "main": "services/ical-sync.js",
+  "scripts": {
+    "sync:ical": "node services/ical-sync.js",
+    "sync:ical:once": "node services/ical-sync.js --once"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-cron": "^3.0.3",
+    "node-ical": "^0.20.1"
+  }
+}

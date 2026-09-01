@@ -7,6 +7,7 @@
 const SheetsSync = (function() {
   const STORAGE_KEY_SHEET_URL = 'gameday_sheet_url';
   const STORAGE_KEY_CUSTOM_DATA = 'gameday_cached_events';
+  const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1JIpjr6ivgkZmSHicwbqnj4x5bXvvOZV54GDzh77Voaw/export?format=csv';
 
   // Comprehensive Authentic Sugar-Salem High School Diggers Athletic & Event Schedule
   // Covers all Fall, Winter, Spring sports and School events from https://hs.sugarsalem.org/sportscalendars
@@ -1292,7 +1293,7 @@ const SheetsSync = (function() {
 
   // Load events from LocalStorage cache, custom sheet, or Sugar-Salem dataset
   async function loadEvents() {
-    const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL);
+    const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_SHEET_URL;
     if (savedUrl) {
       try {
         const response = await fetch(savedUrl);
@@ -1300,6 +1301,7 @@ const SheetsSync = (function() {
           const csvText = await response.text();
           const parsed = parseCSV(csvText);
           if (parsed.length > 0) {
+            localStorage.setItem(STORAGE_KEY_SHEET_URL, savedUrl);
             localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
             return { events: parsed, isLiveSheet: true };
           }
@@ -1355,7 +1357,7 @@ const SheetsSync = (function() {
   }
 
   function getSavedSheetUrl() {
-    return localStorage.getItem(STORAGE_KEY_SHEET_URL) || '';
+    return localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_SHEET_URL;
   }
 
   return {
