@@ -8,6 +8,7 @@ const SheetsSync = (function() {
   const STORAGE_KEY_SHEET_URL = 'gameday_sheet_url';
   const STORAGE_KEY_CUSTOM_DATA = 'gameday_cached_events';
   const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1JIpjr6ivgkZmSHicwbqnj4x5bXvvOZV54GDzh77Voaw/export?format=csv';
+  const DEFAULT_LIVE_DATA_URL = './data/events.json';
 
   // Comprehensive Authentic Sugar-Salem High School Diggers Athletic & Event Schedule
   // Covers all Fall, Winter, Spring sports and School events from https://hs.sugarsalem.org/sportscalendars
@@ -1291,24 +1292,54 @@ const SheetsSync = (function() {
     return results;
   }
 
-  // Load events from LocalStorage cache, custom sheet, or Sugar-Salem dataset
+  async function fetchLiveJsonEvents() {
+    const url = localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_LIVE_DATA_URL;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) return null;
+      const data = await response.json();
+      const events = Array.isArray(data) ? data : (Array.isArray(data.events) ? data.events : null);
+      return events && events.length ? events : null;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // Load events from LocalStorage cache, custom sheet, JSON sync file, or Sugar-Salem dataset
   async function loadEvents() {
     const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_SHEET_URL;
+
     if (savedUrl) {
       try {
         const response = await fetch(savedUrl);
         if (response.ok) {
-          const csvText = await response.text();
-          const parsed = parseCSV(csvText);
+          const contentType = response.headers.get('content-type') || '';
+          const text = await response.text();
+
+          if (contentType.includes('application/json') || text.trim().startsWith('[') || text.trim().startsWith('{')) {
+            const json = JSON.parse(text);
+            const parsed = Array.isArray(json) ? json : (Array.isArray(json.events) ? json.events : null);
+            if (parsed && parsed.length > 0) {
+              localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
+              return { events: parsed, isLiveSheet: true };
+            }
+          }
+
+          const parsed = parseCSV(text);
           if (parsed.length > 0) {
-            localStorage.setItem(STORAGE_KEY_SHEET_URL, savedUrl);
             localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
             return { events: parsed, isLiveSheet: true };
           }
         }
       } catch (err) {
-        console.warn('Could not fetch live Google Sheet, using Sugar-Salem Diggers data.', err);
+        console.warn('Could not fetch live feed, trying local sync data.', err);
       }
+    }
+
+    const liveData = await fetchLiveJsonEvents();
+    if (liveData) {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(liveData));
+      return { events: liveData, isLiveSheet: true };
     }
 
     // Always use official Sugar-Salem schedule by default
