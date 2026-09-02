@@ -7,8 +7,8 @@
 const SheetsSync = (function() {
   const STORAGE_KEY_SHEET_URL = 'gameday_sheet_url';
   const STORAGE_KEY_CUSTOM_DATA = 'gameday_cached_events';
-  const DEFAULT_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1JIpjr6ivgkZmSHicwbqnj4x5bXvvOZV54GDzh77Voaw/export?format=csv';
   const DEFAULT_LIVE_DATA_URL = './data/events.json';
+  const DEFAULT_SHEET_URL = DEFAULT_LIVE_DATA_URL;
 
   // Comprehensive Authentic Sugar-Salem High School Diggers Athletic & Event Schedule
   // Covers all Fall, Winter, Spring sports and School events from https://hs.sugarsalem.org/sportscalendars
