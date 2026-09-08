@@ -443,7 +443,7 @@ const GameDayCalendar = (function() {
   }
 
   function getSportColor(sport) {
-    switch ((sport || '').toLowerCase()) {
+    switch (sport) {
       case 'football': return 'var(--sport-football)';
       case 'basketball': return 'var(--sport-basketball)';
       case 'soccer': return 'var(--sport-soccer)';

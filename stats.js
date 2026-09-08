@@ -7,6 +7,7 @@ const GameDayStats = (function() {
   let allEvents = [];
   let currentSport = 'football';
 
+<<<<<<< HEAD
   const SPORT_STANDINGS_FALLBACK = {
     football: { record: '6 - 1', conference: '4 - 0', rank: '#2 in District 6 (4A)', ppg: '31.4', oppPpg: '14.2', streak: 'W4', diff: '+17.2' },
     basketball: { record: '12 - 3', conference: '7 - 1', rank: '#1 in High Country Conference', ppg: '62.8', oppPpg: '51.0', streak: 'W6', diff: '+11.8' },
@@ -15,6 +16,15 @@ const GameDayStats = (function() {
     volleyball: { record: '11 - 5', conference: '6 - 2', rank: '#2 in 4A League', ppg: '3.1 Sets', oppPpg: '1.2 Sets', streak: 'W1', diff: '+1.9' },
     track: { record: '5 - 1 Invites', conference: 'District Champions', rank: '#1 in 4A District 6', ppg: '142.5 Pts', oppPpg: '98.0 Pts', streak: '3-Meet Win Streak', diff: '+44.5' },
     clubs: { record: '3 - 0 Competitions', conference: 'State Qualifier', rank: '1st Place Regional', ppg: '92.4 Rating', oppPpg: '84.0 Rating', streak: 'State Bound', diff: '+8.4' }
+=======
+  const SPORT_STANDINGS = {
+    football: { record: '2 - 0', conference: '1 - 0', rank: '#1 in Conference', ppg: '31.0', oppPpg: '17.5', streak: 'W2' },
+    basketball: { record: '12 - 3', conference: '7 - 1', rank: '#1 in Conference', ppg: '62.8', oppPpg: '51.0', streak: 'W6' },
+    soccer: { record: '2 - 0 - 1', conference: '1 - 0 - 0', rank: '#1 in Region', ppg: '3.7', oppPpg: '1.3', streak: 'W2' },
+    baseball: { record: '14 - 4', conference: '9 - 2', rank: '#1 in Division', ppg: '6.5', oppPpg: '3.2', streak: 'W3' },
+    volleyball: { record: '1 - 0', conference: '1 - 0', rank: '#1 in League', ppg: '3.0 Sets', oppPpg: '1.0 Sets', streak: 'W1' },
+    wrestling: { record: '8 - 1', conference: '4 - 0', rank: '#1 in District', ppg: '48.5', oppPpg: '18.2', streak: 'W5' }
+>>>>>>> da6ef84b87b605f55d80b1e5476579f6f2d23f5c
   };
 
   function initStats() {
