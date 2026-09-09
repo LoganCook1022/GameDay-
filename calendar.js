@@ -7,6 +7,7 @@ const GameDayCalendar = (function() {
   let currentDate = new Date();
   let selectedDateString = null;
   let allEvents = [];
+  let currentSchoolName = 'Sugar-Salem';
 
   const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -45,8 +46,9 @@ const GameDayCalendar = (function() {
     selectedDateString = formatDateToISO(new Date());
   }
 
-  function updateEvents(events) {
+  function updateEvents(events, schoolName = 'Sugar-Salem') {
     allEvents = events;
+    currentSchoolName = schoolName;
     renderCalendar();
     renderSelectedDateEvents();
   }
@@ -186,7 +188,7 @@ const GameDayCalendar = (function() {
 
           <div class="matchup-row">
             <div class="team-box">
-              <span class="team-name">Sugar-Salem High</span>
+              <span class="team-name">${currentSchoolName} High</span>
               <span class="team-type">${isHome ? 'Host' : 'Visitor'}</span>
             </div>
             <span class="match-vs">${evt.status === 'Final' ? `${evt.ourScore ?? '-'} : ${evt.oppScore ?? '-'}` : 'VS'}</span>

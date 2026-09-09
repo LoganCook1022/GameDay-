@@ -21,6 +21,32 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- School Picker Overlay -->
+  <div class="school-picker-overlay" id="schoolPickerOverlay" role="dialog" aria-labelledby="schoolPickerTitle">
+    <div class="school-picker-content">
+      <div class="school-picker-header">
+        <p class="school-picker-eyebrow">GameDay+</p>
+        <h2 id="schoolPickerTitle">Find Your School</h2>
+        <p>Choose your school to see its athletics schedule and events.</p>
+      </div>
+
+      <div class="school-picker-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input type="search" id="schoolPickerSearch" placeholder="Search schools..." aria-label="Search schools">
+      </div>
+
+      <section class="recent-schools-section" id="recentSchoolsSection" hidden>
+        <h3>Recently Visited</h3>
+        <ul class="school-list" id="recentSchoolsList"></ul>
+      </section>
+
+      <section class="all-schools-section">
+        <h3>All Schools</h3>
+        <ul class="school-list" id="allSchoolsList"></ul>
+      </section>
+    </div>
+  </div>
+
   <!-- Header / Navigation Bar -->
   <header class="app-header">
     <div class="header-container">
@@ -38,6 +64,11 @@
       </div>
 
       <div class="header-actions">
+        <button id="backToSchoolPickerBtn" class="action-btn" type="button" title="Change school" aria-label="Change school" hidden>
+          <i class="fa-solid fa-arrow-left"></i>
+          <span class="btn-text">Change School</span>
+        </button>
+
         <!-- Google Sheet Sync Status -->
         <button id="btnOpenSheetModal" class="action-btn sheet-btn" title="Sync / Connect Google Sheet">
           <i class="fa-solid fa-table-cells"></i>

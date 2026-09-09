@@ -10,6 +10,34 @@ const SheetsSync = (function() {
   const DEFAULT_LIVE_DATA_URL = './data/events.json';
   const DEFAULT_SHEET_URL = DEFAULT_LIVE_DATA_URL;
 
+  const snakeRiverGames = [
+    { sport: 'Soccer', level: 'Varsity Girls', opponent: 'Preston High School', date: '2026-10-01', time: '3:00 PM', locationType: 'Away', venueName: 'Preston High School', venueAddress: '151 E 2nd S, Preston, ID 83263' },
+    { sport: 'Football', level: 'Freshman Boys', opponent: 'Highland High School', date: '2026-10-01', time: '4:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Volleyball', level: 'Varsity Girls', opponent: 'Malad High School', date: '2026-10-01', time: '7:00 PM', locationType: 'Away', venueName: 'Malad High School', venueAddress: '180 N 300 W, Malad City, ID 83252' },
+    { sport: 'Soccer', level: 'Varsity Boys', opponent: 'Preston High School', date: '2026-10-01', time: '5:00 PM', locationType: 'Away', venueName: 'Preston High School', venueAddress: '151 E 2nd S, Preston, ID 83263' },
+    { sport: 'Football', level: 'Junior Varsity', opponent: 'Century High School', date: '2026-10-01', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Soccer', level: 'Varsity Girls', opponent: 'Firth High School', date: '2026-10-05', time: '4:00 PM', locationType: 'Away', venueName: 'Firth High School', venueAddress: '329 Lincoln St, Firth, ID 83236' },
+    { sport: 'Soccer', level: 'Varsity Girls', opponent: 'Teton High School', date: '2026-10-06', time: '5:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Volleyball', level: 'Varsity Girls', opponent: 'South Fremont High School', date: '2026-10-06', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Soccer', level: 'Varsity Boys', opponent: 'Teton High School', date: '2026-10-06', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Volleyball', level: 'Varsity Girls', opponent: 'Idaho Falls High School', date: '2026-10-13', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Football', level: 'Varsity Boys', opponent: 'Layton Christian Academy', date: '2026-10-16', time: '4:00 PM', locationType: 'Away', venueName: 'Layton Christian Academy', venueAddress: '2352 E Hwy 193, Layton, UT 84040' },
+    { sport: 'Basketball', level: 'Varsity Girls', opponent: 'Jerome High School', date: '2026-11-12', time: '7:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Basketball', level: 'Varsity Boys', opponent: 'Kimberly High School', date: '2026-11-20', time: '7:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
+    { sport: 'Basketball', level: 'Varsity Boys', opponent: 'Star Valley High School', date: '2026-12-04', time: '7:30 PM', locationType: 'Away', venueName: 'Star Valley High School', venueAddress: '445 S Washington St, Afton, WY 83110' },
+    { sport: 'Wrestling', level: 'Varsity Boys', opponent: 'Marsh Valley High School', date: '2027-02-04', time: '5:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' }
+  ].map((game, index) => ({
+    ...game,
+    id: `sr-${index + 1}`,
+    schoolId: 'snake-river',
+    gender: game.level.endsWith('Girls') ? 'Girls' : 'Boys',
+    status: 'Upcoming',
+    ourScore: null,
+    oppScore: null,
+    highlights: '',
+    stats: null
+  }));
+
   // Comprehensive Authentic Sugar-Salem High School Diggers Athletic & Event Schedule
   // Covers all Fall, Winter, Spring sports and School events from https://hs.sugarsalem.org/sportscalendars
   const DEFAULT_EVENTS = [
@@ -1307,6 +1335,10 @@ const SheetsSync = (function() {
 
   // Load events from LocalStorage cache, custom sheet, JSON sync file, or Sugar-Salem dataset
   async function loadEvents() {
+    if (new URLSearchParams(window.location.search).get('school') === 'snake-river') {
+      return { events: snakeRiverGames, isLiveSheet: false };
+    }
+
     const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_SHEET_URL;
 
     if (savedUrl) {
@@ -1396,7 +1428,8 @@ const SheetsSync = (function() {
     syncCustomSheetUrl,
     resetToSampleData,
     getSavedSheetUrl,
-    DEFAULT_EVENTS
+    DEFAULT_EVENTS,
+    snakeRiverGames
   };
 })();
 

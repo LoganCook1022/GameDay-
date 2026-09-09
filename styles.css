@@ -131,6 +131,144 @@ body {
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
+/* --- School Picker Overlay --- */
+.school-picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  color: var(--text-main);
+}
+
+.school-picker-overlay[hidden] {
+  display: none;
+}
+
+.school-picker-content {
+  width: min(100%, 620px);
+  min-height: 100%;
+  margin: 0 auto;
+  padding: 3.5rem 1.25rem 2.5rem;
+}
+
+.school-picker-header {
+  margin-bottom: 1.75rem;
+}
+
+.school-picker-eyebrow {
+  color: var(--primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.school-picker-header h2 {
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 1.05;
+  margin-bottom: 0.55rem;
+}
+
+.school-picker-header > p:last-child {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+}
+
+.school-picker-search {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0 1rem;
+  margin-bottom: 2rem;
+}
+
+.school-picker-search i {
+  color: var(--primary);
+}
+
+.school-picker-search input {
+  width: 100%;
+  min-height: 3.25rem;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--text-main);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.school-picker-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.school-picker-overlay section {
+  margin-bottom: 1.75rem;
+}
+
+.school-picker-overlay section h3 {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 0.65rem;
+}
+
+.school-list {
+  list-style: none;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.school-list button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 4.25rem;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-main);
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.school-list button:hover,
+.school-list button:focus-visible {
+  background: var(--bg-card-hover);
+  border-color: var(--primary);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.school-list button::after {
+  content: '\f054';
+  color: var(--primary);
+  font-family: 'Font Awesome 6 Free';
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.school-name {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.school-mascot {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin-top: 0.15rem;
+}
+
 h1, h2, h3, h4, h5, .brand-title, .hero-matchup {
   font-family: 'Outfit', sans-serif;
   letter-spacing: -0.02em;

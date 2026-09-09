@@ -5,6 +5,7 @@
 const GameDayStats = (function() {
   let allEvents = [];
   let currentSport = 'football';
+  let currentSchoolName = 'Sugar-Salem';
 
   const SPORT_STANDINGS = {
     football: { record: '2 - 0', conference: '1 - 0', rank: '#1 in Conference', ppg: '31.0', oppPpg: '17.5', streak: 'W2' },
@@ -29,8 +30,9 @@ const GameDayStats = (function() {
     });
   }
 
-  function updateEvents(events) {
+  function updateEvents(events, schoolName = 'Sugar-Salem') {
     allEvents = events;
+    currentSchoolName = schoolName;
     renderStats();
   }
 
@@ -42,6 +44,17 @@ const GameDayStats = (function() {
   function renderStandingsSummary() {
     const container = document.getElementById('statsSummaryGrid');
     if (!container) return;
+
+    if (allEvents.length === 0) {
+      container.innerHTML = `
+        <div style="grid-column: 1/-1; padding: 2.5rem; text-align: center; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-lg); border: var(--card-border);">
+          <i class="fa-solid fa-chart-column" style="font-size: 2.5rem; margin-bottom: 0.75rem; display: block; color: var(--primary);"></i>
+          <h4 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 0.25rem;">School Stats Coming Soon</h4>
+          <p style="font-size: 0.85rem;">Statistics and standings will appear here when school data is added.</p>
+        </div>
+      `;
+      return;
+    }
 
     const defaultData = SPORT_STANDINGS[currentSport] || {
       record: '5 - 2', conference: '3 - 1', rank: 'Top 5', ppg: '-', oppPpg: '-', streak: 'W2'
@@ -145,7 +158,7 @@ const GameDayStats = (function() {
             </thead>
             <tbody>
               <tr>
-                <td class="team-name-col">Sugar-Salem High</td>
+                <td class="team-name-col">${currentSchoolName} High</td>
                 ${usPeriodScores}
                 <td class="final-score-col">${game.ourScore ?? '-'}</td>
               </tr>

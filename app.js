@@ -3,9 +3,19 @@
  * High School Sports & Event Hub
  */
 
+const SCHOOL_OPTIONS = [
+  { id: 'sugar-salem', name: 'Sugar-Salem High School', mascot: 'Diggers' },
+  { id: 'south-fremont', name: 'South Fremont High School', mascot: 'Cougars' },
+  { id: 'teton', name: 'Teton High School', mascot: 'Timberwolves' },
+  { id: 'snake-river', name: 'Snake River High School', mascot: 'Panthers' },
+  { id: 'madison', name: 'Madison High School', mascot: 'Bobcats' },
+  { id: 'rigby', name: 'Rigby High School', mascot: 'Trojans' }
+];
+
 document.addEventListener('DOMContentLoaded', async () => {
   // Application State
   const state = {
+    schoolId: new URLSearchParams(window.location.search).get('school') || 'sugar-salem',
     events: [],
     selectedSport: 'all',
     timeFilter: 'all',
@@ -15,22 +25,121 @@ document.addEventListener('DOMContentLoaded', async () => {
     activeTab: 'feed'
   };
 
-  // 1. Initialize Theme Engine
+  // 1. Initialize the school context before loading the app data.
+  initSchoolPicker();
+
+  // 2. Initialize Theme Engine
   initThemes();
 
-  // 2. Initialize Sub-modules
+  // 3. Initialize Sub-modules
   GameDayMap.initMap();
   GameDayCalendar.initCalendar();
   GameDayStats.initStats();
 
-  // 3. Load Event Data
+  // 4. Load Event Data
   await loadAndDistributeData();
 
-  // 4. Setup Event Listeners & UI Controls
+  // 5. Setup Event Listeners & UI Controls
   setupNavigationTabs();
   setupFiltersAndSearch();
   setupModals();
   startCountdownTimer();
+
+  // --- School Picker ---
+  function initSchoolPicker() {
+    const overlay = document.getElementById('schoolPickerOverlay');
+    const searchInput = document.getElementById('schoolPickerSearch');
+    const allSchoolsList = document.getElementById('allSchoolsList');
+    const recentSchoolsList = document.getElementById('recentSchoolsList');
+    const recentSchoolsSection = document.getElementById('recentSchoolsSection');
+    const backButton = document.getElementById('backToSchoolPickerBtn');
+    if (!overlay || !searchInput || !allSchoolsList || !recentSchoolsList || !recentSchoolsSection) return;
+
+    const schoolsByName = [...SCHOOL_OPTIONS].sort((a, b) => a.name.localeCompare(b.name));
+    const selectedId = new URLSearchParams(window.location.search).get('school');
+    const selectedSchool = SCHOOL_OPTIONS.find(school => school.id === selectedId);
+
+    if (selectedSchool) {
+      overlay.hidden = true;
+      updateSchoolNameTag(selectedSchool);
+      if (backButton) backButton.hidden = false;
+    } else {
+      overlay.hidden = false;
+      if (backButton) backButton.hidden = true;
+    }
+
+    if (backButton) {
+      backButton.addEventListener('click', () => {
+        const destination = new URL(window.location.href);
+        destination.searchParams.delete('school');
+        window.location.href = destination.toString();
+      });
+    }
+
+    function getRecentSchools() {
+      try {
+        const storedIds = JSON.parse(localStorage.getItem('gameday_recent_schools') || '[]');
+        return Array.isArray(storedIds)
+          ? storedIds.map(id => SCHOOL_OPTIONS.find(school => school.id === id)).filter(Boolean)
+          : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function renderSchoolList(list, schools) {
+      list.innerHTML = schools.map(school => `
+        <li>
+          <button type="button" data-school-id="${school.id}">
+            <span>
+              <span class="school-name">${school.name}</span>
+              <span class="school-mascot">${school.mascot}</span>
+            </span>
+          </button>
+        </li>
+      `).join('');
+    }
+
+    function renderLists(query = '') {
+      const normalizedQuery = query.toLowerCase().trim();
+      const matches = school => `${school.name} ${school.mascot}`.toLowerCase().includes(normalizedQuery);
+      const recentSchools = getRecentSchools().filter(matches);
+      const allSchools = schoolsByName.filter(matches);
+
+      recentSchoolsSection.hidden = recentSchools.length === 0;
+      renderSchoolList(recentSchoolsList, recentSchools);
+      renderSchoolList(allSchoolsList, allSchools);
+    }
+
+    function selectSchool(schoolId) {
+      const recentIds = getRecentSchools().map(school => school.id);
+      const updatedIds = [schoolId, ...recentIds.filter(id => id !== schoolId)].slice(0, 3);
+      localStorage.setItem('gameday_recent_schools', JSON.stringify(updatedIds));
+      const destination = new URL(window.location.href);
+      destination.searchParams.set('school', schoolId);
+      window.location.href = destination.toString();
+    }
+
+    overlay.addEventListener('click', event => {
+      const schoolButton = event.target.closest('[data-school-id]');
+      if (schoolButton) selectSchool(schoolButton.dataset.schoolId);
+    });
+
+    searchInput.addEventListener('input', event => renderLists(event.target.value));
+    renderLists();
+  }
+
+  function updateSchoolNameTag(school) {
+    const schoolNameTag = document.getElementById('schoolNameTag');
+    const schoolSubtitle = document.querySelector('.brand-subtitle');
+    if (schoolNameTag) schoolNameTag.textContent = `${school.name.replace(' High School', '')} ${school.mascot}`;
+    if (schoolSubtitle) schoolSubtitle.textContent = `${school.name} Athletics & Events Hub`;
+  }
+
+  function getCurrentSchoolName() {
+    const school = SCHOOL_OPTIONS.find(option => option.id === state.schoolId);
+    return school ? school.name.replace(' High School', '') : 'School';
+  }
 
   // --- Theme Management ---
   function initThemes() {
@@ -79,25 +188,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- Data Loading & Distribution ---
   async function loadAndDistributeData() {
     const { events, isLiveSheet } = await SheetsSync.loadEvents();
-    state.events = events;
+    const hasSchoolData = state.schoolId === 'sugar-salem' || state.schoolId === 'snake-river';
+    state.events = hasSchoolData ? events : [];
 
     // Update Status Indicator
     const dot = document.getElementById('sheetStatusDot');
     if (dot) {
-      dot.style.background = isLiveSheet ? '#10b981' : '#f59e0b';
-      dot.title = isLiveSheet ? 'Connected to Live Google Sheet' : 'Using Local/Sample Athletics Data';
+      dot.style.background = hasSchoolData && isLiveSheet ? '#10b981' : '#f59e0b';
+      dot.title = hasSchoolData && isLiveSheet ? 'Connected to Live Google Sheet' : 'No school data available yet';
     }
 
     // Refresh all modules
     renderHeroMatchup();
     renderFeed();
     GameDayMap.updateVenues(state.events);
-    GameDayCalendar.updateEvents(state.events);
-    GameDayStats.updateEvents(state.events);
+    const school = SCHOOL_OPTIONS.find(option => option.id === state.schoolId);
+    const schoolName = school ? school.name.replace(' High School', '') : 'School';
+    GameDayCalendar.updateEvents(state.events, schoolName);
+    GameDayStats.updateEvents(state.events, schoolName);
 
     const timestampLabel = document.getElementById('lastUpdatedLabel');
     if (timestampLabel) {
-      timestampLabel.textContent = `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${isLiveSheet ? '(Live Sheet)' : '(Sample Mode)'}`;
+      timestampLabel.textContent = hasSchoolData
+        ? `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${isLiveSheet ? '(Live Sheet)' : '(Sample Mode)'}`
+        : 'School data coming soon';
     }
   }
 
@@ -112,10 +226,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const upcoming = state.events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
     const nextGame = upcoming[0] || state.events[0];
 
-    if (!nextGame) return;
+    if (!nextGame) {
+      heroMatchupEl.innerHTML = '';
+      heroActionsEl.innerHTML = '';
+      state.nextGameTarget = null;
+      return;
+    }
 
     heroMatchupEl.innerHTML = `
-      <h2>${nextGame.sport}: Sugar-Salem vs ${nextGame.opponent}</h2>
+      <h2>${nextGame.sport}: ${getCurrentSchoolName()} vs ${nextGame.opponent}</h2>
       <p>
         <span><i class="fa-regular fa-calendar"></i> ${formatFriendlyDate(nextGame.date)}</span>
         <span><i class="fa-regular fa-clock"></i> ${nextGame.time}</span>
@@ -312,6 +431,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (filtered.length === 0) {
       grid.innerHTML = '';
+      if (state.events.length === 0) {
+        const emptyHeading = emptyState.querySelector('h3');
+        const emptyMessage = emptyState.querySelector('p');
+        if (emptyHeading) emptyHeading.textContent = 'School Data Coming Soon';
+        if (emptyMessage) emptyMessage.textContent = 'Schedules, scores, and events will appear here when this school data is added.';
+      }
       emptyState.style.display = 'block';
       return;
     }
@@ -335,7 +460,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           <div class="matchup-row">
             <div class="team-box">
-              <span class="team-name">Sugar-Salem High</span>
+              <span class="team-name">${getCurrentSchoolName()} High</span>
               <span class="team-type">${isHome ? '🏠 Home' : '🚌 Away'}</span>
             </div>
             <div style="text-align: center;">
@@ -467,7 +592,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       </div>
 
       <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem;">
-        Sugar-Salem High <span style="color:var(--primary);">vs</span> ${game.opponent}
+        ${getCurrentSchoolName()} High <span style="color:var(--primary);">vs</span> ${game.opponent}
       </h2>
 
       ${hasScores ? `
