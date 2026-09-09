@@ -1,5 +1,5 @@
 /**
- * GameDay+ - Interactive Sports & Events Calendar Module
+ * GameDay+ - Interactive Sports & Events Calendar Module (CAL-01)
  * Month & Week navigation, sport color-coding, event drawers, and .ics / Google Calendar exports
  */
 
@@ -8,11 +8,14 @@ const GameDayCalendar = (function() {
   let selectedDateString = null;
   let allEvents = [];
   let currentSchoolName = 'Sugar-Salem';
+  let viewMode = 'month'; // 'month' | 'week'
 
   const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
+
+  const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   function initCalendar() {
     const prevBtn = document.getElementById('calPrevBtn');
@@ -21,14 +24,22 @@ const GameDayCalendar = (function() {
 
     if (prevBtn) {
       prevBtn.addEventListener('click', () => {
-        currentDate.setMonth(currentDate.getMonth() - 1);
+        if (viewMode === 'month') {
+          currentDate.setMonth(currentDate.getMonth() - 1);
+        } else {
+          currentDate.setDate(currentDate.getDate() - 7);
+        }
         renderCalendar();
       });
     }
 
     if (nextBtn) {
       nextBtn.addEventListener('click', () => {
-        currentDate.setMonth(currentDate.getMonth() + 1);
+        if (viewMode === 'month') {
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        } else {
+          currentDate.setDate(currentDate.getDate() + 7);
+        }
         renderCalendar();
       });
     }
@@ -39,6 +50,72 @@ const GameDayCalendar = (function() {
         selectedDateString = formatDateToISO(currentDate);
         renderCalendar();
         renderSelectedDateEvents();
+      });
+    }
+
+    // View Mode Switcher: Month / Week
+    const monthBtn = document.getElementById('calViewMonthBtn');
+    const weekBtn = document.getElementById('calViewWeekBtn');
+
+    if (monthBtn) {
+      monthBtn.addEventListener('click', () => {
+        viewMode = 'month';
+        monthBtn.classList.add('active');
+        if (weekBtn) weekBtn.classList.remove('active');
+        renderCalendar();
+      });
+    }
+
+    if (weekBtn) {
+      weekBtn.addEventListener('click', () => {
+        viewMode = 'week';
+        weekBtn.classList.add('active');
+        if (monthBtn) monthBtn.classList.remove('active');
+        renderCalendar();
+      });
+    }
+
+    // Export Schedule Dropdown & Actions
+    const exportBtn = document.getElementById('exportScheduleBtn');
+    const exportMenu = document.getElementById('calExportMenu');
+    const exportMonthBtn = document.getElementById('exportMonthIcsBtn');
+    const exportSeasonBtn = document.getElementById('exportSeasonIcsBtn');
+
+    if (exportBtn && exportMenu) {
+      exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = exportMenu.style.display === 'flex';
+        exportMenu.style.display = isOpen ? 'none' : 'flex';
+      });
+
+      document.addEventListener('click', () => {
+        exportMenu.style.display = 'none';
+      });
+    }
+
+    if (exportMonthBtn) {
+      exportMonthBtn.addEventListener('click', () => {
+        downloadMonthICS();
+        if (exportMenu) exportMenu.style.display = 'none';
+      });
+    }
+
+    if (exportSeasonBtn) {
+      exportSeasonBtn.addEventListener('click', () => {
+        downloadSeasonICS();
+        if (exportMenu) exportMenu.style.display = 'none';
+      });
+    }
+
+    // Legend Toggle
+    const legendBtn = document.getElementById('legendToggleBtn');
+    const legendEl = document.getElementById('calLegend');
+    if (legendBtn && legendEl) {
+      legendBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = legendEl.style.display !== 'none';
+        legendEl.style.display = isVisible ? 'none' : 'flex';
+        legendBtn.classList.toggle('active', !isVisible);
       });
     }
 
@@ -54,9 +131,22 @@ const GameDayCalendar = (function() {
   }
 
   function renderCalendar() {
+    if (viewMode === 'week') {
+      renderWeekView();
+    } else {
+      renderMonthView();
+    }
+  }
+
+  // --- Month View Rendering ---
+  function renderMonthView() {
     const label = document.getElementById('calMonthYearLabel');
     const grid = document.getElementById('calendarDaysGrid');
+    const weekdays = document.querySelector('.calendar-weekdays');
     if (!label || !grid) return;
+
+    if (weekdays) weekdays.style.display = 'grid';
+    grid.className = 'calendar-grid';
 
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -89,7 +179,7 @@ const GameDayCalendar = (function() {
       html += renderDayCell(day, isoStr, false, isToday, isSelected);
     }
 
-    // Next month filler days to complete grid (42 cells = 6 weeks)
+    // Next month filler days to complete grid (35 or 42 cells)
     const totalCells = (firstDay + daysInMonth);
     const remainingCells = (totalCells > 35 ? 42 : 35) - totalCells;
     for (let day = 1; day <= remainingCells; day++) {
@@ -117,36 +207,129 @@ const GameDayCalendar = (function() {
 
   function renderDayCell(dayNum, isoDate, isOtherMonth, isToday, isSelected) {
     const dayEvents = allEvents.filter(e => e.date === isoDate);
+    const hasEvents = dayEvents.length > 0;
+
     const classes = [
       'cal-day-cell',
       isOtherMonth ? 'other-month' : '',
       isToday ? 'today' : '',
-      isSelected ? 'selected' : ''
+      isSelected ? 'selected' : '',
+      hasEvents ? 'has-events' : ''
     ].filter(Boolean).join(' ');
 
-    const chipsHtml = dayEvents.slice(0, 3).map(evt => {
-      const sportLower = evt.sport.toLowerCase();
+    const maxChips = 2;
+    const visibleEvents = dayEvents.slice(0, maxChips);
+    const overflowCount = dayEvents.length - maxChips;
+
+    const chipsHtml = visibleEvents.map(evt => {
+      const sportLower = (evt.sport || '').toLowerCase();
       const color = getSportColor(sportLower);
       return `
-        <div class="cal-chip" style="background-color: ${color};" title="${evt.sport} vs ${evt.opponent} (${evt.time})">
-          ${evt.locationType === 'Home' ? '🏠' : '🚌'} ${evt.sport.substring(0, 4)}: ${evt.opponent}
+        <div class="cal-chip" style="background-color: ${color};" title="${evt.sport} vs ${evt.opponent} at ${evt.time}">
+          ${evt.locationType === 'Home' ? '🏠' : '🚌'} ${evt.time || 'TBD'}
         </div>
       `;
     }).join('');
 
-    const moreCount = dayEvents.length > 3 ? `<span style="font-size:0.65rem; color:var(--text-muted); font-weight:700;">+${dayEvents.length - 3} more</span>` : '';
+    const moreHtml = overflowCount > 0 ? `
+      <div class="cal-chip-more" title="${overflowCount} more events scheduled">
+        +${overflowCount} more
+      </div>
+    ` : '';
 
     return `
       <div class="${classes}" data-date="${isoDate}">
         <div class="cal-day-number">${dayNum}</div>
         <div class="cal-event-chips">
           ${chipsHtml}
-          ${moreCount}
+          ${moreHtml}
         </div>
       </div>
     `;
   }
 
+  // --- Week View Rendering ---
+  function renderWeekView() {
+    const label = document.getElementById('calMonthYearLabel');
+    const grid = document.getElementById('calendarDaysGrid');
+    const weekdays = document.querySelector('.calendar-weekdays');
+    if (!label || !grid) return;
+
+    if (weekdays) weekdays.style.display = 'none';
+    grid.className = 'cal-week-grid';
+
+    // Calculate start of current week (Sunday)
+    const currentCopy = new Date(currentDate);
+    const dayOfWeek = currentCopy.getDay();
+    const startOfWeek = new Date(currentCopy);
+    startOfWeek.setDate(currentCopy.getDate() - dayOfWeek);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    const startMonth = MONTH_NAMES[startOfWeek.getMonth()].substring(0, 3);
+    const endMonth = MONTH_NAMES[endOfWeek.getMonth()].substring(0, 3);
+    const yearLabel = startOfWeek.getFullYear() === endOfWeek.getFullYear()
+      ? startOfWeek.getFullYear()
+      : `${startOfWeek.getFullYear()}/${endOfWeek.getFullYear()}`;
+
+    label.textContent = `${startMonth} ${startOfWeek.getDate()} - ${endMonth} ${endOfWeek.getDate()}, ${yearLabel}`;
+
+    const todayStr = formatDateToISO(new Date());
+    let html = '';
+
+    for (let i = 0; i < 7; i++) {
+      const dayDate = new Date(startOfWeek);
+      dayDate.setDate(startOfWeek.getDate() + i);
+      const isoStr = formatDateToISO(dayDate);
+      const isToday = isoStr === todayStr;
+      const isSelected = isoStr === selectedDateString;
+      const dayEvents = allEvents.filter(e => e.date === isoStr);
+
+      const eventsHtml = dayEvents.length > 0 ? dayEvents.map(evt => {
+        const sportColor = getSportColor(evt.sport.toLowerCase());
+        const isHome = evt.locationType === 'Home';
+        return `
+          <div class="cal-week-event-card" style="border-left-color: ${sportColor};">
+            <div>
+              <strong>${evt.sport}</strong> vs ${evt.opponent}
+              <span style="color: var(--text-muted); margin-left: 4px;">(${isHome ? '🏠 Home' : '🚌 Away'})</span>
+            </div>
+            <div style="font-weight: 700; color: ${sportColor};">
+              ${evt.time || 'TBD'}
+            </div>
+          </div>
+        `;
+      }).join('') : `<div class="cal-week-empty-day">No games scheduled</div>`;
+
+      html += `
+        <div class="cal-week-day-card ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" data-date="${isoStr}">
+          <div class="cal-week-day-head">
+            <span class="cal-week-day-name">${DAY_NAMES[dayDate.getDay()]}</span>
+            <span class="cal-week-day-date">${MONTH_NAMES[dayDate.getMonth()].substring(0, 3)} ${dayDate.getDate()}</span>
+          </div>
+          <div class="cal-week-events-list">
+            ${eventsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    grid.innerHTML = html;
+
+    // Attach click handlers to week day cards
+    grid.querySelectorAll('.cal-week-day-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const dateStr = card.dataset.date;
+        selectedDateString = dateStr;
+        grid.querySelectorAll('.cal-week-day-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        renderSelectedDateEvents();
+      });
+    });
+  }
+
+  // --- Selected Date Detail Drawer ---
   function renderSelectedDateEvents() {
     const listEl = document.getElementById('selectedEventsList');
     const titleEl = document.getElementById('selectedDateTitle');
@@ -157,33 +340,50 @@ const GameDayCalendar = (function() {
 
     const dateObj = parseISODate(selectedDateString);
     const friendlyDate = dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    titleEl.textContent = `Schedule for ${friendlyDate}`;
+    titleEl.textContent = `Games on ${friendlyDate}`;
 
     const matchingEvents = allEvents.filter(e => e.date === selectedDateString);
     countEl.textContent = `${matchingEvents.length} event${matchingEvents.length === 1 ? '' : 's'}`;
 
     if (matchingEvents.length === 0) {
       listEl.innerHTML = `
-        <div style="grid-column: 1/-1; padding: 2rem; text-align: center; color: var(--text-muted);">
-          <i class="fa-regular fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
-          <p>No games or club events scheduled for this day.</p>
+        <div class="empty-state-container">
+          <div class="empty-state-icon"><i class="fa-regular fa-calendar-xmark"></i></div>
+          <p>No games scheduled for this day.</p>
         </div>
       `;
       return;
     }
 
-    listEl.innerHTML = matchingEvents.map(evt => {
+    // Sort events chronologically
+    const sortedEvents = matchingEvents.sort((a, b) => {
+      const timeA = a.time || '00:00';
+      const timeB = b.time || '00:00';
+      return timeA.localeCompare(timeB);
+    });
+
+    listEl.innerHTML = sortedEvents.map(evt => {
       const sportColor = getSportColor(evt.sport.toLowerCase());
       const gcalLink = generateGoogleCalendarUrl(evt);
       const isHome = evt.locationType === 'Home';
+      const timeStr = evt.time || 'TBD';
+      const opponentStr = evt.opponent || 'TBA';
 
       return `
-        <div class="event-card">
-          <div class="event-card-header">
-            <span class="event-sport-tag" style="background: ${sportColor}22; color: ${sportColor};">
-              <i class="fa-solid fa-medal"></i> ${evt.sport} (${evt.gender || 'Varsity'})
-            </span>
-            <span class="event-status-badge status-${evt.status.toLowerCase()}">${evt.status}</span>
+        <div class="selected-event-item">
+          <div style="display: flex; gap: var(--space-md); align-items: flex-start; margin-bottom: var(--space-md);">
+            <div style="background: ${sportColor}18; color: ${sportColor}; padding: var(--space-md); border-radius: var(--radius-md); flex-shrink: 0; text-align: center; min-width: 54px; border: 1px solid ${sportColor}40;">
+              <div style="font-size: 1.15rem; font-weight: 800;">${evt.sport.substring(0, 3).toUpperCase()}</div>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-weight: 800; font-size: var(--text-lg); margin-bottom: var(--space-xs);">
+                ${evt.sport} ${evt.gender || 'Varsity'} ${evt.level ? '(' + evt.level + ')' : ''}
+              </div>
+              <div class="event-time-badge">
+                <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${timeStr}
+              </div>
+            </div>
+            <span class="event-status-badge status-${(evt.status || 'upcoming').toLowerCase()}">${evt.status || 'Scheduled'}</span>
           </div>
 
           <div class="matchup-row">
@@ -191,32 +391,40 @@ const GameDayCalendar = (function() {
               <span class="team-name">${currentSchoolName} High</span>
               <span class="team-type">${isHome ? 'Host' : 'Visitor'}</span>
             </div>
-            <span class="match-vs">${evt.status === 'Final' ? `${evt.ourScore ?? '-'} : ${evt.oppScore ?? '-'}` : 'VS'}</span>
-            <div class="team-box" style="text-align: right;">
-              <span class="team-name">${evt.opponent}</span>
-              <span class="team-type">${isHome ? 'Visitor' : 'Host'}</span>
+            <div style="font-weight: 800; font-size: var(--text-lg); color: var(--text-muted); text-align: center; padding: 0 4px;">
+              ${evt.status === 'Final' ? '<span style="color:var(--text-main); font-size: 1.2rem;">' + (evt.ourScore ?? '-') + ' - ' + (evt.oppScore ?? '-') + '</span>' : 'VS'}
+            </div>
+            <div style="flex: 1; text-align: center;">
+              <div style="font-weight: 700; font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase;">${isHome ? 'Visitor' : 'Opponent'}</div>
+              <div style="font-weight: 800; font-size: var(--text-lg); color: var(--text-main);">${opponentStr}</div>
             </div>
           </div>
 
-          <div class="match-meta">
-            <div class="meta-item">
-              <i class="fa-regular fa-clock"></i> <span><strong>${evt.time}</strong></span>
+          <div style="margin-bottom: var(--space-lg);">
+            <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-xs);">
+              <i class="fa-solid fa-map-pin"></i> Venue & Location
             </div>
-            <div class="meta-item">
-              <i class="fa-solid fa-map-pin"></i> <span>${evt.venueName}</span>
-              <span class="location-badge ${isHome ? 'badge-home' : 'badge-away'}">${isHome ? 'Home' : 'Away'}</span>
+            <div style="font-weight: 700; color: var(--text-main);">${evt.venueName}</div>
+            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">
+              ${evt.venueAddress || ''} &bull; ${isHome ? '🏠 Home Game' : '🚌 Away Game'}
             </div>
           </div>
 
-          <div class="card-actions">
-            <button class="btn-card btn-card-primary" onclick="GameDayMap.openVenueByName('${escapeQuotes(evt.venueName)}')">
+          ${evt.highlights ? `
+            <div style="font-size: var(--text-xs); color: var(--text-muted); background: var(--bg-card); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-lg); border-left: 3px solid var(--primary);">
+              <i class="fa-solid fa-circle-info" style="color: var(--primary); margin-right: 4px;"></i> ${evt.highlights}
+            </div>
+          ` : ''}
+
+          <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+            <button class="btn-primary" onclick="GameDayCalendar.handleDirectionsClick('${escapeQuotes(evt.venueName)}')">
               <i class="fa-solid fa-location-arrow"></i> Directions
             </button>
-            <a href="${gcalLink}" target="_blank" rel="noopener" class="btn-card btn-card-secondary" title="Add to Google Calendar">
-              <i class="fa-solid fa-calendar-plus"></i> Add to Cal
+            <a href="${gcalLink}" target="_blank" rel="noopener" class="btn-secondary" style="text-decoration: none;">
+              <i class="fa-solid fa-calendar-plus"></i> Google Cal
             </a>
-            <button class="btn-card btn-card-secondary" type="button" onclick="GameDayCalendar.downloadICS('${escapeQuotes(evt.id)}')" title="Download calendar file">
-              <i class="fa-solid fa-download"></i> .ics
+            <button class="btn-ics-export" onclick="GameDayCalendar.downloadICS('${evt.id}')" title="Download iCalendar file (.ics)">
+              <i class="fa-solid fa-download"></i> .ics (iCal)
             </button>
           </div>
         </div>
@@ -224,17 +432,30 @@ const GameDayCalendar = (function() {
     }).join('');
   }
 
+  function handleDirectionsClick(venueName) {
+    if (window.GameDayMap && typeof window.GameDayMap.openVenueByName === 'function') {
+      const mapTab = document.getElementById('tabMap');
+      if (mapTab) {
+        mapTab.click();
+      }
+      setTimeout(() => {
+        window.GameDayMap.openVenueByName(venueName);
+      }, 150);
+    }
+  }
+
   function getSportColor(sport) {
-    if (sport.includes('foot')) return 'var(--sport-football)';
-    if (sport.includes('basket')) return 'var(--sport-basketball)';
-    if (sport.includes('socc')) return 'var(--sport-soccer)';
-    if (sport.includes('base') || sport.includes('soft')) return 'var(--sport-baseball)';
-    if (sport.includes('volley')) return 'var(--sport-volleyball)';
-    if (sport.includes('cross') || sport.includes('track')) return 'var(--sport-track)';
-    if (sport.includes('wrest')) return '#dc2626';
-    if (sport.includes('tenni')) return '#14b8a6';
-    if (sport.includes('fine') || sport.includes('music') || sport.includes('gala') || sport.includes('concert')) return '#a855f7';
-    return 'var(--sport-clubs)';
+    switch (sport) {
+      case 'football': return 'var(--sport-football)';
+      case 'basketball': return 'var(--sport-basketball)';
+      case 'soccer': return 'var(--sport-soccer)';
+      case 'baseball':
+      case 'softball': return 'var(--sport-baseball)';
+      case 'volleyball': return 'var(--sport-volleyball)';
+      case 'track':
+      case 'track & field': return 'var(--sport-track)';
+      default: return 'var(--sport-clubs)';
+    }
   }
 
   function formatDateToISO(d) {
@@ -245,18 +466,18 @@ const GameDayCalendar = (function() {
   }
 
   function parseISODate(isoStr) {
-    const [y, m, d] = isoStr.split('-').map(Number);
-    return new Date(y, m - 1, d);
+    const [y, m, d] = (isoStr || '').split('-').map(Number);
+    return new Date(y, (m || 1) - 1, d || 1);
   }
 
   function generateGoogleCalendarUrl(evt) {
     const title = encodeURIComponent(`Sugar-Salem vs ${evt.opponent} (${evt.sport})`);
-    const details = encodeURIComponent(`${evt.sport} Match - ${evt.highlights || 'Sugar-Salem High School Athletics'}\nVenue: ${evt.venueName}\nParking: ${evt.parkingInfo || ''}`);
-    const location = encodeURIComponent(`${evt.venueName}, ${evt.venueAddress}`);
+    const details = encodeURIComponent(`${evt.sport} Game - ${evt.highlights || 'Sugar-Salem High School Athletics'}\nVenue: ${evt.venueName}\nParking: ${evt.parkingInfo || ''}`);
+    const location = encodeURIComponent(`${evt.venueName}, ${evt.venueAddress || ''}`);
     
-    const dateFormatted = evt.date.replace(/-/g, '');
+    const dateFormatted = (evt.date || '').replace(/-/g, '');
     const startTime = `${dateFormatted}T${formatTimeForCalendar(evt.time)}Z`;
-    const endTime = `${dateFormatted}T${formatTimeForCalendar(evt.time, 90)}Z`;
+    const endTime = `${dateFormatted}T${formatTimeForCalendar(evt.time, 120)}Z`;
 
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startTime}/${endTime}&details=${details}&location=${location}`;
   }
@@ -272,32 +493,97 @@ const GameDayCalendar = (function() {
     return `${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}00`;
   }
 
+  // --- .ics Export Generators ---
   function downloadICS(eventId) {
     const evt = allEvents.find(event => event.id === eventId);
     if (!evt) return;
 
-    const start = `${evt.date.replace(/-/g, '')}T${formatTimeForCalendar(evt.time)}`;
-    const end = `${evt.date.replace(/-/g, '')}T${formatTimeForCalendar(evt.time, 90)}`;
-    const lines = [
+    const icsContent = buildICSContent([evt]);
+    saveICSFile(icsContent, `${evt.date}-${evt.sport.toLowerCase()}-sugar-salem.ics`);
+  }
+
+  function downloadMonthICS() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+    const monthEvents = allEvents.filter(e => e.date && e.date.startsWith(monthPrefix));
+    if (monthEvents.length === 0) {
+      if (typeof window.showToast === 'function') {
+        window.showToast('No events found for this month to export.', 'info');
+      }
+      return;
+    }
+
+    const icsContent = buildICSContent(monthEvents, `Sugar-Salem Athletics - ${MONTH_NAMES[month]} ${year}`);
+    saveICSFile(icsContent, `Sugar-Salem-Athletics-${MONTH_NAMES[month]}-${year}.ics`);
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Exported ${monthEvents.length} events for ${MONTH_NAMES[month]} ${year}!`, 'success');
+    }
+  }
+
+  function downloadSeasonICS() {
+    if (allEvents.length === 0) {
+      if (typeof window.showToast === 'function') {
+        window.showToast('No events loaded to export.', 'info');
+      }
+      return;
+    }
+
+    const icsContent = buildICSContent(allEvents, 'Sugar-Salem High Athletics - Full Season Schedule');
+    saveICSFile(icsContent, 'Sugar-Salem-Athletics-Full-Season.ics');
+    if (typeof window.showToast === 'function') {
+      window.showToast(`Exported all ${allEvents.length} season events to .ics!`, 'success');
+    }
+  }
+
+  function buildICSContent(events, calendarName = 'Sugar-Salem High Athletics') {
+    const header = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//GameDay+//Athletics Calendar//EN',
-      'BEGIN:VEVENT',
-      `UID:${evt.id}@gameday-plus`,
-      `DTSTART:${start}`,
-      `DTEND:${end}`,
-      `SUMMARY:${escapeICS(`Sugar-Salem vs ${evt.opponent} (${evt.sport})`)}`,
-      `LOCATION:${escapeICS(`${evt.venueName}, ${evt.venueAddress || ''}`)}`,
-      `DESCRIPTION:${escapeICS(evt.highlights || 'Sugar-Salem High School Athletics')}`,
-      'END:VEVENT',
-      'END:VCALENDAR'
+      'PRODID:-//GameDay+//Sugar-Salem Athletics//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      `X-WR-CALNAME:${escapeICS(calendarName)}`,
+      'X-WR-TIMEZONE:America/Boise'
     ];
 
-    const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+    const eventBlocks = events.map(evt => {
+      const cleanDate = (evt.date || '').replace(/-/g, '');
+      const startTime = `${cleanDate}T${formatTimeForCalendar(evt.time)}`;
+      const endTime = `${cleanDate}T${formatTimeForCalendar(evt.time, 120)}`;
+      const summary = `Sugar-Salem vs ${evt.opponent} (${evt.sport})`;
+      const desc = `${evt.sport} Game - ${evt.highlights || 'Sugar-Salem High Athletics'}\nLocation: ${evt.venueName}\nStatus: ${evt.status || 'Scheduled'}`;
+
+      return [
+        'BEGIN:VEVENT',
+        `UID:${evt.id || Math.random().toString(36).substr(2, 9)}@gameday-plus`,
+        `DTSTAMP:${formatDateToISO(new Date()).replace(/-/g, '')}T120000Z`,
+        `DTSTART:${startTime}`,
+        `DTEND:${endTime}`,
+        `SUMMARY:${escapeICS(summary)}`,
+        `LOCATION:${escapeICS(`${evt.venueName}, ${evt.venueAddress || ''}`)}`,
+        `DESCRIPTION:${escapeICS(desc)}`,
+        'STATUS:CONFIRMED',
+        'END:VEVENT'
+      ].join('\r\n');
+    });
+
+    return [...header, ...eventBlocks, 'END:VCALENDAR'].join('\r\n');
+  }
+
+  function saveICSFile(content, filename) {
+    const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `${evt.date}-${evt.sport.toLowerCase()}-gameday.ics`;
-    link.click();
+    link.download = filename;
+    if (document.body) {
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      link.click();
+    }
     URL.revokeObjectURL(link.href);
   }
 
@@ -312,7 +598,10 @@ const GameDayCalendar = (function() {
   return {
     initCalendar,
     updateEvents,
-    downloadICS
+    downloadICS,
+    downloadMonthICS,
+    downloadSeasonICS,
+    handleDirectionsClick
   };
 })();
 

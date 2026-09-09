@@ -47,6 +47,22 @@
     </div>
   </div>
 
+  <!-- Search Modal Overlay -->
+  <div id="searchModal" class="search-modal" style="display: none;">
+    <div class="search-modal-content">
+      <button id="searchModalClose" class="search-modal-close" aria-label="Close search">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div class="search-modal-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search opponent, venue, date, or sport..." aria-label="Search events" autofocus>
+        <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" style="display:none;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Header / Navigation Bar -->
   <header class="app-header">
     <div class="header-container">
@@ -69,30 +85,42 @@
           <span class="btn-text">Change School</span>
         </button>
 
-        <!-- Google Sheet Sync Status -->
-        <button id="btnOpenSheetModal" class="action-btn sheet-btn" title="Sync / Connect Google Sheet">
-          <i class="fa-solid fa-table-cells"></i>
-          <span class="btn-text">Sheet Sync</span>
-          <span class="live-dot" id="sheetStatusDot"></span>
+        <!-- Search Button -->
+        <button id="searchToggleBtn" class="search-toggle-btn" title="Open search" aria-label="Search events">
+          <i class="fa-solid fa-magnifying-glass"></i>
         </button>
 
-        <!-- Theme Toggle Dropdown -->
-        <div class="theme-switcher">
-          <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Switch Theme">
-            <i class="fa-solid fa-wand-magic-sparkles theme-icon"></i>
-            <span id="currentThemeLabel">School Spirit</span>
-            <i class="fa-solid fa-chevron-down caret-icon"></i>
+        <!-- More Menu (3-dots) -->
+        <div class="more-menu">
+          <button id="moreMenuBtn" class="more-menu-btn" title="More options" aria-label="More options">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
-          <div class="theme-dropdown" id="themeDropdown">
-            <button class="theme-option" data-theme="spirit">
-              <i class="fa-solid fa-shield-halved"></i> School Spirit
+          <div class="more-menu-dropdown" id="moreMenuDropdown">
+            <!-- Google Sheet Sync Status -->
+            <button id="btnOpenSheetModal" class="menu-item sheet-btn" title="Sync / Connect Google Sheet">
+              <i class="fa-solid fa-table-cells"></i>
+              <span>Sheet Sync</span>
+              <span class="live-dot" id="sheetStatusDot"></span>
             </button>
-            <button class="theme-option" data-theme="dark">
-              <i class="fa-solid fa-moon"></i> Dark Mode
-            </button>
-            <button class="theme-option" data-theme="light">
-              <i class="fa-solid fa-sun"></i> Light Mode
-            </button>
+            <div class="menu-divider"></div>
+            <!-- Theme Toggle -->
+            <div class="theme-switcher-menu">
+              <div class="theme-label">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                <span>Theme</span>
+              </div>
+              <div class="theme-options-submenu">
+                <button class="theme-option" data-theme="spirit">
+                  <i class="fa-solid fa-shield-halved"></i> School Spirit
+                </button>
+                <button class="theme-option" data-theme="dark">
+                  <i class="fa-solid fa-moon"></i> Dark Mode
+                </button>
+                <button class="theme-option" data-theme="light">
+                  <i class="fa-solid fa-sun"></i> Light Mode
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -146,66 +174,49 @@
 
     <!-- Filters & Search Toolbar -->
     <div class="toolbar-section">
-      <!-- Sports Filter Pill Bar -->
-      <div class="sports-filter-scroll-wrapper">
-        <div class="sports-filter-bar" id="sportsFilterBar" role="group" aria-label="Filter by sport">
-          <button class="sport-pill active" data-sport="all">
-            <i class="fa-solid fa-border-all"></i> All Events
-          </button>
-          <button class="sport-pill" data-sport="football">
-            <i class="fa-solid fa-football"></i> Football
-          </button>
-          <button class="sport-pill" data-sport="volleyball">
-            <i class="fa-solid fa-volleyball"></i> Volleyball
-          </button>
-          <button class="sport-pill" data-sport="soccer">
-            <i class="fa-solid fa-futbol"></i> Soccer (B&G)
-          </button>
-          <button class="sport-pill" data-sport="cross country">
-            <i class="fa-solid fa-person-running"></i> Cross Country
-          </button>
-          <button class="sport-pill" data-sport="basketball">
-            <i class="fa-solid fa-basketball"></i> Basketball (B&G)
-          </button>
-          <button class="sport-pill" data-sport="wrestling">
-            <i class="fa-solid fa-hand-fist"></i> Wrestling
-          </button>
-          <button class="sport-pill" data-sport="baseball">
-            <i class="fa-solid fa-baseball-bat-ball"></i> Baseball
-          </button>
-          <button class="sport-pill" data-sport="softball">
-            <i class="fa-solid fa-baseball"></i> Softball
-          </button>
-          <button class="sport-pill" data-sport="track">
-            <i class="fa-solid fa-person-running-fast"></i> Track & Field
-          </button>
-          <button class="sport-pill" data-sport="tennis">
-            <i class="fa-solid fa-table-tennis-paddle-ball"></i> Tennis
-          </button>
-          <button class="sport-pill" data-sport="clubs">
-            <i class="fa-solid fa-bullhorn"></i> Cheer & Dance
-          </button>
-          <button class="sport-pill" data-sport="fine arts">
-            <i class="fa-solid fa-music"></i> Fine Arts & Gala
-          </button>
+      <!-- Sports Filter Section -->
+      <div class="filter-section">
+        <div class="filter-label">Sports</div>
+        <div class="sports-filter-scroll-wrapper">
+          <div class="sports-filter-bar" id="sportsFilterBar" role="group" aria-label="Filter by sport">
+            <button class="sport-pill active" data-sport="all" title="All Events">
+              <i class="fa-solid fa-border-all"></i>
+            </button>
+            <button class="sport-pill" data-sport="football" title="Football">
+              <i class="fa-solid fa-football"></i>
+            </button>
+            <button class="sport-pill" data-sport="basketball" title="Basketball">
+              <i class="fa-solid fa-basketball"></i>
+            </button>
+            <button class="sport-pill" data-sport="soccer" title="Soccer">
+              <i class="fa-solid fa-futbol"></i>
+            </button>
+            <button class="sport-pill" data-sport="baseball" title="Baseball / Softball">
+              <i class="fa-solid fa-baseball-bat-ball"></i>
+            </button>
+            <button class="sport-pill" data-sport="volleyball" title="Volleyball">
+              <i class="fa-solid fa-volleyball"></i>
+            </button>
+            <button class="sport-pill" data-sport="track" title="Track & Field">
+              <i class="fa-solid fa-person-running"></i>
+            </button>
+            <button class="sport-pill" data-sport="clubs" title="Cheer & Clubs">
+              <i class="fa-solid fa-bullhorn"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Secondary Search & Time Window Bar -->
-      <div class="controls-row">
-        <div class="search-box">
-          <i class="fa-solid fa-magnifying-glass search-icon"></i>
-          <input type="text" id="searchInput" placeholder="Search opponent, venue, date, or sport..." aria-label="Search events">
-          <button id="clearSearchBtn" class="clear-search-btn" title="Clear search" style="display:none;">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="time-filter-group">
-          <button class="time-filter-btn active" data-time="all">All</button>
-          <button class="time-filter-btn" data-time="upcoming">Upcoming</button>
-          <button class="time-filter-btn" data-time="today">Today</button>
-          <button class="time-filter-btn" data-time="past">Past Results</button>
+      <!-- Time Window Filter Section -->
+      <div class="filter-section">
+        <div class="filter-label">When</div>
+        <div class="controls-row">
+          <div class="time-filter-group">
+            <button class="time-filter-btn active" data-time="all">All</button>
+            <button class="time-filter-btn" data-time="upcoming">Upcoming</button>
+            <button class="time-filter-btn" data-time="today">Today</button>
+            <button class="time-filter-btn" data-time="past">Past Results</button>
+          </div>
         </div>
       </div>
     </div>
@@ -242,50 +253,84 @@
 
     <!-- TAB 2: INTERACTIVE CALENDAR VIEW -->
     <section class="tab-pane" id="paneCalendar">
-      <div class="calendar-card">
-        <div class="calendar-header">
-          <div class="calendar-title-group">
-            <h2 id="calMonthYearLabel">Month Year</h2>
-            <div class="cal-nav-buttons">
-              <button id="calPrevBtn" class="cal-nav-btn" aria-label="Previous Month"><i class="fa-solid fa-chevron-left"></i></button>
-              <button id="calTodayBtn" class="cal-today-btn">Today</button>
-              <button id="calNextBtn" class="cal-nav-btn" aria-label="Next Month"><i class="fa-solid fa-chevron-right"></i></button>
+      <div class="calendar-wrapper">
+        <!-- Calendar Panel -->
+        <div class="calendar-panel">
+          <div class="calendar-card">
+            <div class="calendar-header">
+              <div class="calendar-title-group">
+                <h2 id="calMonthYearLabel">Month Year</h2>
+                <div class="cal-nav-buttons">
+                  <button id="calPrevBtn" class="cal-nav-btn" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
+                  <button id="calTodayBtn" class="cal-today-btn">Today</button>
+                  <button id="calNextBtn" class="cal-nav-btn" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+              </div>
+              <div class="calendar-header-actions">
+                <div class="cal-view-toggle" id="calViewToggle">
+                  <button id="calViewMonthBtn" class="cal-view-btn active" data-view="month" title="Month View"><i class="fa-solid fa-calendar-days"></i> Month</button>
+                  <button id="calViewWeekBtn" class="cal-view-btn" data-view="week" title="Week View"><i class="fa-solid fa-calendar-week"></i> Week</button>
+                </div>
+                <div class="cal-export-dropdown-wrapper">
+                  <button id="exportScheduleBtn" class="cal-export-btn" title="Export Athletics Schedule">
+                    <i class="fa-solid fa-file-arrow-down"></i> <span>Export .ics</span>
+                  </button>
+                  <div class="cal-export-menu" id="calExportMenu" style="display: none;">
+                    <button class="cal-export-menu-item" id="exportMonthIcsBtn">
+                      <i class="fa-regular fa-calendar"></i> Export Current Month (.ics)
+                    </button>
+                    <button class="cal-export-menu-item" id="exportSeasonIcsBtn">
+                      <i class="fa-solid fa-calendar-check"></i> Export Full Season (.ics)
+                    </button>
+                  </div>
+                </div>
+                <button id="legendToggleBtn" class="legend-toggle-btn" title="Show/hide legend">
+                  <i class="fa-solid fa-info-circle"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Legend (Hidden by default) -->
+            <div class="cal-legend" id="calLegend" style="display: none;">
+              <span class="legend-item"><span class="dot dot-football"></span> Football</span>
+              <span class="legend-item"><span class="dot dot-basketball"></span> Basketball</span>
+              <span class="legend-item"><span class="dot dot-soccer"></span> Soccer</span>
+              <span class="legend-item"><span class="dot dot-baseball"></span> Baseball</span>
+              <span class="legend-item"><span class="dot dot-volleyball"></span> Volleyball</span>
+              <span class="legend-item"><span class="dot dot-other"></span> Other</span>
+            </div>
+
+            <!-- Days of Week Header -->
+            <div class="calendar-weekdays">
+              <div>Sun</div>
+              <div>Mon</div>
+              <div>Tue</div>
+              <div>Wed</div>
+              <div>Thu</div>
+              <div>Fri</div>
+              <div>Sat</div>
+            </div>
+
+            <!-- Calendar Days Grid -->
+            <div class="calendar-grid" id="calendarDaysGrid">
+              <!-- Populated by calendar.js -->
             </div>
           </div>
-          <div class="cal-legend">
-            <span class="legend-item"><span class="dot dot-football"></span> Football</span>
-            <span class="legend-item"><span class="dot dot-basketball"></span> Basketball</span>
-            <span class="legend-item"><span class="dot dot-soccer"></span> Soccer</span>
-            <span class="legend-item"><span class="dot dot-baseball"></span> Baseball</span>
-            <span class="legend-item"><span class="dot dot-other"></span> Other</span>
+        </div>
+
+        <!-- Selected Date Events Panel -->
+        <div class="events-panel">
+          <div class="selected-date-events" id="selectedDateEventsSection">
+            <div class="date-events-header">
+              <div>
+                <h3 id="selectedDateTitle">Events for Today</h3>
+                <span class="badge" id="selectedDateCount">0 events</span>
+              </div>
+            </div>
+            <div class="selected-events-list" id="selectedEventsList">
+              <!-- Populated by calendar.js -->
+            </div>
           </div>
-        </div>
-
-        <!-- Days of Week Header -->
-        <div class="calendar-weekdays">
-          <div>Sun</div>
-          <div>Mon</div>
-          <div>Tue</div>
-          <div>Wed</div>
-          <div>Thu</div>
-          <div>Fri</div>
-          <div>Sat</div>
-        </div>
-
-        <!-- Calendar Days Grid -->
-        <div class="calendar-grid" id="calendarDaysGrid">
-          <!-- Populated by calendar.js -->
-        </div>
-      </div>
-
-      <!-- Selected Date Events Drawer / List -->
-      <div class="selected-date-events" id="selectedDateEventsSection">
-        <div class="date-events-header">
-          <h3 id="selectedDateTitle">Events for Today</h3>
-          <span class="badge" id="selectedDateCount">0 events</span>
-        </div>
-        <div class="selected-events-list" id="selectedEventsList">
-          <!-- Populated by calendar.js -->
         </div>
       </div>
     </section>
@@ -322,6 +367,14 @@
     <!-- TAB 4: STATS & BOX SCORES -->
     <section class="tab-pane" id="paneStats">
       <div class="stats-container">
+        <!-- Stats Section Header -->
+        <div class="stats-header-group">
+          <div>
+            <h2>Season Stats & Performance</h2>
+            <p class="stats-subtitle">Track wins, losses, standings, and recent game performance</p>
+          </div>
+        </div>
+
         <!-- Sport Stats Selector -->
         <div class="stats-nav-bar" id="statsSportBar">
           <button class="stats-nav-btn active" data-stat-sport="football">🏈 Football</button>
@@ -333,16 +386,33 @@
         </div>
 
         <!-- Standings and Season Summary -->
-        <div class="stats-summary-grid" id="statsSummaryGrid">
-          <!-- Populated by stats.js -->
+        <div class="stats-summary-section">
+          <div class="stats-section-title">
+            <i class="fa-solid fa-crown"></i>
+            <span>Season Record & Standings</span>
+          </div>
+          <div class="stats-summary-grid" id="statsSummaryGrid">
+            <!-- Populated by stats.js -->
+          </div>
+          <div class="empty-state-container" id="statsSummaryEmpty" style="display: none;">
+            <div class="empty-state-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <p>No season stats available yet. Check back after games are completed!</p>
+          </div>
         </div>
 
         <!-- Recent Box Scores & Game Recaps -->
-        <div class="stats-section-title">
-          <h3><i class="fa-solid fa-receipt"></i> Recent Game Box Scores & Top Performers</h3>
-        </div>
-        <div class="box-scores-grid" id="boxScoresGrid">
-          <!-- Populated by stats.js -->
+        <div class="box-scores-section">
+          <div class="stats-section-title">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Recent Game Box Scores & Top Performers</span>
+          </div>
+          <div class="box-scores-grid" id="boxScoresGrid">
+            <!-- Populated by stats.js -->
+          </div>
+          <div class="empty-state-container" id="boxScoresEmpty" style="display: none;">
+            <div class="empty-state-icon"><i class="fa-solid fa-clipboard"></i></div>
+            <p>No box scores yet. Completed games will appear here with detailed stats and top performers.</p>
+          </div>
         </div>
       </div>
     </section>
