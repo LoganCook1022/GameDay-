@@ -54,31 +54,27 @@
 
 /* 1. Theme: School Spirit (Navy & Varsity Gold) */
 [data-theme="spirit"] {
-  --bg-primary: #080f1f;
-  --bg-secondary: #0f1829;
-  --bg-card: rgba(15, 24, 41, 0.5);
-  --bg-card-hover: rgba(20, 32, 55, 0.65);
-  --bg-glass: rgba(8, 15, 31, 0.4);
-  --bg-input: rgba(15, 24, 41, 0.6);
-  --border-color: rgba(254, 197, 0, 0.3);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  
-  --primary: #fec500;
-  --primary-rgb: 254, 197, 0;
-  --primary-hover: #ffd026;
-  --primary-text: #050d24;
-  
-  --accent: #1282a2;
-  --accent-light: #034078;
-  
-  --text-main: #f8fafc;
-  --text-muted: #a0aec0;
-  --text-inverse: #0a1128;
-  
-  --hero-gradient: linear-gradient(135deg, #0f1829 0%, #1a2a4a 50%, #080f1f 100%);
-  --accent-gradient: linear-gradient(135deg, #fec500 0%, #f59e0b 100%);
-  --badge-live: #ef4444;
-  --card-border: 1px solid rgba(254, 197, 0, 0.15);
+  --bg-primary: #f4f7fc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fbff;
+  --bg-glass: rgba(255, 255, 255, 0.92);
+  --bg-input: #edf2fa;
+  --border-color: rgba(27, 79, 163, 0.28);
+  --border-subtle: rgba(15, 35, 70, 0.1);
+  --primary: #1557b0;
+  --primary-rgb: 21, 87, 176;
+  --primary-hover: #0e438c;
+  --primary-text: #ffffff;
+  --accent: #1d66c2;
+  --accent-light: #dceaff;
+  --text-main: #10213d;
+  --text-muted: #64748b;
+  --text-inverse: #ffffff;
+  --hero-gradient: linear-gradient(135deg, #103e83 0%, #1b65c1 62%, #0d326b 100%);
+  --accent-gradient: linear-gradient(135deg, #1557b0 0%, #2e78d4 100%);
+  --badge-live: #dc2626;
+  --card-border: 1px solid rgba(15, 59, 126, 0.12);
 }
 
 /* 2. Theme: Dark Mode (Sleek Stealth Carbon) */
@@ -91,19 +87,19 @@
   --bg-input: rgba(15, 18, 24, 0.6);
   --border-color: rgba(99, 102, 241, 0.25);
   --border-subtle: rgba(255, 255, 255, 0.06);
-  
+
   --primary: #6366f1;
   --primary-rgb: 99, 102, 241;
   --primary-hover: #818cf8;
   --primary-text: #ffffff;
-  
+
   --accent: #38bdf8;
   --accent-light: #1e293b;
-  
+
   --text-main: #f1f5f9;
   --text-muted: #a0aec0;
   --text-inverse: #080a0f;
-  
+
   --hero-gradient: linear-gradient(135deg, #0f1218 0%, #1a1f35 60%, #0a0d15 100%);
   --accent-gradient: linear-gradient(135deg, #6366f1 0%, #38bdf8 100%);
   --badge-live: #ef4444;
@@ -120,19 +116,19 @@
   --bg-input: #f3f4f6;
   --border-color: rgba(37, 99, 235, 0.2);
   --border-subtle: rgba(0, 0, 0, 0.06);
-  
+
   --primary: #2563eb;
   --primary-rgb: 37, 99, 235;
   --primary-hover: #1d4ed8;
   --primary-text: #ffffff;
-  
+
   --accent: #d97706;
   --accent-light: #e0f2fe;
-  
+
   --text-main: #0f172a;
   --text-muted: #64748b;
   --text-inverse: #ffffff;
-  
+
   --hero-gradient: linear-gradient(135deg, #1e3a8a 0%, #2563eb 60%, #3b82f6 100%);
   --accent-gradient: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
   --badge-live: #dc2626;
@@ -153,6 +149,7 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
   transition: background-color var(--transition-normal), color var(--transition-normal);
 }
 
@@ -897,9 +894,10 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.6rem;
-  height: 2.6rem;
-  padding: 0;
+  gap: 0.45rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  padding: 0 0.8rem;
   border-radius: var(--radius-md);
   font-size: 1.1rem;
   font-weight: 600;
@@ -2920,4 +2918,211 @@ button {
     min-height: 60px;
     padding: 0.25rem;
   }
+}
+
+/* =========================================================
+   Mobile-first app shell refinement
+   ========================================================= */
+.quick-access { margin-top: 2.25rem; }
+.section-heading-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; }
+.section-kicker { color: var(--primary); font-size: 0.68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; margin-bottom: .18rem; }
+.quick-access h2 { font-size: 1.35rem; }
+.quick-access-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; }
+.quick-access-card { min-height: 82px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: .4rem; padding: .85rem; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-main); text-align: left; transition: transform var(--transition-fast), border-color var(--transition-fast); }
+.quick-access-card:hover, .quick-access-card:focus-visible { border-color: var(--primary); transform: translateY(-2px); outline: none; }
+.quick-access-card > i:first-child { color: var(--primary); font-size: 1.05rem; }
+.quick-access-card span { font-size: .75rem; font-weight: 800; }
+.quick-access-card .arrow { align-self: flex-end; color: var(--text-muted); font-size: .7rem; }
+.mobile-bottom-nav { display: none; }
+
+@media (max-width: 680px) {
+  :root { --space-2xl: 20px; --space-3xl: 26px; }
+  body { padding-bottom: 76px; }
+  .app-header { position: relative; padding: calc(12px + env(safe-area-inset-top)) 16px 14px; }
+  .header-container { gap: 12px; }
+  .brand-group { gap: 10px; min-width: 0; }
+  .brand-badge { width: 40px; height: 40px; border-radius: 12px; }
+  .brand-icon { font-size: 1.05rem; }
+  .brand-title-wrap { display: block; }
+  .brand-title { font-size: 1.28rem; }
+  .school-tag { display: block; width: fit-content; margin-top: 3px; padding: 2px 7px; font-size: .58rem; letter-spacing: .04em; }
+  .brand-subtitle { display: none; }
+  .header-actions { gap: 6px; }
+  .search-toggle-btn, .more-menu-btn { width: 2.35rem; height: 2.35rem; }
+  .action-btn { display: none; }
+  .hero-section { padding: 22px 16px 20px; border-radius: 0 0 22px 22px; }
+  .hero-container { display: block; }
+  .hero-badge { margin-bottom: 12px; padding: 6px 10px; font-size: .6rem; }
+  .hero-matchup h2 { font-size: 1.55rem; line-height: 1.14; max-width: 340px; }
+  .hero-matchup p { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: .75rem; }
+  .hero-matchup p span:last-child { grid-column: 1 / -1; }
+  .countdown-grid { display: none; }
+  .hero-quick-actions { min-width: 0; margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-hero-action { min-height: 44px; padding: 9px 8px; font-size: .72rem; text-align: center; }
+  .main-container { width: 100%; padding: 18px 16px 28px; }
+  .view-tabs { display: none; }
+  .toolbar-section { background: transparent; border: 0; padding: 0; margin-bottom: 25px; gap: 14px; box-shadow: none; }
+  .filter-section { gap: 9px; }
+  .filter-label { font-size: .66rem; }
+  .sports-filter-scroll-wrapper { margin: 0 -16px; padding: 0 16px 5px; }
+  .sports-filter-bar { gap: 8px; }
+  .sport-pill { height: 36px; min-width: auto; padding: 0 11px; border-radius: 12px; font-size: .74rem; }
+  .sport-pill i { font-size: .86rem; }
+  .sport-pill[title]:hover::after { display: none; }
+  .time-filter-group { width: 100%; overflow-x: auto; justify-content: flex-start; }
+  .time-filter-btn { flex: 0 0 auto; padding: 9px 13px; font-size: .72rem; }
+  .feed-header { margin-bottom: 14px; gap: 10px; }
+  .feed-title-wrap { gap: 8px; }
+  .feed-title-wrap h2 { font-size: 1.25rem; }
+  .event-count-badge { font-size: .65rem; }
+  .toggle-label { display: none; }
+  .events-grid { grid-template-columns: 1fr; gap: 12px; }
+  .event-card { padding: 16px; border-radius: 17px; }
+  .event-card-header { margin-bottom: 13px; }
+  .event-sport-tag { font-size: .65rem; padding: 4px 8px; }
+  .event-status-badge { font-size: .6rem; }
+  .matchup-row { padding: 12px 9px; margin-bottom: 12px; }
+  .team-name { font-size: .9rem; }
+  .team-score { font-size: 1.2rem; }
+  .match-meta { gap: 7px; font-size: .72rem; }
+  .card-actions { gap: 7px; margin-top: 14px; }
+  .btn-card { min-height: 40px; padding: 8px 7px; font-size: .7rem; }
+  .quick-access-grid { gap: 8px; }
+  .quick-access-card { min-height: 76px; padding: 10px; }
+  .quick-access-card span { font-size: .68rem; }
+  .mobile-bottom-nav { position: fixed; display: grid; grid-template-columns: repeat(5, 1fr); left: 0; right: 0; bottom: 0; z-index: 1200; padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.94); border-top: 1px solid var(--border-subtle); box-shadow: 0 -8px 24px rgba(18, 42, 80, .08); backdrop-filter: blur(18px); }
+  [data-theme="dark"] .mobile-bottom-nav { background: rgba(12, 16, 24, .94); }
+  .mobile-nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; color: var(--text-muted); font-size: .64rem; font-weight: 700; border-radius: 12px; }
+  .mobile-nav-btn i { font-size: 1rem; }
+  .mobile-nav-btn.active { color: var(--primary); background: rgba(var(--primary-rgb), .1); }
+  .calendar-wrapper, .map-layout, .stats-container { gap: 16px; }
+  .calendar-card, .events-panel, .map-sidebar, .stats-container > *, .box-score-card { border-radius: 17px; }
+  .calendar-header { align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+  .calendar-header-actions { width: 100%; justify-content: space-between; }
+  .calendar-grid { gap: 3px; }
+  .cal-day-cell { min-height: 54px; }
+  .cal-chip { font-size: .5rem; }
+  .map-layout { grid-template-columns: 1fr; }
+  .map-sidebar { max-height: none; }
+  .map-view-container, .leaflet-map-element { min-height: 360px; }
+  .stats-header-group h2 { font-size: 1.35rem; }
+  .stats-nav-bar { flex-wrap: nowrap; margin: 0 -16px; padding: 0 16px 5px; overflow-x: auto; }
+  .stats-nav-btn { padding: 9px 12px; font-size: .72rem; }
+  .stats-summary-grid, .box-scores-grid { grid-template-columns: 1fr; }
+  .stat-metric-card, .box-score-card { padding: 16px; }
+  .app-footer { display: none; }
+}
+
+@media (min-width: 681px) {
+  .main-container, .header-container, .hero-container { max-width: 1180px; }
+}
+
+/* Reference-aligned mobile composition: header -> filters -> featured game -> upcoming -> access */
+@media (max-width: 680px) {
+  .main-container { display: flex; flex-direction: column; }
+  .view-tabs { order: 0; }
+  .toolbar-section { order: 1; }
+  .hero-section { order: 2; }
+  .tab-pane { order: 3; }
+  .hero-section { margin: 0 0 24px; padding: 20px 16px 16px; border-radius: 20px; background: linear-gradient(145deg, #071f3d 0%, #0c3969 100%); box-shadow: 0 10px 26px rgba(6, 35, 70, .2); }
+  .hero-section::before { background: radial-gradient(circle at 90% 20%, rgba(255,255,255,.11), transparent 44%); }
+  .hero-container { display: block; }
+  .hero-badge { display: inline-flex; background: #fff; color: #10386a; border: 0; font-size: .7rem; font-weight: 900; letter-spacing: .02em; padding: 8px 12px; margin-bottom: 12px; }
+  .hero-badge .pulse-indicator { display: none; }
+  .hero-game-kicker { display: flex; align-items: center; gap: 7px; color: #fff; font-size: 1.25rem; font-family: Outfit, sans-serif; font-weight: 800; margin-bottom: 10px; }
+  .hero-sport-icon { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.15); font-size: .78rem; }
+  .hero-teams { display: grid; grid-template-columns: 1fr 42px 1fr; align-items: center; gap: 4px; padding: 5px 0 17px; }
+  .hero-team { min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; color: #fff; }
+  .hero-team strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: Outfit, sans-serif; font-size: .82rem; }
+  .hero-team small { color: rgba(255,255,255,.7); font-size: .67rem; }
+  .hero-vs { color: rgba(255,255,255,.72); font-family: Outfit, sans-serif; font-size: 1.25rem; font-weight: 900; text-align: center; }
+  .team-crest { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 50%; font-family: Outfit, sans-serif; font-size: 1.1rem; font-weight: 900; border: 2px solid rgba(255,255,255,.8); }
+  .crest-school { background: #fff; color: #1557b0; }
+  .crest-opponent { background: rgba(255,255,255,.14); color: #fff; }
+  .hero-details { display: grid; grid-template-columns: 1fr 1.25fr; border-top: 1px solid rgba(255,255,255,.25); padding-top: 12px; gap: 10px; }
+  .hero-details > span { display: grid; grid-template-columns: 22px 1fr; align-items: start; column-gap: 7px; color: #fff; font-size: .74rem; }
+  .hero-details i { grid-row: 1 / span 2; color: #bcd8ff; font-size: 1rem; }
+  .hero-details b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .73rem; }
+  .hero-details small { color: rgba(255,255,255,.7); font-size: .68rem; }
+  .hero-quick-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .btn-hero-action { min-height: 43px; border-radius: 999px; font-size: .73rem; padding: 8px 6px; }
+  .btn-hero-primary { background: #fff; color: #10386a; box-shadow: none; }
+  .btn-hero-secondary { background: transparent; border-color: rgba(255,255,255,.8); }
+  .toolbar-section { margin-bottom: 16px; }
+  .toolbar-section .filter-section + .filter-section { display: none; }
+  .filter-label { display: none; }
+  .feed-header { margin-top: 4px; }
+  .feed-title-wrap { align-items: flex-end; }
+  .feed-title-wrap h2 { font-size: 1.52rem; }
+  .feed-title-wrap .section-kicker { margin-bottom: 0; }
+  .feed-quick-view-toggle { margin-bottom: 2px; }
+  .event-card { background: var(--bg-card); border: 1px solid rgba(18, 53, 96, .1); box-shadow: 0 5px 16px rgba(28, 56, 90, .07); }
+  .event-card-header { margin-bottom: 7px; }
+  .event-date-label { color: var(--primary); font-size: .67rem; font-weight: 900; letter-spacing: .04em; }
+  .event-title { margin: 2px 0 5px; font-family: Outfit, sans-serif; font-size: 1rem; line-height: 1.15; }
+  .event-card .matchup-row { background: transparent; border: 0; padding: 0; margin-bottom: 8px; }
+  .event-card .match-meta { border-top: 1px solid var(--border-subtle); padding-top: 8px; }
+}
+
+/* School palettes are applied only to spirit mode; researched Idaho school brand colors. */
+[data-theme="spirit"][data-school="sugar-salem"] { --primary: #1557b0; --primary-rgb: 21,87,176; --primary-hover: #0e438c; --accent-gradient: linear-gradient(135deg,#1557b0,#2c79d5); }
+[data-theme="spirit"][data-school="south-fremont"] { --primary: #c8102e; --primary-rgb: 200,16,46; --primary-hover: #9e0c24; --accent-gradient: linear-gradient(135deg,#c8102e,#1e1e24); }
+[data-theme="spirit"][data-school="teton"] { --primary: #c4512d; --primary-rgb: 196,81,45; --primary-hover: #993b23; --accent-gradient: linear-gradient(135deg,#c4512d,#7d2735); }
+[data-theme="spirit"][data-school="snake-river"] { --primary: #68449a; --primary-rgb: 104,68,154; --primary-hover: #4c2e73; --accent-gradient: linear-gradient(135deg,#68449a,#28202f); }
+[data-theme="spirit"][data-school="madison"] { --primary: #b3202a; --primary-rgb: 179,32,42; --primary-hover: #8e1820; --accent-gradient: linear-gradient(135deg,#b3202a,#1e2b52); }
+[data-theme="spirit"][data-school="rigby"] { --primary: #c8102e; --primary-rgb: 200,16,46; --primary-hover: #9e0c24; --accent-gradient: linear-gradient(135deg,#c8102e,#172b4d); }
+@media (max-width: 680px) {
+  .app-header { background: #082d56; border-bottom-color: rgba(255,255,255,.16); color: #fff; }
+  .brand-title, .brand-subtitle { color: #fff; }
+  .brand-badge { background: rgba(255,255,255,.16); box-shadow: none; }
+  .brand-icon { color: #fff; }
+  .header-actions .action-btn { display: inline-flex; order: 0; max-width: 142px; min-height: 38px; padding: 5px 9px; overflow: hidden; border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.1); color: #fff; font-size: .64rem; }
+  .header-actions .action-btn .btn-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .school-picker-chevron { color: rgba(255,255,255,.75); }
+  .header-actions .search-toggle-btn, .header-actions .more-menu-btn { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); color: #fff; }
+}
+
+/* Shared mobile page language for the existing calendar, map, stats and details views */
+@media (max-width: 680px) {
+  .calendar-card, .events-panel, .map-sidebar, .map-view-container, .stats-container > *, .stat-metric-card, .box-score-card { background: var(--bg-card); border-color: var(--border-subtle); box-shadow: 0 4px 14px rgba(28,56,90,.06); }
+  .calendar-card { padding: 15px; }
+  .calendar-title-group { width: 100%; justify-content: space-between; gap: 8px; }
+  .calendar-title-group h2 { min-width: 0; font-size: 1.2rem; }
+  .cal-nav-buttons { padding: 4px; }
+  .calendar-header-actions { gap: 7px; }
+  .calendar-header-actions .cal-view-toggle { flex: 1; }
+  .cal-view-btn { flex: 1; padding: 8px 6px; justify-content: center; }
+  .cal-export-btn { min-height: 36px; padding: 7px 9px; }
+  .cal-export-btn span { display: none; }
+  .calendar-weekdays > div { font-size: .58rem; }
+  .calendar-grid .cal-day-cell { min-height: 52px; border-radius: 8px; }
+  .cal-day-number { width: 20px; height: 20px; font-size: .65rem; }
+  .cal-event-chips { display: none; }
+  .selected-date-events { padding: 15px; }
+  .selected-events-list { gap: 9px; }
+  .selected-event-item { padding: 12px; }
+  .map-sidebar { padding: 15px; max-height: none; }
+  .sidebar-header h3 { font-size: 1rem; }
+  .map-view-container { min-height: 330px; }
+  .leaflet-map-element { min-height: 330px; }
+  .map-overlay-card { left: 10px; right: 10px; bottom: 10px; padding: 14px; }
+  .directions-links-row { display: grid; grid-template-columns: 1fr 1fr; }
+  .btn-nav-app { justify-content: center; min-height: 40px; padding: 8px 5px; font-size: .7rem; }
+  .stats-container { gap: 20px; }
+  .stats-header-group { display: block; }
+  .stats-header-group h2 { margin-bottom: 4px; }
+  .stats-subtitle { font-size: .78rem; }
+  .stats-summary-grid { gap: 9px; }
+  .stat-metric-card { display: grid; grid-template-columns: 1fr auto; align-items: center; text-align: left; padding: 14px; }
+  .stat-metric-card .stat-label { justify-content: flex-start; grid-column: 1; margin: 0; }
+  .stat-metric-card .stat-val { grid-column: 2; grid-row: 1 / span 2; font-size: 1.55rem; }
+  .stat-metric-card .stat-subtext { grid-column: 1; margin-top: 2px; }
+  .box-score-card { padding: 14px; overflow-x: auto; }
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal-card { max-height: 92vh; border-radius: 22px 22px 0 0; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); }
+  .modal-body h2 { font-size: 1.3rem !important; line-height: 1.2; padding-right: 20px; }
+  .modal-body .directions-links-row { grid-template-columns: 1fr; }
+  .modal-body .btn-primary { width: 100%; justify-content: center; margin-left: 0 !important; }
+  .header-actions .action-btn { max-width: 112px; }
+  .brand-title { font-size: 1.15rem; }
 }

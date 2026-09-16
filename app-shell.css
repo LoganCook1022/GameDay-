@@ -1,0 +1,1314 @@
+/* GameDay+ mobile sports app shell: reference-led UI layer */
+:root {
+  --app-blue: #0b315d;
+  --app-blue-2: #164f8f;
+  --app-ink: #102849;
+  --app-muted: #657b96;
+  --app-surface: #ffffff;
+  --app-canvas: #f4f8fc;
+  --app-line: #dbe5ef;
+  --app-radius: 18px;
+  --app-shadow: 0 4px 14px rgba(16, 40, 73, 0.08);
+}
+[data-theme="dark"] {
+  --app-blue: #091c35;
+  --app-blue-2: #123d70;
+  --app-ink: #eef5ff;
+  --app-muted: #9aabc0;
+  --app-surface: #122238;
+  --app-canvas: #081321;
+  --app-line: rgba(255, 255, 255, 0.12);
+  --app-shadow: none;
+}
+[data-theme="light"] {
+  --app-blue: #1557b0;
+  --app-blue-2: #2c79d5;
+  --app-ink: #102849;
+  --app-muted: #657b96;
+  --app-surface: #fff;
+  --app-canvas: #f4f8fc;
+  --app-line: #dbe5ef;
+}
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  background: var(--app-canvas);
+  color: var(--app-ink);
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+}
+button,
+a,
+input,
+select {
+  font: inherit;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(var(--primary-rgb), 0.42);
+  outline-offset: 2px;
+}
+.app-header {
+  background: var(--app-blue);
+  border: 0;
+  color: #fff;
+  box-shadow: none;
+}
+.header-container {
+  max-width: 1180px;
+}
+.brand-title,
+.brand-subtitle {
+  color: #fff;
+}
+.brand-title span {
+  color: #ffd12a;
+}
+.brand-badge {
+  background: rgba(255, 255, 255, 0.13);
+  box-shadow: none;
+}
+.brand-icon {
+  color: #fff;
+}
+.school-tag {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+.search-toggle-btn,
+.more-menu-btn,
+.action-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+.main-container {
+  max-width: 1180px;
+}
+.view-tabs {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: 14px;
+  padding: 5px;
+}
+.tab-btn {
+  border: 0;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  padding: 11px 14px;
+}
+.tab-btn.active {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+.toolbar-section {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+.filter-label {
+  color: var(--app-muted);
+}
+.sports-filter-scroll-wrapper {
+  scrollbar-width: none;
+}
+.sports-filter-scroll-wrapper::-webkit-scrollbar {
+  display: none;
+}
+.sports-filter-bar {
+  gap: 9px;
+}
+.sport-pill {
+  width: auto;
+  min-width: max-content;
+  height: 46px;
+  padding: 0 17px;
+  border-radius: 999px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  color: var(--app-ink);
+  box-shadow: none;
+}
+.sport-pill.active {
+  background: var(--primary);
+  color: var(--primary-text);
+  border-color: var(--primary);
+  box-shadow: none;
+}
+.hero-section {
+  background: linear-gradient(145deg, #071f3d 0%, #123f73 100%);
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 12px 26px rgba(6, 35, 70, 0.16);
+}
+.hero-section::before {
+  background: radial-gradient(
+    circle at 92% 18%,
+    rgba(255, 255, 255, 0.12),
+    transparent 42%
+  );
+}
+.hero-badge {
+  background: #ffd12a;
+  color: #08284d;
+  border: 0;
+}
+.hero-game-kicker {
+  color: #fff;
+}
+.hero-team,
+.hero-vs,
+.hero-details {
+  color: #fff;
+}
+.hero-details {
+  border-color: rgba(255, 255, 255, 0.24);
+}
+.hero-details i,
+.hero-details small {
+  color: #bcd8ff;
+}
+.btn-hero-primary {
+  background: var(--primary);
+  color: var(--primary-text);
+  box-shadow: none;
+}
+.btn-hero-secondary {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  color: #fff;
+}
+.feed-header {
+  align-items: end;
+}
+.feed-title-wrap {
+  align-items: end;
+}
+.feed-title-wrap h2,
+.quick-access h2 {
+  color: var(--app-ink);
+}
+.section-kicker {
+  color: var(--primary);
+}
+.event-card,
+.calendar-card,
+.events-panel,
+.map-sidebar,
+.map-view-container,
+.stat-metric-card,
+.box-score-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  box-shadow: var(--app-shadow);
+}
+.event-card {
+  border-radius: var(--app-radius);
+  padding: 18px;
+}
+.event-card:hover,
+.stat-metric-card:hover,
+.box-score-card:hover {
+  transform: none;
+  box-shadow: var(--app-shadow);
+}
+.event-date-label {
+  color: var(--primary);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+.event-title {
+  color: var(--app-ink);
+  font-family: "Outfit", sans-serif;
+  font-size: 1.05rem;
+  margin: 3px 0 7px;
+}
+.event-card .matchup-row {
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.event-card .team-name {
+  color: var(--app-ink);
+}
+.event-card .match-meta {
+  border-top: 1px solid var(--app-line);
+  padding-top: 10px;
+}
+.btn-card {
+  min-height: 42px;
+  border-radius: 999px;
+}
+.btn-card-primary {
+  background: var(--primary);
+}
+.quick-access-grid {
+  grid-template-columns: repeat(4, 1fr);
+}
+.quick-access-card {
+  align-items: center;
+  text-align: center;
+  background: var(--app-surface);
+  border-color: var(--app-line);
+  box-shadow: var(--app-shadow);
+}
+.quick-access-card .arrow {
+  display: none;
+}
+.mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: var(--app-line);
+  box-shadow: 0 -6px 22px rgba(16, 40, 73, 0.08);
+}
+[data-theme="dark"] .mobile-bottom-nav {
+  background: rgba(9, 21, 35, 0.96);
+}
+.mobile-nav-btn {
+  color: var(--app-muted);
+}
+.mobile-nav-btn.active {
+  color: var(--primary);
+  background: transparent;
+}
+.mobile-nav-btn.active i {
+  transform: translateY(-1px);
+}
+
+/* Phone canvas: 390 x 844 reference composition */
+@media (max-width: 680px) {
+  body { min-width: 0; padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
+  .app-header { position: relative; padding: calc(12px + env(safe-area-inset-top)) 16px 14px; }
+  .header-container { gap: 8px; align-items: center; }
+  .brand-group { min-width: 0; gap: 9px; }
+  .brand-badge { width: 38px; height: 38px; border-radius: 12px; flex: 0 0 auto; }
+  .brand-icon { font-size: 1rem; }
+  .brand-title { font-size: 1.18rem; white-space: nowrap; }
+  .brand-subtitle { display: none; }
+  .brand-title-wrap { display: block; min-width: 0; }
+  .school-tag { display: block; width: max-content; max-width: 132px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px; padding: 2px 7px; font-size: .55rem; }
+  .header-actions { gap: 5px; flex: 0 0 auto; }
+  .header-actions .action-btn { display: inline-flex; width: 30px; height: 36px; min-height: 36px; padding: 0; justify-content: center; border-radius: 10px; }
+  .header-actions .action-btn .btn-text, .school-picker-chevron { display: none; }
+  .search-toggle-btn, .more-menu-btn { width: 34px; height: 36px; border-radius: 10px; }
+  .more-menu-dropdown { top: calc(100% + 8px); right: 0; }
+  .main-container { width: 100%; max-width: 430px; margin: 0 auto; padding: 15px 16px 30px; display: flex; flex-direction: column; gap: 0; }
+  .view-tabs { display: none; }
+  .toolbar-section { order: 1; margin: 0 0 17px; gap: 0; }
+  .toolbar-section .filter-section + .filter-section { display: none; }
+  .filter-label { display: none; }
+  .sports-filter-scroll-wrapper { margin: 0 -16px; padding: 0 16px 4px; overflow-x: auto; }
+  .sports-filter-bar { width: max-content; min-width: 100%; gap: 8px; }
+  .sport-pill { height: 38px; min-width: auto; padding: 0 12px; border-radius: 999px; font-size: .7rem; gap: 5px; }
+  .sport-pill i { font-size: .78rem; }
+  .hero-section { order: 2; width: 100%; margin: 0 0 24px; padding: 18px 16px 15px; border-radius: 20px; }
+  .hero-container { display: block; }
+  .hero-badge { margin: 0 0 13px; padding: 7px 10px; border-radius: 7px; font-size: .62rem; }
+  .hero-game-kicker { font-size: 1.18rem; margin-bottom: 8px; }
+  .hero-teams { padding-bottom: 14px; }
+  .hero-team strong { font-size: .77rem; }
+  .team-crest { width: 54px; height: 54px; font-size: 1rem; }
+  .hero-details { gap: 8px; }
+  .hero-details > span { grid-template-columns: 19px 1fr; font-size: .69rem; }
+  .hero-details b { font-size: .68rem; }
+  .hero-quick-actions { margin-top: 14px; gap: 7px; }
+  .btn-hero-action { min-height: 40px; padding: 7px 5px; font-size: .68rem; }
+  .countdown-grid { display: none; }
+  .tab-pane { order: 3; }
+  #paneFeed { display: block; }
+  .feed-header { margin: 0 0 12px; gap: 8px; }
+  .feed-title-wrap { gap: 7px; align-items: end; }
+  .feed-title-wrap h2 { font-size: 1.45rem; line-height: 1; }
+  .section-kicker { font-size: .61rem; letter-spacing: .1em; }
+  .event-count-badge { font-size: .6rem; padding: 4px 8px; }
+  .toggle-switch .slider { width: 34px; height: 20px; }
+  .events-grid { grid-template-columns: 1fr; gap: 10px; }
+  .event-card { min-width: 0; padding: 14px; border-radius: 16px; }
+  .event-card-header { margin-bottom: 5px; }
+  .event-sport-tag { max-width: 62%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .62rem; }
+  .event-status-badge { font-size: .57rem; }
+  .event-date-label { margin-top: 3px; font-size: .62rem; }
+  .event-title { font-size: .96rem; margin: 3px 0 6px; }
+  .event-card .matchup-row { margin-bottom: 6px; }
+  .event-card .team-name { font-size: .86rem; }
+  .event-card .team-type { font-size: .63rem; }
+  .event-card .match-meta { gap: 5px; font-size: .68rem; padding-top: 8px; margin-bottom: 8px; }
+  .event-card .meta-item { min-width: 0; }
+  .event-card .meta-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-actions { gap: 6px; }
+  .btn-card { min-height: 38px; padding: 7px 5px; font-size: .65rem; }
+  .quick-access { margin-top: 22px; }
+  .quick-access-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+  .quick-access-card { min-height: 72px; padding: 9px 4px; border-radius: 13px; gap: 5px; }
+  .quick-access-card > i:first-child { font-size: .95rem; }
+  .quick-access-card span { font-size: .61rem; line-height: 1.1; }
+  .mobile-bottom-nav { display: grid; grid-template-columns: repeat(5, 1fr); position: fixed; left: 0; right: 0; bottom: 0; z-index: 1200; padding: 7px 9px calc(7px + env(safe-area-inset-bottom)); }
+  .mobile-nav-btn { min-height: 48px; border-radius: 12px; gap: 3px; font-size: .6rem; }
+  .mobile-nav-btn i { font-size: .96rem; }
+  .calendar-wrapper, .map-layout, .stats-container { gap: 14px; }
+  .calendar-wrapper, .map-layout { grid-template-columns: 1fr; }
+  .calendar-panel { min-height: 0; }
+  .events-panel { min-height: 0; max-height: none; }
+  .calendar-card, .events-panel, .map-sidebar, .map-view-container, .stats-container > *, .stat-metric-card, .box-score-card { border-radius: 16px; }
+  .calendar-card { padding: 14px; }
+  .calendar-header { gap: 9px; margin-bottom: 14px; }
+  .calendar-title-group { width: 100%; justify-content: space-between; gap: 6px; }
+  .calendar-title-group h2 { min-width: 0; font-size: 1.15rem; }
+  .calendar-header-actions { width: 100%; justify-content: space-between; gap: 6px; }
+  .calendar-weekdays > div { font-size: .55rem; }
+  .cal-day-cell { min-height: 51px; border-radius: 8px; }
+  .cal-event-chips { display: none; }
+  .map-sidebar { max-height: none; padding: 14px; }
+  .map-view-container, .leaflet-map-element { min-height: 330px; }
+  .stats-summary-grid, .box-scores-grid { grid-template-columns: 1fr; gap: 9px; }
+  .stats-nav-bar { flex-wrap: nowrap; margin: 0 -16px; padding: 0 16px 4px; overflow-x: auto; }
+  .stats-nav-btn { font-size: .68rem; padding: 8px 11px; }
+  .modal-backdrop { align-items: flex-end; padding: 0; }
+  .modal-card { max-height: 92vh; border-radius: 20px 20px 0 0; padding: 19px 15px calc(19px + env(safe-area-inset-bottom)); }
+}
+@media (min-width: 681px) {
+  .main-container { display: flex; flex-direction: column; }
+  .toolbar-section { order: 1; }
+  .hero-section { order: 2; }
+  .tab-pane { order: 3; }
+}
+
+/* --------------------------------------------------------------------------
+   Liquid Glass refinement
+   These final rules deliberately sit above the legacy page styles so every
+   route shares the same restrained, mobile-first visual system.
+   -------------------------------------------------------------------------- */
+:root {
+  --glass-blur: blur(22px) saturate(135%);
+  --glass-border: rgba(255, 255, 255, 0.44);
+  --surface-strong: rgba(255, 255, 255, 0.88);
+  --surface-soft: rgba(255, 255, 255, 0.66);
+  --surface-muted: rgba(238, 245, 252, 0.72);
+  --ink-strong: #102849;
+  --ink-muted: #60748d;
+  --floating-shadow: 0 12px 30px rgba(20, 45, 78, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  --card-shadow: 0 5px 18px rgba(24, 48, 78, 0.07);
+}
+
+[data-theme="spirit"] {
+  --app-canvas: #edf4fa;
+  --app-ink: var(--ink-strong);
+  --app-muted: var(--ink-muted);
+  --app-surface: var(--surface-strong);
+  --app-line: rgba(20, 62, 105, 0.12);
+}
+
+[data-theme="light"] {
+  --app-canvas: #f5f7fb;
+  --app-ink: #16233a;
+  --app-muted: #65738a;
+  --app-surface: rgba(255, 255, 255, 0.9);
+  --app-line: rgba(38, 63, 102, 0.11);
+}
+
+[data-theme="dark"] {
+  --app-canvas: #091321;
+  --app-ink: #f2f7ff;
+  --app-muted: #a5b5c8;
+  --app-surface: rgba(18, 32, 50, 0.78);
+  --app-line: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.13);
+  --surface-strong: rgba(18, 32, 50, 0.82);
+  --surface-soft: rgba(20, 35, 55, 0.62);
+  --surface-muted: rgba(12, 25, 42, 0.72);
+  --floating-shadow: 0 16px 34px rgba(0, 0, 0, 0.23), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 7px 18px rgba(0, 0, 0, 0.16);
+}
+
+body {
+  background:
+    radial-gradient(72rem 36rem at -12% -12%, rgba(var(--primary-rgb), 0.17), transparent 56%),
+    radial-gradient(44rem 32rem at 112% 18%, rgba(var(--primary-rgb), 0.10), transparent 58%),
+    var(--app-canvas);
+  background-attachment: fixed;
+  color: var(--app-ink);
+  letter-spacing: -0.01em;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  z-index: -1;
+  width: 26rem;
+  height: 26rem;
+  left: -17rem;
+  top: 38%;
+  border-radius: 50%;
+  background: rgba(var(--primary-rgb), 0.055);
+  filter: blur(42px);
+  pointer-events: none;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active,
+.event-card--agenda:active,
+.quick-access-card:active,
+.venue-item-card:active {
+  transform: scale(0.985);
+}
+
+/* Elevated app chrome ------------------------------------------------------ */
+.app-header {
+  background: linear-gradient(125deg, rgba(5, 24, 48, 0.91), rgba(var(--primary-rgb), 0.62));
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: 0;
+  box-shadow: 0 9px 28px rgba(10, 29, 55, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+[data-theme="light"] .app-header {
+  background: linear-gradient(130deg, rgba(255, 255, 255, 0.72), rgba(var(--primary-rgb), 0.13));
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 9px 26px rgba(25, 53, 90, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] .app-header {
+  background: linear-gradient(130deg, rgba(8, 20, 36, 0.78), rgba(var(--primary-rgb), 0.22));
+}
+
+.header-container {
+  max-width: 1120px;
+}
+
+.brand-badge,
+.search-toggle-btn,
+.more-menu-btn,
+.action-btn {
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+[data-theme="light"] .brand-title,
+[data-theme="light"] .brand-subtitle,
+[data-theme="light"] .search-toggle-btn,
+[data-theme="light"] .more-menu-btn,
+[data-theme="light"] .action-btn {
+  color: var(--app-ink);
+}
+
+[data-theme="light"] .school-tag,
+[data-theme="light"] .search-toggle-btn,
+[data-theme="light"] .more-menu-btn,
+[data-theme="light"] .action-btn {
+  background: rgba(255, 255, 255, 0.55);
+  border-color: rgba(35, 69, 110, 0.13);
+}
+
+.more-menu-dropdown {
+  background: var(--surface-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--floating-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+.main-container {
+  max-width: 1120px;
+}
+
+.main-container[data-active-view]:not([data-active-view="feed"]) .toolbar-section,
+.main-container[data-active-view]:not([data-active-view="feed"]) .hero-section {
+  display: none;
+}
+
+.view-tabs {
+  background: var(--surface-soft);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+
+/* Home filters and featured event ----------------------------------------- */
+.sports-filter-scroll-wrapper {
+  overscroll-behavior-inline: contain;
+}
+
+.sport-pill {
+  background: var(--surface-soft);
+  border: 1px solid var(--glass-border);
+  color: var(--app-ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(12px) saturate(125%);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+}
+
+.sport-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--primary-rgb), 0.38);
+  box-shadow: 0 5px 13px rgba(24, 50, 83, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.sport-pill.active {
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.96), rgba(var(--primary-rgb), 0.78));
+  border-color: rgba(255, 255, 255, 0.44);
+  box-shadow: 0 7px 18px rgba(var(--primary-rgb), 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.hero-section {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 94% 10%, rgba(var(--primary-rgb), 0.5), transparent 30%),
+    radial-gradient(circle at 15% 108%, rgba(255, 255, 255, 0.13), transparent 42%),
+    linear-gradient(135deg, rgba(5, 22, 44, 0.84), rgba(11, 42, 79, 0.79));
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  box-shadow: 0 18px 34px rgba(14, 37, 70, 0.19), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+}
+
+[data-theme="dark"] .hero-section {
+  background:
+    radial-gradient(circle at 94% 8%, rgba(var(--primary-rgb), 0.32), transparent 33%),
+    linear-gradient(135deg, rgba(8, 19, 34, 0.87), rgba(19, 37, 63, 0.78));
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.hero-section::after {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(118deg, rgba(255, 255, 255, 0.13), transparent 26%, transparent 72%, rgba(255, 255, 255, 0.05));
+}
+
+.hero-badge {
+  background: rgba(255, 255, 255, 0.94);
+  color: #092b53;
+  border: 1px solid rgba(255, 255, 255, 0.64);
+  box-shadow: inset 0 1px 0 #fff;
+}
+
+.btn-hero-primary {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0a2b52;
+  box-shadow: inset 0 1px 0 #fff;
+}
+
+.btn-hero-secondary {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.btn-hero-action:hover {
+  transform: translateY(-1px);
+}
+
+/* Agenda cards ------------------------------------------------------------- */
+.feed-header {
+  margin-bottom: 14px;
+}
+
+.feed-title-wrap h2,
+.quick-access h2,
+.stats-header-group h2,
+.calendar-title-group h2 {
+  color: var(--app-ink);
+}
+
+.event-count-badge {
+  background: rgba(var(--primary-rgb), 0.13);
+  color: var(--primary);
+}
+
+.events-grid {
+  gap: 11px;
+}
+
+.event-card--agenda {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--app-line);
+  border-radius: 18px;
+  background: var(--surface-strong);
+  box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  overflow: hidden;
+  backdrop-filter: blur(10px) saturate(120%);
+  -webkit-backdrop-filter: blur(10px) saturate(120%);
+}
+
+.event-card--agenda:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--primary-rgb), 0.3);
+  box-shadow: 0 10px 20px rgba(24, 48, 78, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.event-sport-mark {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  background: rgba(var(--primary-rgb), 0.10);
+  background: color-mix(in srgb, var(--event-color) 15%, transparent);
+  color: var(--event-color);
+  font-size: 1.08rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
+}
+
+.event-card-content {
+  min-width: 0;
+}
+
+.event-card--agenda .event-date-label {
+  margin: 0 0 2px;
+  color: var(--primary);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.065em;
+}
+
+.event-card--agenda .event-title {
+  margin: 0;
+  color: var(--app-ink);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.96rem;
+  line-height: 1.16;
+}
+
+.event-opponent,
+.event-location {
+  overflow: hidden;
+  margin: 3px 0 0;
+  color: var(--app-muted);
+  font-size: 0.71rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-opponent span {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.event-location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.event-location i {
+  width: 10px;
+  color: var(--primary);
+  font-size: 0.65rem;
+}
+
+.event-card-side {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  min-width: 62px;
+  padding-right: 11px;
+  position: relative;
+}
+
+.event-time {
+  color: var(--app-ink);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.93rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.event-result-win {
+  color: #15935c;
+}
+
+.event-card--agenda .event-status-badge {
+  padding: 3px 6px;
+  font-size: 0.51rem;
+  letter-spacing: 0.035em;
+}
+
+.event-card-chevron {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  color: var(--app-muted);
+  font-size: 0.64rem;
+  transform: translateY(-50%);
+}
+
+[data-theme="dark"] .event-sport-mark {
+  background: color-mix(in srgb, var(--event-color) 23%, transparent);
+}
+
+/* Other pages use readable opaque data surfaces --------------------------- */
+.calendar-card,
+.events-panel,
+.map-sidebar,
+.map-view-container,
+.stats-container > *,
+.stat-metric-card,
+.box-score-card {
+  background: var(--surface-strong);
+  border-color: var(--app-line);
+  box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.46);
+}
+
+.calendar-card,
+.events-panel,
+.map-sidebar,
+.stats-container > * {
+  border-radius: 20px;
+}
+
+.calendar-header,
+.stats-header-group,
+.sidebar-header {
+  border-color: var(--app-line);
+}
+
+.calendar-header h2,
+.date-events-header h3,
+.sidebar-header h3,
+.stats-section-title,
+.stat-metric-card,
+.box-score-card {
+  color: var(--app-ink);
+}
+
+.cal-day-cell,
+.selected-event-card,
+.venue-item-card,
+.stats-nav-bar,
+.cal-view-toggle,
+.cal-nav-buttons {
+  background: var(--surface-muted);
+  border-color: var(--app-line);
+}
+
+.cal-day-cell:hover,
+.venue-item-card:hover,
+.venue-item-card.active {
+  border-color: rgba(var(--primary-rgb), 0.42);
+}
+
+.stats-nav-bar,
+.cal-view-toggle,
+.cal-nav-buttons {
+  border-radius: 14px;
+}
+
+.stats-nav-btn,
+.cal-view-btn,
+.cal-nav-btn,
+.cal-today-btn,
+.cal-export-btn,
+.legend-toggle-btn {
+  min-height: 40px;
+}
+
+.stats-nav-btn.active,
+.cal-view-btn.active {
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.2);
+}
+
+.leaflet-map-element {
+  border-radius: 18px;
+}
+
+/* Bottom bar and dialogs --------------------------------------------------- */
+.mobile-bottom-nav {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  box-shadow: 0 -3px 0 rgba(255, 255, 255, 0.18), 0 12px 32px rgba(16, 35, 64, 0.2);
+  backdrop-filter: blur(24px) saturate(145%);
+  -webkit-backdrop-filter: blur(24px) saturate(145%);
+}
+
+[data-theme="dark"] .mobile-bottom-nav {
+  background: rgba(10, 22, 38, 0.72);
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.mobile-nav-btn.active {
+  background: rgba(var(--primary-rgb), 0.12);
+  color: var(--primary);
+}
+
+.modal-backdrop {
+  background: rgba(5, 16, 31, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modal-card {
+  background: var(--surface-strong);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--floating-shadow);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+}
+
+.game-detail-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 17px;
+}
+
+.game-detail .event-sport-tag {
+  background: rgba(var(--primary-rgb), 0.13);
+  color: var(--primary);
+}
+
+.game-detail-kicker {
+  margin-bottom: 4px;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.game-detail h2 {
+  margin: 0 0 20px;
+  color: var(--app-ink);
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(1.42rem, 6vw, 2rem);
+  line-height: 1.08;
+}
+
+.game-detail h2 span {
+  color: var(--primary);
+}
+
+.game-detail-score {
+  margin-bottom: 13px;
+  padding: 15px;
+  border: 1px solid rgba(var(--primary-rgb), 0.18);
+  border-radius: 17px;
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.15), rgba(var(--primary-rgb), 0.055));
+  text-align: center;
+}
+
+.game-detail-score > span,
+.game-detail-fact > span {
+  display: block;
+  color: var(--app-muted);
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.game-detail-score strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--app-ink);
+  font-family: 'Outfit', sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.game-detail-score em {
+  color: var(--primary);
+  font-style: normal;
+}
+
+.game-detail-facts {
+  display: grid;
+  gap: 9px;
+}
+
+.game-detail-fact {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 10px;
+  padding: 13px;
+  border: 1px solid var(--app-line);
+  border-radius: 15px;
+  background: var(--surface-muted);
+}
+
+.game-detail-fact > i {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: var(--primary);
+}
+
+.game-detail-fact > strong {
+  display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--app-ink);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.game-detail-fact small {
+  display: block;
+  margin-top: 2px;
+  color: var(--app-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.game-detail-notes {
+  display: grid;
+  gap: 9px;
+  margin: 13px 0;
+}
+
+.game-detail-notes p {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 9px;
+  margin: 0;
+  color: var(--app-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.game-detail-notes i {
+  margin-top: 2px;
+  color: var(--primary);
+}
+
+.game-detail-notes strong {
+  display: block;
+  color: var(--app-ink);
+  font-size: 0.76rem;
+}
+
+.game-detail-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 17px;
+}
+
+.game-detail-actions .btn-nav-app,
+.game-detail-actions .btn-primary {
+  min-width: 0;
+  min-height: 42px;
+  padding: 8px;
+  border-radius: 13px;
+  font-size: 0.67rem;
+  text-align: center;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .app-header { background: #0b315d; }
+  .sport-pill, .mobile-bottom-nav, .more-menu-dropdown, .modal-card { background: var(--app-surface); }
+  .hero-section { background: #0b315d; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 680px) {
+  body {
+    padding-bottom: calc(83px + env(safe-area-inset-bottom));
+  }
+
+  .app-header {
+    position: sticky;
+    top: 0;
+    padding: calc(9px + env(safe-area-inset-top)) 15px 10px;
+  }
+
+  .header-container {
+    gap: 7px;
+  }
+
+  .brand-badge {
+    width: 35px;
+    height: 35px;
+    border-radius: 11px;
+  }
+
+  .brand-title {
+    font-size: 1.12rem;
+  }
+
+  .school-tag {
+    max-width: 154px;
+    padding: 2px 7px;
+    font-size: 0.54rem;
+  }
+
+  .header-actions .action-btn {
+    width: 30px;
+    min-height: 34px;
+    height: 34px;
+    padding: 0;
+  }
+
+  .main-container {
+    max-width: 480px;
+    padding: 13px 15px 30px;
+  }
+
+  .toolbar-section {
+    margin-bottom: 14px;
+  }
+
+  .sports-filter-scroll-wrapper {
+    margin: 0 -15px;
+    padding: 0 15px 4px;
+  }
+
+  .sports-filter-bar {
+    gap: 8px;
+  }
+
+  .sport-pill {
+    min-height: 39px;
+    padding: 0 12px;
+    border-radius: 999px;
+    font-size: 0.69rem;
+  }
+
+  .hero-section {
+    margin-bottom: 23px;
+    padding: 17px 15px 15px;
+    border-radius: 21px;
+  }
+
+  .hero-badge {
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 0.60rem;
+  }
+
+  .hero-game-kicker {
+    margin-bottom: 9px;
+    font-size: 1.1rem;
+  }
+
+  .hero-teams {
+    grid-template-columns: 1fr 38px 1fr;
+    padding-bottom: 14px;
+  }
+
+  .team-crest {
+    width: 51px;
+    height: 51px;
+    font-size: 0.96rem;
+  }
+
+  .hero-team strong {
+    font-size: 0.75rem;
+  }
+
+  .hero-details {
+    grid-template-columns: 0.97fr 1.18fr;
+    gap: 7px;
+    padding-top: 10px;
+  }
+
+  .hero-details > span {
+    grid-template-columns: 18px minmax(0, 1fr);
+    column-gap: 5px;
+  }
+
+  .hero-details i {
+    font-size: 0.86rem;
+  }
+
+  .hero-details b {
+    font-size: 0.66rem;
+  }
+
+  .hero-details small {
+    font-size: 0.61rem;
+  }
+
+  .hero-quick-actions {
+    margin-top: 13px;
+    gap: 7px;
+  }
+
+  .btn-hero-action {
+    min-height: 41px;
+    font-size: 0.67rem;
+  }
+
+  .feed-header {
+    margin-bottom: 11px;
+  }
+
+  .feed-title-wrap h2 {
+    font-size: 1.42rem;
+  }
+
+  .event-count-badge {
+    padding: 4px 7px;
+    font-size: 0.58rem;
+  }
+
+  .event-card--agenda {
+    grid-template-columns: 43px minmax(0, 1fr) auto;
+    gap: 10px;
+    min-height: 94px;
+    padding: 12px;
+    border-radius: 16px;
+  }
+
+  .event-sport-mark {
+    width: 43px;
+    height: 43px;
+    border-radius: 13px;
+    font-size: 0.96rem;
+  }
+
+  .event-card--agenda .event-title {
+    font-size: 0.84rem;
+  }
+
+  .event-opponent,
+  .event-location {
+    font-size: 0.63rem;
+  }
+
+  .event-card-side {
+    min-width: 56px;
+    padding-right: 8px;
+  }
+
+  .event-time {
+    font-size: 0.81rem;
+  }
+
+  .event-card--agenda .event-status-badge {
+    font-size: 0.47rem;
+  }
+
+  .quick-access {
+    margin-top: 22px;
+  }
+
+  .quick-access-grid {
+    gap: 7px;
+  }
+
+  .quick-access-card {
+    min-height: 74px;
+    padding: 8px 3px;
+    border: 1px solid var(--app-line);
+    border-radius: 14px;
+    background: var(--surface-strong);
+    box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.48);
+  }
+
+  .quick-access-card span {
+    font-size: 0.60rem;
+  }
+
+  .mobile-bottom-nav {
+    left: 9px;
+    right: 9px;
+    bottom: max(7px, env(safe-area-inset-bottom));
+    border-radius: 20px;
+    padding: 6px 7px;
+  }
+
+  .mobile-nav-btn {
+    min-height: 48px;
+    border-radius: 13px;
+    font-size: 0.57rem;
+  }
+
+  .mobile-nav-btn i {
+    font-size: 0.91rem;
+  }
+
+  .calendar-wrapper,
+  .map-layout,
+  .stats-container {
+    gap: 12px;
+  }
+
+  .calendar-card,
+  .events-panel,
+  .map-sidebar,
+  .map-view-container,
+  .stats-container > *,
+  .stat-metric-card,
+  .box-score-card {
+    border-radius: 17px;
+  }
+
+  .calendar-card,
+  .map-sidebar,
+  .stats-container > * {
+    padding: 14px;
+  }
+
+  .calendar-header {
+    margin-bottom: 12px;
+  }
+
+  .cal-day-cell {
+    min-height: 48px;
+  }
+
+  .map-view-container,
+  .leaflet-map-element {
+    min-height: 315px;
+  }
+
+  .stats-header-group h2 {
+    font-size: 1.3rem;
+  }
+
+  .modal-card {
+    padding: 18px 15px calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .game-detail-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .game-detail-actions .btn-primary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand-badge { display: none; }
+  .school-tag { max-width: 124px; }
+  .header-actions .search-toggle-btn { display: none; }
+  .event-card--agenda { grid-template-columns: 39px minmax(0, 1fr) auto; gap: 8px; padding: 10px; }
+  .event-sport-mark { width: 39px; height: 39px; border-radius: 12px; }
+  .event-opponent, .event-location { font-size: 0.58rem; }
+  .event-card-side { min-width: 50px; }
+  .event-time { font-size: 0.74rem; }
+}

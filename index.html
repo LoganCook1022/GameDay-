@@ -2,23 +2,25 @@
 <html lang="en" data-theme="spirit">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0b315d">
   <title>GameDay+ | High School Sports & Event Hub</title>
   <meta name="description" content="Never miss a high school game! Live schedules, scores, player stats, away game directions, and interactive maps.">
-  
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
+
   <!-- Leaflet Map CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
   <!-- App Styles -->
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="app-shell.css">
 </head>
 <body>
   <!-- School Picker Overlay -->
@@ -127,35 +129,9 @@
     </div>
   </header>
 
-  <!-- Hero Next Game Banner / Countdown -->
-  <section class="hero-section" id="heroCountdownSection">
-    <div class="hero-container">
-      <div class="hero-content">
-        <div class="hero-badge">
-          <span class="pulse-indicator"></span> NEXT BIG MATCHUP
-        </div>
-        <div class="hero-matchup" id="heroMatchup">
-          <!-- Populated by JS -->
-        </div>
-        <div class="countdown-grid" id="countdownGrid">
-          <div class="countdown-box"><span id="cdDays">00</span><label>Days</label></div>
-          <div class="countdown-sep">:</div>
-          <div class="countdown-box"><span id="cdHours">00</span><label>Hours</label></div>
-          <div class="countdown-sep">:</div>
-          <div class="countdown-box"><span id="cdMinutes">00</span><label>Mins</label></div>
-          <div class="countdown-sep">:</div>
-          <div class="countdown-box"><span id="cdSeconds">00</span><label>Secs</label></div>
-        </div>
-      </div>
-      <div class="hero-quick-actions" id="heroQuickActions">
-        <!-- Quick action buttons like directions and add to calendar -->
-      </div>
-    </div>
-  </section>
-
   <!-- Main Container -->
   <main class="main-container">
-    
+
     <!-- Navigation Tabs -->
     <nav class="view-tabs" role="tablist" aria-label="Main Navigation Tabs">
       <button class="tab-btn active" data-tab="feed" role="tab" id="tabFeed">
@@ -180,28 +156,28 @@
         <div class="sports-filter-scroll-wrapper">
           <div class="sports-filter-bar" id="sportsFilterBar" role="group" aria-label="Filter by sport">
             <button class="sport-pill active" data-sport="all" title="All Events">
-              <i class="fa-solid fa-border-all"></i>
+              <i class="fa-solid fa-border-all"></i><span>All</span>
             </button>
             <button class="sport-pill" data-sport="football" title="Football">
-              <i class="fa-solid fa-football"></i>
+              <i class="fa-solid fa-football"></i><span>Football</span>
             </button>
             <button class="sport-pill" data-sport="basketball" title="Basketball">
-              <i class="fa-solid fa-basketball"></i>
+              <i class="fa-solid fa-basketball"></i><span>Basketball</span>
             </button>
             <button class="sport-pill" data-sport="soccer" title="Soccer">
-              <i class="fa-solid fa-futbol"></i>
+              <i class="fa-solid fa-futbol"></i><span>Soccer</span>
             </button>
             <button class="sport-pill" data-sport="baseball" title="Baseball / Softball">
-              <i class="fa-solid fa-baseball-bat-ball"></i>
+              <i class="fa-solid fa-baseball-bat-ball"></i><span>Baseball</span>
             </button>
             <button class="sport-pill" data-sport="volleyball" title="Volleyball">
-              <i class="fa-solid fa-volleyball"></i>
+              <i class="fa-solid fa-volleyball"></i><span>Volleyball</span>
             </button>
             <button class="sport-pill" data-sport="track" title="Track & Field">
-              <i class="fa-solid fa-person-running"></i>
+              <i class="fa-solid fa-person-running"></i><span>Track</span>
             </button>
             <button class="sport-pill" data-sport="clubs" title="Cheer & Clubs">
-              <i class="fa-solid fa-bullhorn"></i>
+              <i class="fa-solid fa-bullhorn"></i><span>Cheer & Clubs</span>
             </button>
           </div>
         </div>
@@ -221,11 +197,31 @@
       </div>
     </div>
 
+    <!-- Featured next event: populated from the existing event data -->
+    <section class="hero-section" id="heroCountdownSection" aria-label="Featured next game">
+      <div class="hero-container">
+        <div class="hero-content">
+          <div class="hero-badge"><span class="pulse-indicator"></span> NEXT GAME</div>
+          <div class="hero-matchup" id="heroMatchup"><!-- Populated by JS --></div>
+          <div class="countdown-grid" id="countdownGrid" aria-label="Countdown to next game">
+            <div class="countdown-box"><span id="cdDays">00</span><label>Days</label></div><div class="countdown-sep">:</div>
+            <div class="countdown-box"><span id="cdHours">00</span><label>Hours</label></div><div class="countdown-sep">:</div>
+            <div class="countdown-box"><span id="cdMinutes">00</span><label>Mins</label></div><div class="countdown-sep">:</div>
+            <div class="countdown-box"><span id="cdSeconds">00</span><label>Secs</label></div>
+          </div>
+        </div>
+        <div class="hero-quick-actions" id="heroQuickActions"><!-- Populated by JS --></div>
+      </div>
+    </section>
+
     <!-- TAB 1: SCHEDULE & SCORES FEED -->
     <section class="tab-pane active" id="paneFeed">
       <div class="feed-header">
         <div class="feed-title-wrap">
-          <h2 id="feedSectionTitle">All Events & Games</h2>
+          <div>
+            <p class="section-kicker">GameDay schedule</p>
+            <h2 id="feedSectionTitle">Upcoming</h2>
+          </div>
           <span class="event-count-badge" id="eventCountBadge">0 games</span>
         </div>
         <div class="feed-quick-view-toggle">
@@ -249,6 +245,21 @@
         <p>Try adjusting your search query, sport category, or time filter.</p>
         <button class="btn-primary" id="resetFiltersBtn"><i class="fa-solid fa-rotate-left"></i> Reset All Filters</button>
       </div>
+
+      <section class="quick-access" aria-labelledby="quickAccessTitle">
+        <div class="section-heading-row">
+          <div>
+            <p class="section-kicker">Explore</p>
+            <h2 id="quickAccessTitle">Quick Access</h2>
+          </div>
+        </div>
+        <div class="quick-access-grid">
+          <button class="quick-access-card" data-tab-target="calendar"><i class="fa-regular fa-calendar-days"></i><span>Schedule</span><i class="fa-solid fa-chevron-right arrow"></i></button>
+          <button class="quick-access-card" data-tab-target="map"><i class="fa-solid fa-map-location-dot"></i><span>Venues</span><i class="fa-solid fa-chevron-right arrow"></i></button>
+          <button class="quick-access-card" data-tab-target="stats"><i class="fa-solid fa-chart-line"></i><span>Stats</span><i class="fa-solid fa-chevron-right arrow"></i></button>
+          <button class="quick-access-card" data-action="search"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span><i class="fa-solid fa-chevron-right arrow"></i></button>
+        </div>
+      </section>
     </section>
 
     <!-- TAB 2: INTERACTIVE CALENDAR VIEW -->
@@ -418,6 +429,14 @@
     </section>
 
   </main>
+
+  <nav class="mobile-bottom-nav" aria-label="Primary navigation">
+    <button class="mobile-nav-btn active" data-tab-target="feed"><i class="fa-solid fa-house"></i><span>Home</span></button>
+    <button class="mobile-nav-btn" data-tab-target="calendar"><i class="fa-regular fa-calendar-days"></i><span>Schedule</span></button>
+    <button class="mobile-nav-btn" data-tab-target="map"><i class="fa-solid fa-location-dot"></i><span>Venues</span></button>
+    <button class="mobile-nav-btn" data-tab-target="stats"><i class="fa-solid fa-chart-simple"></i><span>Stats</span></button>
+    <button class="mobile-nav-btn" data-tab-target="moreMenu"><i class="fa-solid fa-ellipsis"></i><span>More</span></button>
+  </nav>
 
   <!-- MODAL 1: Game Detail & Directions Modal -->
   <div class="modal-backdrop" id="gameModal" style="display: none;">

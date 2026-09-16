@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     schoolId: new URLSearchParams(window.location.search).get('school') || 'sugar-salem',
     events: [],
     selectedSport: 'all',
-    timeFilter: 'all',
+    timeFilter: 'upcoming',
     awayOnly: false,
     searchQuery: '',
     currentTheme: 'spirit',
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!overlay || !searchInput || !allSchoolsList || !recentSchoolsList || !recentSchoolsSection) return;
 
     const schoolsByName = [...SCHOOL_OPTIONS].sort((a, b) => a.name.localeCompare(b.name));
-    const selectedId = new URLSearchParams(window.location.search).get('school');
+    const selectedId = new URLSearchParams(window.location.search).get('school') || state.schoolId;
     const selectedSchool = SCHOOL_OPTIONS.find(school => school.id === selectedId);
 
     if (selectedSchool) {
@@ -132,8 +132,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updateSchoolNameTag(school) {
     const schoolNameTag = document.getElementById('schoolNameTag');
     const schoolSubtitle = document.querySelector('.brand-subtitle');
+    const schoolPickerButton = document.getElementById('backToSchoolPickerBtn');
+    document.documentElement.setAttribute('data-school', school.id);
     if (schoolNameTag) schoolNameTag.textContent = `${school.name.replace(' High School', '')} ${school.mascot}`;
     if (schoolSubtitle) schoolSubtitle.textContent = `${school.name} Athletics & Events Hub`;
+    if (schoolPickerButton) schoolPickerButton.innerHTML = `<i class="fa-solid fa-school"></i><span class="btn-text">${school.name.replace(' High School', '')}</span><i class="fa-solid fa-chevron-down school-picker-chevron"></i>`;
   }
 
   function getCurrentSchoolName() {
@@ -193,6 +196,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Refresh all modules
+    syncSportFilterAvailability();
     renderHeroMatchup();
     renderFeed();
     GameDayMap.updateVenues(state.events);
@@ -217,8 +221,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Find next upcoming match
     const todayStr = getTodayISO();
-    const upcoming = state.events.filter(e => e.date >= todayStr).sort((a, b) => a.date.localeCompare(b.date));
-    const nextGame = upcoming[0] || state.events[0];
+    const sportScopedEvents = state.selectedSport === 'all'
+      ? state.events
+      : state.events.filter(event => matchesSportFilter(event, state.selectedSport));
+    const upcoming = sportScopedEvents
+      .filter(event => event.date >= todayStr && !['final', 'cancelled', 'canceled'].includes((event.status || '').toLowerCase()))
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const nextGame = upcoming[0] || sportScopedEvents[0] || state.events[0];
 
     if (!nextGame) {
       heroMatchupEl.innerHTML = '';
@@ -227,21 +236,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    const isHome = nextGame.locationType === 'Home';
+    const schoolName = getCurrentSchoolName();
+    const teamLabel = getTeamLabel(nextGame);
+    const opponentLabel = nextGame.opponent.replace(/\s+(High School|HS)$/i, '');
+    const sportIcon = getSportIcon(nextGame.sport);
+
     heroMatchupEl.innerHTML = `
-      <h2>${nextGame.sport}: ${getCurrentSchoolName()} vs ${nextGame.opponent}</h2>
-      <p>
-        <span><i class="fa-regular fa-calendar"></i> ${formatFriendlyDate(nextGame.date)}</span>
-        <span><i class="fa-regular fa-clock"></i> ${nextGame.time}</span>
-        <span><i class="fa-solid fa-location-dot"></i> ${nextGame.venueName} (${nextGame.locationType})</span>
-      </p>
+      <div class="hero-game-kicker"><span class="hero-sport-icon"><i class="fa-solid ${sportIcon}"></i></span> ${teamLabel}</div>
+      <div class="hero-teams" aria-label="${schoolName} versus ${opponentLabel}">
+        <div class="hero-team"><div class="team-crest crest-school">${getSchoolInitials(schoolName)}</div><strong>${schoolName}</strong><small>${isHome ? 'Home' : 'Away'}</small></div>
+        <span class="hero-vs">VS</span>
+        <div class="hero-team"><div class="team-crest crest-opponent">${getOpponentInitials(opponentLabel)}</div><strong>${opponentLabel}</strong><small>${isHome ? 'Visitor' : 'Host'}</small></div>
+      </div>
+      <div class="hero-details">
+        <span><i class="fa-regular fa-calendar"></i><b>${formatFriendlyDate(nextGame.date)}</b><small>${nextGame.time}</small></span>
+        <span><i class="fa-solid fa-location-dot"></i><b>${nextGame.venueName}</b><small>${nextGame.locationType} venue</small></span>
+      </div>
     `;
 
     heroActionsEl.innerHTML = `
-      <button class="btn-hero-action btn-hero-primary" onclick="GameDayMap.openVenueByName('${escapeQuotes(nextGame.venueName)}')">
-        <i class="fa-solid fa-diamond-turn-right"></i> Get Directions to Game
+      <button class="btn-hero-action btn-hero-primary" onclick="openGameModalById('${nextGame.id}')">
+        <i class="fa-solid fa-eye"></i> View Game
       </button>
-      <button class="btn-hero-action btn-hero-secondary" onclick="openGameModalById('${nextGame.id}')">
-        <i class="fa-solid fa-circle-info"></i> View Matchup Details
+      <button class="btn-hero-action btn-hero-secondary" onclick="GameDayMap.openVenueByName('${escapeQuotes(nextGame.venueName)}')">
+        <i class="fa-solid fa-location-arrow"></i> Directions
       </button>
     `;
 
@@ -252,8 +271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function update() {
       if (!state.nextGameTarget) return;
 
-      const [y, m, d] = state.nextGameTarget.date.split('-').map(Number);
-      const targetTime = new Date(y, m - 1, d, 19, 0, 0).getTime();
+      const targetTime = getEventStartTimestamp(state.nextGameTarget);
       const now = new Date().getTime();
       const diff = targetTime - now;
 
@@ -288,6 +306,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- Navigation Tabs ---
   function setupNavigationTabs() {
     const tabs = document.querySelectorAll('.tab-btn');
+    const switchToTab = (tabKey) => {
+      const target = document.querySelector(`.tab-btn[data-tab="${tabKey}"]`);
+      if (target) target.click();
+      document.querySelectorAll('.mobile-nav-btn').forEach(button => {
+        button.classList.toggle('active', button.dataset.tabTarget === tabKey);
+      });
+    };
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
@@ -295,6 +321,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const tabKey = tab.dataset.tab;
         state.activeTab = tabKey;
+        const appMain = document.querySelector('.main-container');
+        if (appMain) appMain.dataset.activeView = tabKey;
 
         document.querySelectorAll('.tab-pane').forEach(pane => {
           pane.classList.toggle('active', pane.id === `pane${capitalize(tabKey)}`);
@@ -303,6 +331,30 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (tabKey === 'map') {
           GameDayMap.invalidateSize();
         }
+        document.querySelectorAll('.mobile-nav-btn').forEach(button => {
+          button.classList.toggle('active', button.dataset.tabTarget === tabKey);
+        });
+      });
+    });
+
+    const appMain = document.querySelector('.main-container');
+    if (appMain) appMain.dataset.activeView = state.activeTab;
+
+    document.querySelectorAll('[data-tab-target], [data-action]').forEach(button => {
+      button.addEventListener('click', () => {
+        if (button.dataset.action === 'search') {
+          const searchToggle = document.getElementById('searchToggleBtn');
+          if (searchToggle) searchToggle.click();
+          return;
+        }
+        const tabKey = button.dataset.tabTarget;
+        if (tabKey === 'moreMenu') {
+          const moreMenu = document.querySelector('.more-menu');
+          if (moreMenu) moreMenu.classList.toggle('open');
+          return;
+        }
+        switchToTab(tabKey);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     });
   }
@@ -312,13 +364,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Sports Filter Pills
     const filterBar = document.getElementById('sportsFilterBar');
     if (filterBar) {
-      filterBar.querySelectorAll('.sport-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-          filterBar.querySelectorAll('.sport-pill').forEach(p => p.classList.remove('active'));
-          pill.classList.add('active');
-          state.selectedSport = pill.dataset.sport;
-          renderFeed();
-        });
+      filterBar.addEventListener('click', event => {
+        const pill = event.target.closest('.sport-pill');
+        if (!pill || pill.hidden) return;
+        filterBar.querySelectorAll('.sport-pill').forEach(item => item.classList.remove('active'));
+        pill.classList.add('active');
+        state.selectedSport = pill.dataset.sport;
+        renderHeroMatchup();
+        renderFeed();
       });
     }
 
@@ -377,6 +430,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Time window filters (All, Upcoming, Today, Past)
+    document.querySelectorAll('.time-filter-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.time === state.timeFilter));
     document.querySelectorAll('.time-filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.time-filter-btn').forEach(b => b.classList.remove('active'));
@@ -411,6 +465,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.querySelectorAll('.sport-pill').forEach(p => p.classList.toggle('active', p.dataset.sport === 'all'));
         document.querySelectorAll('.time-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.time === 'all'));
 
+        renderHeroMatchup();
         renderFeed();
       });
     }
@@ -427,14 +482,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const filtered = state.events.filter(evt => {
       // 1. Sport filter
-      if (state.selectedSport !== 'all') {
-        const sportStr = evt.sport.toLowerCase();
-        if (state.selectedSport === 'clubs') {
-          if (!sportStr.includes('cheer') && !sportStr.includes('club')) return false;
-        } else if (!sportStr.includes(state.selectedSport)) {
-          return false;
-        }
-      }
+      if (state.selectedSport !== 'all' && !matchesSportFilter(evt, state.selectedSport)) return false;
 
       // 2. Away games only filter
       if (state.awayOnly && evt.locationType !== 'Away') {
@@ -471,64 +519,38 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     emptyState.style.display = 'none';
 
-    grid.innerHTML = filtered.map(evt => {
+    const orderedEvents = [...filtered].sort((a, b) => {
+      const aPast = a.status === 'Final' || a.date < todayStr;
+      const bPast = b.status === 'Final' || b.date < todayStr;
+      if (aPast !== bPast) return aPast ? 1 : -1;
+      return (a.date || '').localeCompare(b.date || '');
+    });
+
+    grid.innerHTML = orderedEvents.map(evt => {
       const isHome = evt.locationType === 'Home';
       const sportColor = getSportColor(evt.sport.toLowerCase());
+      const sportIcon = getSportIcon(evt.sport);
       const hasScores = evt.ourScore !== null && evt.oppScore !== null;
       const isWin = hasScores && evt.ourScore > evt.oppScore;
+      const eventTitle = getTeamLabel(evt);
+      const resultLabel = hasScores ? `${evt.ourScore}&ndash;${evt.oppScore}` : evt.time;
+      const resultContext = hasScores ? (isWin ? 'Win' : 'Final') : evt.status;
 
       return `
-        <div class="event-card">
-          <div class="event-card-header">
-            <span class="event-sport-tag" style="background: ${sportColor}22; color: ${sportColor};">
-              <i class="fa-solid fa-trophy"></i> ${evt.sport} (${evt.gender || 'Varsity'})
-            </span>
-            <span class="event-status-badge status-${evt.status.toLowerCase()}">${evt.status}</span>
+        <article class="event-card event-card--agenda" tabindex="0" role="button" aria-label="View details for ${eventTitle} versus ${evt.opponent}" onclick="openGameModalById('${evt.id}')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openGameModalById('${evt.id}'); }">
+          <div class="event-sport-mark" style="--event-color: ${sportColor};"><i class="fa-solid ${sportIcon}" aria-hidden="true"></i></div>
+          <div class="event-card-content">
+            <p class="event-date-label">${formatRelativeEventDate(evt.date, todayStr)}</p>
+            <h3 class="event-title">${eventTitle}</h3>
+            <p class="event-opponent">${getCurrentSchoolName()} <span>vs.</span> ${evt.opponent}</p>
+            <p class="event-location"><i class="fa-solid ${isHome ? 'fa-house' : 'fa-location-dot'}" aria-hidden="true"></i>${evt.locationType} &middot; ${evt.venueName}</p>
           </div>
-
-          <div class="matchup-row">
-            <div class="team-box">
-              <span class="team-name">${getCurrentSchoolName()} High</span>
-              <span class="team-type">${isHome ? '🏠 Home' : '🚌 Away'}</span>
-            </div>
-            <div style="text-align: center;">
-              ${hasScores ? `
-                <span class="team-score" style="color: ${isWin ? '#10b981' : 'var(--primary)'};">${evt.ourScore} - ${evt.oppScore}</span>
-                <div style="font-size:0.65rem; font-weight:800; color:var(--text-muted);">${isWin ? 'VICTORY' : 'FINAL'}</div>
-              ` : `
-                <span class="match-vs">VS</span>
-              `}
-            </div>
-            <div class="team-box" style="text-align: right;">
-              <span class="team-name">${evt.opponent}</span>
-              <span class="team-type">${isHome ? 'Visitor' : 'Host'}</span>
-            </div>
+          <div class="event-card-side">
+            <strong class="event-time ${hasScores && isWin ? 'event-result-win' : ''}">${resultLabel}</strong>
+            <span class="event-status-badge status-${evt.status.toLowerCase()}">${resultContext}</span>
+            <i class="fa-solid fa-chevron-right event-card-chevron" aria-hidden="true"></i>
           </div>
-
-          <div class="match-meta">
-            <div class="meta-item">
-              <i class="fa-regular fa-calendar"></i> <span><strong>${formatFriendlyDate(evt.date)}</strong> @ <strong>${evt.time}</strong></span>
-            </div>
-            <div class="meta-item">
-              <i class="fa-solid fa-location-dot"></i> <span>${evt.venueName}</span>
-              <span class="location-badge ${isHome ? 'badge-home' : 'badge-away'}">${evt.locationType}</span>
-            </div>
-            ${evt.highlights ? `
-              <div class="meta-item" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
-                <i class="fa-solid fa-circle-info"></i> <span>${evt.highlights}</span>
-              </div>
-            ` : ''}
-          </div>
-
-          <div class="card-actions">
-            <button class="btn-card btn-card-primary" onclick="GameDayMap.openVenueByName('${escapeQuotes(evt.venueName)}')">
-              <i class="fa-solid fa-location-arrow"></i> Directions
-            </button>
-            <button class="btn-card btn-card-secondary" onclick="openGameModalById('${evt.id}')">
-              <i class="fa-solid fa-chart-simple"></i> Details & Stats
-            </button>
-          </div>
-        </div>
+        </article>
       `;
     }).join('');
   }
@@ -607,60 +629,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     const gameModal = document.getElementById('gameModal');
     if (!modalBody || !gameModal) return;
 
-    const isHome = game.locationType === 'Home';
     const hasScores = game.ourScore !== null && game.oppScore !== null;
     const encodedAddr = encodeURIComponent(`${game.venueName}, ${game.venueAddress}`);
 
     modalBody.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-        <span class="event-sport-tag" style="background: rgba(var(--primary-rgb),0.2); color: var(--primary);">
-          ${game.sport} &bull; ${game.level} ${game.gender}
-        </span>
-        <span class="event-status-badge status-${game.status.toLowerCase()}">${game.status}</span>
-      </div>
+      <section class="game-detail">
+        <div class="game-detail-topline">
+          <span class="event-sport-tag"><i class="fa-solid ${getSportIcon(game.sport)}"></i>${game.sport}</span>
+          <span class="event-status-badge status-${game.status.toLowerCase()}">${game.status}</span>
+        </div>
+        <p class="game-detail-kicker">${getTeamLabel(game)}</p>
+        <h2>${getCurrentSchoolName()} <span>vs.</span> ${game.opponent}</h2>
 
-      <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem;">
-        ${getCurrentSchoolName()} High <span style="color:var(--primary);">vs</span> ${game.opponent}
-      </h2>
+        ${hasScores ? `
+          <div class="game-detail-score">
+            <span>Final score</span>
+            <strong>${game.ourScore} <em>&ndash;</em> ${game.oppScore}</strong>
+          </div>
+        ` : ''}
 
-      ${hasScores ? `
-        <div style="background:var(--bg-input); padding: 1rem; border-radius:var(--radius-md); text-align:center; margin-bottom: 1.25rem;">
-          <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; color:var(--text-muted); margin-bottom:0.25rem;">Final Game Score</div>
-          <div style="font-size: 2rem; font-weight: 900; font-family:'Outfit', sans-serif; color:var(--primary);">
-            ${game.ourScore} &mdash; ${game.oppScore}
+        <div class="game-detail-facts">
+          <div class="game-detail-fact">
+            <i class="fa-regular fa-calendar"></i>
+            <span>Date & time</span>
+            <strong>${formatFriendlyDate(game.date)}<small>${game.time}</small></strong>
+          </div>
+          <div class="game-detail-fact">
+            <i class="fa-solid fa-location-dot"></i>
+            <span>${game.locationType} venue</span>
+            <strong>${game.venueName}<small>${game.venueAddress || 'Address not listed'}</small></strong>
           </div>
         </div>
-      ` : ''}
 
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1.25rem;">
-        <div style="background:var(--bg-input); padding: 0.75rem; border-radius:var(--radius-md);">
-          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Date & Kick-off</div>
-          <div style="font-weight:800;">${formatFriendlyDate(game.date)}</div>
-          <div style="font-size:0.85rem; color:var(--primary); font-weight:700;">${game.time}</div>
+        <div class="game-detail-notes">
+          <p><i class="fa-solid fa-square-parking"></i><span><strong>Parking & arrival</strong>${game.parkingInfo || 'Venue details will be posted before the event.'}</span></p>
+          <p><i class="fa-solid fa-bullhorn"></i><span><strong>Event notes</strong>${game.highlights || 'Join the student section and wear school colors!'}</span></p>
         </div>
-        <div style="background:var(--bg-input); padding: 0.75rem; border-radius:var(--radius-md);">
-          <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">Venue & Location</div>
-          <div style="font-weight:800;">${game.venueName}</div>
-          <div style="font-size:0.75rem; color:var(--text-muted);">${game.locationType} Matchup</div>
-        </div>
-      </div>
 
-      <div style="background:var(--bg-input); padding: 0.85rem; border-radius:var(--radius-md); margin-bottom: 1.25rem; font-size:0.85rem;">
-        <p style="margin-bottom:0.4rem;"><i class="fa-solid fa-square-parking" style="color:var(--primary);"></i> <strong>Parking & Arrival:</strong> ${game.parkingInfo}</p>
-        <p><i class="fa-solid fa-bullhorn" style="color:var(--primary);"></i> <strong>Event Notes:</strong> ${game.highlights || 'Join the student section and wear school colors!'}</p>
-      </div>
-
-      <div class="directions-links-row" style="margin-top: 1rem;">
+        <div class="directions-links-row game-detail-actions">
         <a href="https://www.google.com/maps/dir/?api=1&destination=${encodedAddr}" target="_blank" rel="noopener" class="btn-nav-app">
           <i class="fa-brands fa-google"></i> Google Maps
         </a>
         <a href="https://maps.apple.com/?daddr=${encodedAddr}" target="_blank" rel="noopener" class="btn-nav-app">
           <i class="fa-brands fa-apple"></i> Apple Maps
         </a>
-        <button class="btn-primary" onclick="GameDayMap.openVenueByName('${escapeQuotes(game.venueName)}'); document.getElementById('gameModal').style.display='none';" style="margin-left:auto;">
+        <button class="btn-primary" onclick="GameDayMap.openVenueByName('${escapeQuotes(game.venueName)}'); document.getElementById('gameModal').style.display='none';">
           <i class="fa-solid fa-map-location-dot"></i> View on App Map
         </button>
-      </div>
+        </div>
+      </section>
     `;
 
     gameModal.style.display = 'flex';
@@ -700,6 +717,95 @@ document.addEventListener('DOMContentLoaded', async () => {
     const [y, m, d] = isoDate.split('-').map(Number);
     const date = new Date(y, m - 1, d);
     return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function getEventStartTimestamp(event) {
+    const [year, month, day] = (event.date || '').split('-').map(Number);
+    const timeMatch = String(event.time || '').match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?/i);
+    let hour = Number(timeMatch?.[1] || 19);
+    const minute = Number(timeMatch?.[2] || 0);
+    const period = timeMatch?.[3]?.toUpperCase();
+    if (period === 'PM' && hour < 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    return new Date(year, month - 1, day, hour, minute, 0).getTime();
+  }
+
+  function formatRelativeEventDate(isoDate, todayStr) {
+    if (isoDate === todayStr) return 'TODAY';
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+    if (isoDate === tomorrowStr) return 'TOMORROW';
+    return formatFriendlyDate(isoDate).toUpperCase();
+  }
+
+  function getSportIcon(sport) {
+    const value = (sport || '').toLowerCase();
+    if (value.includes('football')) return 'fa-football';
+    if (value.includes('basketball')) return 'fa-basketball';
+    if (value.includes('soccer')) return 'fa-futbol';
+    if (value.includes('baseball') || value.includes('softball')) return 'fa-baseball-bat-ball';
+    if (value.includes('volleyball')) return 'fa-volleyball';
+    if (value.includes('track') || value.includes('cross country')) return 'fa-person-running';
+    return 'fa-trophy';
+  }
+
+  function getTeamLabel(event) {
+    const level = (event.level || 'Varsity')
+      .replace(/\b(Boys|Girls)\b/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    return `${event.gender ? `${event.gender} ` : ''}${level} ${event.sport}`.replace(/\s+/g, ' ').trim();
+  }
+
+  function matchesSportFilter(event, filter) {
+    const sport = (event.sport || '').toLowerCase();
+    if (filter === 'clubs') return sport.includes('cheer') || sport.includes('club');
+    if (filter === 'baseball') return sport.includes('baseball') || sport.includes('softball');
+    if (filter === 'track') return sport.includes('track') || sport.includes('cross country');
+    if (filter.startsWith('sport:')) return sport === filter.slice(6);
+    return sport.includes(filter);
+  }
+
+  function syncSportFilterAvailability() {
+    const filterBar = document.getElementById('sportsFilterBar');
+    if (!filterBar) return;
+
+    const representedSports = event => ['football', 'basketball', 'soccer', 'baseball', 'volleyball', 'track', 'clubs']
+      .some(filter => matchesSportFilter(event, filter));
+    const extraSports = [...new Set(state.events
+      .filter(event => event.sport && !representedSports(event))
+      .map(event => event.sport.trim()))]
+      .sort((a, b) => a.localeCompare(b));
+
+    extraSports.forEach(sport => {
+      const filterValue = `sport:${sport.toLowerCase()}`;
+      if ([...filterBar.querySelectorAll('.sport-pill')].some(pill => pill.dataset.sport === filterValue)) return;
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = 'sport-pill';
+      pill.dataset.sport = filterValue;
+      pill.title = sport;
+      pill.innerHTML = `<i class="fa-solid ${getSportIcon(sport)}"></i><span>${sport}</span>`;
+      filterBar.appendChild(pill);
+    });
+
+    const pills = filterBar.querySelectorAll('.sport-pill');
+    pills.forEach(pill => {
+      const filter = pill.dataset.sport;
+      const isAvailable = filter === 'all' || state.events.some(event => matchesSportFilter(event, filter));
+      pill.hidden = !isAvailable;
+      if (!isAvailable && pill.classList.contains('active')) state.selectedSport = 'all';
+    });
+    pills.forEach(pill => pill.classList.toggle('active', pill.dataset.sport === state.selectedSport));
+  }
+
+  function getSchoolInitials(name) {
+    return (name || 'School').split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase();
+  }
+
+  function getOpponentInitials(name) {
+    return (name || 'Opponent').split(/\s+/).filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase();
   }
 
   function getSportColor(sport) {
