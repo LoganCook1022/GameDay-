@@ -28,9 +28,9 @@
    - Period-by-period scoring breakdown (Q1–Q4, Innings, Halves).
    - Star Player of the Game spotlight with stats.
    - Season records, conference standings, average points, and winning streaks.
-7. **Live Google Sheets Synchronization**:
-   - Anyone on the school athletics team can update scores and schedules in real-time by typing into a Google Sheet.
-   - Built-in offline fallback dataset so the app always displays realistic schedules immediately.
+7. **Firestore-backed administration**:
+   - Authorized administrators can manage events, sports, clubs, teams, statistics, and school settings from `admin.html`.
+   - The public app reads school-scoped data directly from Firestore and keeps a local fallback dataset for development.
 
 ---
 
@@ -53,7 +53,28 @@ Simply double-click `index.html` in your file explorer to launch the app directl
 
 ---
 
-## 📊 Connecting Your Own Google Sheet
+## 🔐 Firebase setup
+
+1. Create a Firebase project and enable Email/Password Authentication and Cloud Firestore.
+2. Copy the web app configuration into `firebase-config.js`. These values identify the Firebase project and are expected to be public in browser applications.
+3. Deploy `firestore.rules`. Administrator accounts must have the Firebase Authentication custom claim `admin: true`; the rules reject all writes without it.
+4. Open `admin.html` to sign in and manage the school identified by the `school` query parameter, such as `admin.html?school=sugar-salem`.
+
+### Deploy with Firebase Hosting
+
+From the project directory, authenticate and select your Firebase project:
+
+```bash
+npx firebase-tools login
+npx firebase-tools use --add
+npx firebase-tools deploy --only hosting,firestore:rules
+```
+
+After selecting the project, copy its web app configuration into `firebase-config.js` before opening the deployed site. The deployed admin page is available at `/admin.html?school=sugar-salem`.
+
+The Firestore layout is `schools/{schoolId}/events`, `sports`, `clubs`, `teams`, `statistics`, and `settings/school`. Public reads are allowed; writes require the administrator claim.
+
+## 📊 Legacy Google Sheet import
 
 To connect your school's live schedule:
 

@@ -11,32 +11,2307 @@ const SheetsSync = (function() {
   const DEFAULT_SHEET_URL = DEFAULT_LIVE_DATA_URL;
 
   const snakeRiverGames = [
-    { sport: 'Soccer', level: 'Varsity Girls', opponent: 'Preston High School', date: '2026-10-01', time: '3:00 PM', locationType: 'Away', venueName: 'Preston High School', venueAddress: '151 E 2nd S, Preston, ID 83263' },
-    { sport: 'Football', level: 'Freshman Boys', opponent: 'Highland High School', date: '2026-10-01', time: '4:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Volleyball', level: 'Varsity Girls', opponent: 'Malad High School', date: '2026-10-01', time: '7:00 PM', locationType: 'Away', venueName: 'Malad High School', venueAddress: '180 N 300 W, Malad City, ID 83252' },
-    { sport: 'Soccer', level: 'Varsity Boys', opponent: 'Preston High School', date: '2026-10-01', time: '5:00 PM', locationType: 'Away', venueName: 'Preston High School', venueAddress: '151 E 2nd S, Preston, ID 83263' },
-    { sport: 'Football', level: 'Junior Varsity', opponent: 'Century High School', date: '2026-10-01', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Soccer', level: 'Varsity Girls', opponent: 'Firth High School', date: '2026-10-05', time: '4:00 PM', locationType: 'Away', venueName: 'Firth High School', venueAddress: '329 Lincoln St, Firth, ID 83236' },
-    { sport: 'Soccer', level: 'Varsity Girls', opponent: 'Teton High School', date: '2026-10-06', time: '5:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Volleyball', level: 'Varsity Girls', opponent: 'South Fremont High School', date: '2026-10-06', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Soccer', level: 'Varsity Boys', opponent: 'Teton High School', date: '2026-10-06', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Volleyball', level: 'Varsity Girls', opponent: 'Idaho Falls High School', date: '2026-10-13', time: '7:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Football', level: 'Varsity Boys', opponent: 'Layton Christian Academy', date: '2026-10-16', time: '4:00 PM', locationType: 'Away', venueName: 'Layton Christian Academy', venueAddress: '2352 E Hwy 193, Layton, UT 84040' },
-    { sport: 'Basketball', level: 'Varsity Girls', opponent: 'Jerome High School', date: '2026-11-12', time: '7:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Basketball', level: 'Varsity Boys', opponent: 'Kimberly High School', date: '2026-11-20', time: '7:30 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' },
-    { sport: 'Basketball', level: 'Varsity Boys', opponent: 'Star Valley High School', date: '2026-12-04', time: '7:30 PM', locationType: 'Away', venueName: 'Star Valley High School', venueAddress: '445 S Washington St, Afton, WY 83110' },
-    { sport: 'Wrestling', level: 'Varsity Boys', opponent: 'Marsh Valley High School', date: '2027-02-04', time: '5:00 PM', locationType: 'Home', venueName: 'Snake River High School', venueAddress: '922 W Hwy 39, Blackfoot, ID 83221' }
-  ].map((game, index) => ({
-    ...game,
-    id: `sr-${index + 1}`,
-    schoolId: 'snake-river',
-    gender: game.level.endsWith('Girls') ? 'Girls' : 'Boys',
-    status: 'Upcoming',
-    ourScore: null,
-    oppScore: null,
-    highlights: '',
-    stats: null
-  }));
+  {
+    "id": "sr-1",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Football Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-01",
+    "time": "12:00 AM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-2",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-02",
+    "time": "12:00 AM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-3",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-03",
+    "time": "12:00 AM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-4",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-04",
+    "time": "10:00 AM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-5",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Meridian Senior High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-05",
+    "time": "1:00 PM",
+    "venueName": "Meridian Senior High School Stadium",
+    "venueAddress": "Meridian Senior High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-6",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Homedale High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-06",
+    "time": "1:00 PM",
+    "venueName": "Homedale High School Stadium",
+    "venueAddress": "Homedale High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-7",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Meridian Senior High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-07",
+    "time": "3:00 PM",
+    "venueName": "Meridian Senior High School Stadium",
+    "venueAddress": "Meridian Senior High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-8",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Homedale High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-08",
+    "time": "4:00 PM",
+    "venueName": "Homedale High School Stadium",
+    "venueAddress": "Homedale High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-9",
+    "sport": "Cross Country",
+    "gender": "Coed",
+    "level": "Varsity",
+    "opponent": "Cross Country Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-09",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-10",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Canyon Ridge High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-10",
+    "time": "11:00 AM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-11",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Filer High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-11",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-12",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Blackfoot High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-12",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-13",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Snake River High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-13",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School Stadium",
+    "venueAddress": "Snake River High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-14",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Marsh Valley High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-14",
+    "time": "4:00 PM",
+    "venueName": "Marsh Valley High School Stadium",
+    "venueAddress": "Marsh Valley High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-15",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Filer High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-15",
+    "time": "5:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-16",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Blackfoot High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-16",
+    "time": "5:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-17",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Freshman",
+    "opponent": "Snake River High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-17",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-18",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "American Falls High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-18",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-19",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Blackfoot High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-19",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-20",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Marsh Valley High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-20",
+    "time": "6:00 PM",
+    "venueName": "Marsh Valley High School Stadium",
+    "venueAddress": "Marsh Valley High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-21",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Filer High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-21",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-22",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Snake River High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-22",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-23",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Marsh Valley High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-23",
+    "time": "3:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-24",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Snake River High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-24",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School Stadium",
+    "venueAddress": "Snake River High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-25",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Freshman",
+    "opponent": "Shelley High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-25",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-26",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Idaho Falls High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-26",
+    "time": "5:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-27",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "South Fremont High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-27",
+    "time": "5:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-28",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Marsh Valley High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-28",
+    "time": "5:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-29",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Snake River High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-28",
+    "time": "5:30 PM",
+    "venueName": "Snake River High School Stadium",
+    "venueAddress": "Snake River High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-30",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "South Fremont High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-28",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-31",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Shelley High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-28",
+    "time": "7:00 PM",
+    "venueName": "Shelley High School Stadium",
+    "venueAddress": "Shelley High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-32",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Snake River High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-08-28",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School Stadium",
+    "venueAddress": "Snake River High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-33",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Idaho Falls High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-08-28",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-34",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Preston High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-01",
+    "time": "3:00 PM",
+    "venueName": "Preston High School Stadium",
+    "venueAddress": "Preston High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-35",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Freshman",
+    "opponent": "Highland High School (ID)",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-02",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-36",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Malad High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-03",
+    "time": "4:30 PM",
+    "venueName": "Malad High School Stadium",
+    "venueAddress": "Malad High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-37",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Preston High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-04",
+    "time": "5:00 PM",
+    "venueName": "Preston High School Stadium",
+    "venueAddress": "Preston High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-38",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Malad High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-05",
+    "time": "5:30 PM",
+    "venueName": "Malad High School Stadium",
+    "venueAddress": "Malad High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-39",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Century High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-06",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-40",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Malad High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-07",
+    "time": "7:00 PM",
+    "venueName": "Malad High School Stadium",
+    "venueAddress": "Malad High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-41",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-08",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-42",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Soccer Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-09",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-43",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Firth High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-10",
+    "time": "4:00 PM",
+    "venueName": "Firth High School Stadium",
+    "venueAddress": "Firth High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-44",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-11",
+    "time": "5:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-45",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Soccer Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-12",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-46",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "South Fremont High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-13",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-47",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Teton High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-14",
+    "time": "5:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-48",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-15",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-49",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "South Fremont High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-16",
+    "time": "5:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-50",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-17",
+    "time": "6:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-51",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Firth High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-18",
+    "time": "5:45 PM",
+    "venueName": "Firth High School Stadium",
+    "venueAddress": "Firth High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-52",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Teton High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-19",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-53",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "South Fremont High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-20",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-54",
+    "sport": "Soccer",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Soccer Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-21",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-55",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-22",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-56",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Idaho Falls High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-23",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-57",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Teton High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-24",
+    "time": "4:30 PM",
+    "venueName": "Teton High School Stadium",
+    "venueAddress": "Teton High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-58",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-25",
+    "time": "9:31 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-59",
+    "sport": "Soccer",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Soccer Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-26",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-60",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Idaho Falls High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-27",
+    "time": "5:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-61",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Teton High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-28",
+    "time": "5:30 PM",
+    "venueName": "Teton High School Stadium",
+    "venueAddress": "Teton High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-62",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-28",
+    "time": "10:31 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-63",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Idaho Falls High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-28",
+    "time": "7:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-64",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Teton High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-28",
+    "time": "7:00 PM",
+    "venueName": "Teton High School Stadium",
+    "venueAddress": "Teton High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-65",
+    "sport": "Volleyball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Volleyball Event",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-10-28",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-66",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Layton Christian Academy",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-28",
+    "time": "12:00 PM",
+    "venueName": "Layton Christian Academy Stadium",
+    "venueAddress": "Layton Christian Academy, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-67",
+    "sport": "Football",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Layton Christian Academy",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-10-28",
+    "time": "4:00 PM",
+    "venueName": "Layton Christian Academy Stadium",
+    "venueAddress": "Layton Christian Academy, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-68",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "C-Team",
+    "opponent": "Jerome High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-01",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-69",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Jerome High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-02",
+    "time": "6:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-70",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Jerome High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-03",
+    "time": "7:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-71",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-04",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-72",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-05",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-73",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-06",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-74",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Freshman",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-07",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-75",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-08",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-76",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-09",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-77",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-10",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-78",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-11",
+    "time": "6:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-79",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-11-12",
+    "time": "7:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-80",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-01",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-81",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-02",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-82",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-03",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-83",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Freshman",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-04",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-84",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-05",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-85",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-06",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-86",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Fruitland High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-07",
+    "time": "TBA",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-87",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-08",
+    "time": "6:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-88",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2026-12-09",
+    "time": "7:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-89",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "C-Team",
+    "opponent": "Star Valley High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-12-10",
+    "time": "4:30 PM",
+    "venueName": "Star Valley High School Stadium",
+    "venueAddress": "Star Valley High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-90",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Star Valley High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-12-11",
+    "time": "6:00 PM",
+    "venueName": "Star Valley High School Stadium",
+    "venueAddress": "Star Valley High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-91",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Star Valley High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2026-12-12",
+    "time": "7:30 PM",
+    "venueName": "Star Valley High School Stadium",
+    "venueAddress": "Star Valley High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-92",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "C-Team",
+    "opponent": "Star Valley High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2027-01-01",
+    "time": "4:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-93",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Star Valley High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2027-01-02",
+    "time": "6:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-94",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Star Valley High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2027-01-03",
+    "time": "7:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-95",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Freshman",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2027-01-04",
+    "time": "1:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-96",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Junior Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2027-01-05",
+    "time": "2:30 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-97",
+    "sport": "Basketball",
+    "gender": "Girls",
+    "level": "Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Home",
+    "date": "2027-01-06",
+    "time": "4:00 PM",
+    "venueName": "Snake River High School",
+    "venueAddress": "922 W Hwy 39, Blackfoot, ID 83221",
+    "lat": 43.1904,
+    "lng": -112.3456,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-98",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Freshman",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2027-01-07",
+    "time": "4:30 PM",
+    "venueName": "Kimberly High School Stadium",
+    "venueAddress": "Kimberly High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-99",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Junior Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2027-01-08",
+    "time": "6:00 PM",
+    "venueName": "Kimberly High School Stadium",
+    "venueAddress": "Kimberly High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  },
+  {
+    "id": "sr-100",
+    "sport": "Basketball",
+    "gender": "Boys",
+    "level": "Varsity",
+    "opponent": "Kimberly High School",
+    "opponentMascot": "",
+    "locationType": "Away",
+    "date": "2027-01-09",
+    "time": "7:30 PM",
+    "venueName": "Kimberly High School Stadium",
+    "venueAddress": "Kimberly High School, ID",
+    "lat": 43.8744,
+    "lng": -111.7483,
+    "parkingInfo": "Standard spectator parking available.",
+    "ticketUrl": "https://sugarsalemhighschool.arbiterwebsites.com/",
+    "ourScore": null,
+    "oppScore": null,
+    "status": "Upcoming",
+    "highlights": "",
+    "stats": null,
+    "schoolId": "snake-river"
+  }
+];
 
   // Comprehensive Authentic Sugar-Salem High School Diggers Athletic & Event Schedule
   // Covers all Fall, Winter, Spring sports and School events from https://hs.sugarsalem.org/sportscalendars
@@ -1256,27 +3531,64 @@ const SheetsSync = (function() {
 
   // Parse CSV formatted text into game objects
   function parseCSV(csvText) {
-    const lines = csvText.split(/\r?\n/).filter(line => line.trim().length > 0);
+    if (!csvText || !csvText.trim()) return [];
+    const lines = csvText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
     if (lines.length < 2) return [];
 
-    const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+    function splitCSVLine(line) {
+      let processed = line;
+      if (processed.startsWith('"') && processed.endsWith('"') && (processed.match(/"/g) || []).length === 2) {
+        processed = processed.slice(1, -1);
+      }
+
+      const cells = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < processed.length; i++) {
+        const char = processed[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          cells.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      cells.push(current.trim());
+      return cells.map(c => c.replace(/^"(.*)"$/, '$1').trim());
+    }
+
+    const headerCells = splitCSVLine(lines[0]);
+    const headers = headerCells.map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
     const results = [];
 
+    const MONTH_MAP = {
+      'january': '01', 'february': '02', 'march': '03', 'april': '04',
+      'may': '05', 'june': '06', 'july': '07', 'august': '08',
+      'september': '09', 'october': '10', 'november': '11', 'december': '12',
+      'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'jun': '06',
+      'jul': '07', 'aug': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+    };
+
+    const monthDayCounters = {};
+
     for (let i = 1; i < lines.length; i++) {
-      const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || lines[i].split(',');
-      const cleanRow = row.map(cell => cell.replace(/^"(.*)"$/, '$1').trim());
-      
+      const row = splitCSVLine(lines[i]);
+      if (row.length === 0 || row.every(c => !c)) continue;
+
       const item = {
         id: 'sheet-evt-' + i,
         sport: 'Other',
-        gender: 'Varsity',
+        gender: 'Boys',
         level: 'Varsity',
-        opponent: 'Opponent',
+        opponent: '',
         opponentMascot: '',
-        locationType: 'Away',
+        locationType: 'Home',
         date: getRelativeDate(0),
         time: '7:00 PM',
-        venueName: 'Sugar-Salem Digger Stadium',
+        venueName: 'Sugar-Salem High School',
         venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
         lat: 43.8744,
         lng: -111.7483,
@@ -1290,23 +3602,95 @@ const SheetsSync = (function() {
       };
 
       headers.forEach((header, index) => {
-        const val = cleanRow[index];
-        if (val === undefined) return;
+        const val = row[index];
+        if (val === undefined || val === '') return;
 
-        if (header.includes('sport')) item.sport = val;
-        else if (header.includes('opp') || header.includes('team')) item.opponent = val;
-        else if (header.includes('date')) item.date = val;
-        else if (header.includes('time')) item.time = val;
-        else if (header.includes('loc') || header.includes('homeaway')) item.locationType = val.toLowerCase().includes('home') ? 'Home' : 'Away';
-        else if (header.includes('venue') || header.includes('stadium')) item.venueName = val;
-        else if (header.includes('addr')) item.venueAddress = val;
-        else if (header.includes('ourscore') || header === 'us' || header === 'score') item.ourScore = isNaN(parseInt(val)) ? null : parseInt(val);
-        else if (header.includes('oppscore') || header === 'them') item.oppScore = isNaN(parseInt(val)) ? null : parseInt(val);
-        else if (header.includes('status')) item.status = val;
-        else if (header.includes('note') || header.includes('highlight')) item.highlights = val;
-        else if (header.includes('lat')) item.lat = parseFloat(val) || 43.8744;
-        else if (header.includes('lng') || header.includes('lon')) item.lng = parseFloat(val) || -111.7483;
+        if (header.includes('date')) {
+          item.date = val;
+        } else if (header.includes('month')) {
+          const parts = val.split(/\s+/);
+          const monthKey = parts[0]?.toLowerCase();
+          const year = parts[1] || '2026';
+          if (MONTH_MAP[monthKey]) {
+            const m = MONTH_MAP[monthKey];
+            monthDayCounters[val] = (monthDayCounters[val] || 0) + 1;
+            const dayNum = Math.min(28, monthDayCounters[val]);
+            const dayStr = String(dayNum).padStart(2, '0');
+            item.date = `${year}-${m}-${dayStr}`;
+          }
+        }
+
+        if (header.includes('sport')) {
+          let sportText = val;
+          if (/freshman/i.test(sportText)) item.level = 'Freshman';
+          else if (/junior varsity|jv/i.test(sportText)) item.level = 'Junior Varsity';
+          else if (/c-team|c team/i.test(sportText)) item.level = 'C-Team';
+          else if (/varsity/i.test(sportText)) item.level = 'Varsity';
+
+          if (/girls/i.test(sportText)) item.gender = 'Girls';
+          else if (/coed/i.test(sportText)) item.gender = 'Coed';
+          else if (/boys/i.test(sportText)) item.gender = 'Boys';
+
+          if (/football/i.test(sportText)) item.sport = 'Football';
+          else if (/volleyball/i.test(sportText)) item.sport = 'Volleyball';
+          else if (/soccer/i.test(sportText)) item.sport = 'Soccer';
+          else if (/basketball/i.test(sportText)) item.sport = 'Basketball';
+          else if (/cross country|xc/i.test(sportText)) item.sport = 'Cross Country';
+          else if (/wrestling/i.test(sportText)) item.sport = 'Wrestling';
+          else if (/baseball/i.test(sportText)) item.sport = 'Baseball';
+          else if (/softball/i.test(sportText)) item.sport = 'Softball';
+          else if (/track/i.test(sportText)) item.sport = 'Track & Field';
+          else item.sport = sportText.replace(/varsity|junior|freshman|c-team|boys|girls|coed/gi, '').trim() || 'Other';
+        }
+
+        if (header.includes('opp') || header.includes('team') || header.includes('opponentlocation')) {
+          let oppText = val.trim();
+          if (oppText.startsWith('vs.') || oppText.startsWith('vs ') || oppText.startsWith('vs:')) {
+            item.locationType = 'Home';
+            oppText = oppText.replace(/^vs\.?\s*:?\s*/i, '');
+          } else if (oppText.startsWith('at ') || oppText.startsWith('@ ') || oppText.startsWith('at:')) {
+            item.locationType = 'Away';
+            oppText = oppText.replace(/^(at|@)\s*:?\s*/i, '');
+          }
+
+          if (oppText) {
+            item.opponent = oppText;
+            if (item.locationType === 'Away') {
+              item.venueName = oppText.endsWith('Stadium') || oppText.endsWith('Gym') ? oppText : `${oppText} Stadium`;
+              item.venueAddress = `${oppText}, ID`;
+            }
+          }
+        }
+
+        if (header.includes('time')) {
+          let timeText = val.trim();
+          if (/^\d{1,2}:\d{2}[ap]/i.test(timeText)) {
+            const startPart = timeText.split('-')[0].trim();
+            const match = startPart.match(/^(\d{1,2}):(\d{2})([ap])/i);
+            if (match) {
+              const ampm = match[3].toLowerCase() === 'p' ? 'PM' : 'AM';
+              timeText = `${match[1]}:${match[2]} ${ampm}`;
+            }
+          }
+          item.time = timeText;
+        }
+
+        if (header.includes('loc') && !header.includes('opponent')) {
+          item.locationType = val.toLowerCase().includes('home') ? 'Home' : 'Away';
+        }
+        if (header.includes('venue') || header.includes('stadium')) item.venueName = val;
+        if (header.includes('addr')) item.venueAddress = val;
+        if (header.includes('ourscore') || header === 'us' || header === 'score') item.ourScore = isNaN(parseInt(val)) ? null : parseInt(val);
+        if (header.includes('oppscore') || header === 'them') item.oppScore = isNaN(parseInt(val)) ? null : parseInt(val);
+        if (header.includes('status')) item.status = val;
+        if (header.includes('note') || header.includes('highlight')) item.highlights = val;
+        if (header.includes('lat')) item.lat = parseFloat(val) || 43.8744;
+        if (header.includes('lng') || header.includes('lon')) item.lng = parseFloat(val) || -111.7483;
       });
+
+      if (!item.opponent) {
+        item.opponent = `${item.sport} Event`;
+      }
 
       if (!item.status || item.status === 'Upcoming') {
         if (item.ourScore !== null && item.oppScore !== null) {
@@ -1316,6 +3700,220 @@ const SheetsSync = (function() {
 
       results.push(item);
     }
+
+    return results;
+  }
+
+  // Parse OpenSheet JSON response
+  function parseOpenSheetJson(jsonArray) {
+    if (!Array.isArray(jsonArray) || jsonArray.length === 0) return [];
+    const firstObj = jsonArray[0];
+    const keys = Object.keys(firstObj);
+
+    if (keys.length === 1 && keys[0].includes(',')) {
+      const headerLine = keys[0];
+      const dataLines = jsonArray.map(obj => obj[headerLine] || '').filter(l => l.trim().length > 0);
+      return parseCSV([headerLine, ...dataLines].join('\n'));
+    }
+
+    const csvLines = [];
+    csvLines.push(keys.join(','));
+    jsonArray.forEach(row => {
+      const vals = keys.map(k => `"${String(row[k] || '').replace(/"/g, '""')}"`);
+      csvLines.push(vals.join(','));
+    });
+    return parseCSV(csvLines.join('\n'));
+  }
+
+  // Fetch Google Sheet data using high-reliability CORS-compatible endpoints
+  async function fetchGoogleSheetData(sheetId, gid = '') {
+    const sources = [
+      `https://opensheet.elk.sh/${sheetId}/${gid || '1'}`,
+      `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv${gid ? `&gid=${gid}` : ''}`
+    ];
+
+    let lastError = null;
+
+    for (const source of sources) {
+      try {
+        const response = await fetch(source);
+        if (!response.ok) continue;
+        const text = await response.text();
+
+        // If JSON from OpenSheet
+        if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
+          try {
+            const data = JSON.parse(text);
+            if (Array.isArray(data) && data.length > 0) {
+              const parsed = parseOpenSheetJson(data);
+              if (parsed.length > 0) return parsed;
+            }
+          } catch (e) {}
+        }
+
+        // If CSV from gviz
+        const parsed = parseCSV(text);
+        if (parsed.length > 0) return parsed;
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    throw lastError || new Error('Could not retrieve data from Google Sheet. Make sure General Access is set to "Anyone with the link can view".');
+  }
+
+  // Parse GViz Table object into game events array
+  function parseGvizTable(table) {
+    if (!table || !table.rows || table.rows.length === 0) return [];
+
+    // Check if first row is a composite CSV line
+    const firstRowCell = table.rows[0]?.c?.[0]?.v || '';
+    if (typeof firstRowCell === 'string' && firstRowCell.includes(',')) {
+      const allLines = table.rows
+        .map(r => (r.c && r.c[0] && r.c[0].v !== null && r.c[0].v !== undefined) ? String(r.c[0].v) : '')
+        .filter(l => l.trim().length > 0);
+      return parseCSV(allLines.join('\n'));
+    }
+
+    const colLabels = (table.cols || []).map(c => (c.label || c.id || '').trim());
+    const headers = colLabels.map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
+    const results = [];
+
+    const MONTH_MAP = {
+      'january': '01', 'february': '02', 'march': '03', 'april': '04',
+      'may': '05', 'june': '06', 'july': '07', 'august': '08',
+      'september': '09', 'october': '10', 'november': '11', 'december': '12',
+      'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'jun': '06',
+      'jul': '07', 'aug': '08', 'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12'
+    };
+    const monthDayCounters = {};
+
+    table.rows.forEach((rowObj, rowIdx) => {
+      if (!rowObj || !rowObj.c) return;
+      const rowValues = rowObj.c.map(cell => cell ? (cell.v !== null && cell.v !== undefined ? String(cell.v).trim() : '') : '');
+      if (rowValues.every(v => !v)) return;
+
+      const item = {
+        id: 'sheet-evt-' + (rowIdx + 1),
+        sport: 'Other',
+        gender: 'Boys',
+        level: 'Varsity',
+        opponent: '',
+        opponentMascot: '',
+        locationType: 'Home',
+        date: getRelativeDate(0),
+        time: '7:00 PM',
+        venueName: 'Sugar-Salem High School',
+        venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+        lat: 43.8744,
+        lng: -111.7483,
+        parkingInfo: 'Standard spectator parking available.',
+        ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/',
+        ourScore: null,
+        oppScore: null,
+        status: 'Upcoming',
+        highlights: '',
+        stats: null
+      };
+
+      headers.forEach((header, index) => {
+        const val = rowValues[index];
+        if (val === undefined || val === '') return;
+
+        if (header.includes('date')) {
+          item.date = val;
+        } else if (header.includes('month')) {
+          const parts = val.split(/\s+/);
+          const monthKey = parts[0]?.toLowerCase();
+          const year = parts[1] || '2026';
+          if (MONTH_MAP[monthKey]) {
+            const m = MONTH_MAP[monthKey];
+            monthDayCounters[val] = (monthDayCounters[val] || 0) + 1;
+            const dayNum = Math.min(28, monthDayCounters[val]);
+            const dayStr = String(dayNum).padStart(2, '0');
+            item.date = `${year}-${m}-${dayStr}`;
+          }
+        }
+
+        if (header.includes('sport')) {
+          let sportText = val;
+          if (/freshman/i.test(sportText)) item.level = 'Freshman';
+          else if (/junior varsity|jv/i.test(sportText)) item.level = 'Junior Varsity';
+          else if (/c-team|c team/i.test(sportText)) item.level = 'C-Team';
+          else if (/varsity/i.test(sportText)) item.level = 'Varsity';
+
+          if (/girls/i.test(sportText)) item.gender = 'Girls';
+          else if (/coed/i.test(sportText)) item.gender = 'Coed';
+          else if (/boys/i.test(sportText)) item.gender = 'Boys';
+
+          if (/football/i.test(sportText)) item.sport = 'Football';
+          else if (/volleyball/i.test(sportText)) item.sport = 'Volleyball';
+          else if (/soccer/i.test(sportText)) item.sport = 'Soccer';
+          else if (/basketball/i.test(sportText)) item.sport = 'Basketball';
+          else if (/cross country|xc/i.test(sportText)) item.sport = 'Cross Country';
+          else if (/wrestling/i.test(sportText)) item.sport = 'Wrestling';
+          else if (/baseball/i.test(sportText)) item.sport = 'Baseball';
+          else if (/softball/i.test(sportText)) item.sport = 'Softball';
+          else if (/track/i.test(sportText)) item.sport = 'Track & Field';
+          else item.sport = sportText.replace(/varsity|junior|freshman|c-team|boys|girls|coed/gi, '').trim() || 'Other';
+        }
+
+        if (header.includes('opp') || header.includes('team') || header.includes('opponentlocation')) {
+          let oppText = val.trim();
+          if (oppText.startsWith('vs.') || oppText.startsWith('vs ') || oppText.startsWith('vs:')) {
+            item.locationType = 'Home';
+            oppText = oppText.replace(/^vs\.?\s*:?\s*/i, '');
+          } else if (oppText.startsWith('at ') || oppText.startsWith('@ ') || oppText.startsWith('at:')) {
+            item.locationType = 'Away';
+            oppText = oppText.replace(/^(at|@)\s*:?\s*/i, '');
+          }
+
+          if (oppText) {
+            item.opponent = oppText;
+            if (item.locationType === 'Away') {
+              item.venueName = oppText.endsWith('Stadium') || oppText.endsWith('Gym') ? oppText : `${oppText} Stadium`;
+              item.venueAddress = `${oppText}, ID`;
+            }
+          }
+        }
+
+        if (header.includes('time')) {
+          let timeText = val.trim();
+          if (/^\d{1,2}:\d{2}[ap]/i.test(timeText)) {
+            const startPart = timeText.split('-')[0].trim();
+            const match = startPart.match(/^(\d{1,2}):(\d{2})([ap])/i);
+            if (match) {
+              const ampm = match[3].toLowerCase() === 'p' ? 'PM' : 'AM';
+              timeText = `${match[1]}:${match[2]} ${ampm}`;
+            }
+          }
+          item.time = timeText;
+        }
+
+        if (header.includes('loc') && !header.includes('opponent')) {
+          item.locationType = val.toLowerCase().includes('home') ? 'Home' : 'Away';
+        }
+        if (header.includes('venue') || header.includes('stadium')) item.venueName = val;
+        if (header.includes('addr')) item.venueAddress = val;
+        if (header.includes('ourscore') || header === 'us' || header === 'score') item.ourScore = isNaN(parseInt(val)) ? null : parseInt(val);
+        if (header.includes('oppscore') || header === 'them') item.oppScore = isNaN(parseInt(val)) ? null : parseInt(val);
+        if (header.includes('status')) item.status = val;
+        if (header.includes('note') || header.includes('highlight')) item.highlights = val;
+        if (header.includes('lat')) item.lat = parseFloat(val) || 43.8744;
+        if (header.includes('lng') || header.includes('lon')) item.lng = parseFloat(val) || -111.7483;
+      });
+
+      if (!item.opponent) {
+        item.opponent = `${item.sport} Event`;
+      }
+      if (!item.status || item.status === 'Upcoming') {
+        if (item.ourScore !== null && item.oppScore !== null) {
+          item.status = 'Final';
+        }
+      }
+
+      results.push(item);
+    });
 
     return results;
   }
@@ -1335,36 +3933,52 @@ const SheetsSync = (function() {
 
   // Load events from LocalStorage cache, custom sheet, JSON sync file, or Sugar-Salem dataset
   async function loadEvents() {
-    if (new URLSearchParams(window.location.search).get('school') === 'snake-river') {
-      return { events: snakeRiverGames, isLiveSheet: false };
-    }
-
-    const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_SHEET_URL;
+    const schoolParam = new URLSearchParams(window.location.search).get('school');
+    const savedUrl = localStorage.getItem(STORAGE_KEY_SHEET_URL);
 
     if (savedUrl) {
-      try {
-        const response = await fetch(savedUrl);
-        if (response.ok) {
-          const contentType = response.headers.get('content-type') || '';
-          const text = await response.text();
-
-          if (contentType.includes('application/json') || text.trim().startsWith('[') || text.trim().startsWith('{')) {
-            const json = JSON.parse(text);
-            const parsed = Array.isArray(json) ? json : (Array.isArray(json.events) ? json.events : null);
-            if (parsed && parsed.length > 0) {
+      const gSheetMatch = savedUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+      if (gSheetMatch && gSheetMatch[1]) {
+        try {
+          const gidMatch = savedUrl.match(/[#&?]gid=([0-9]+)/);
+          const gid = gidMatch ? gidMatch[1] : '';
+          const table = await fetchGoogleSheetJSONP(gSheetMatch[1], gid);
+          const parsed = parseGvizTable(table);
+          if (parsed && parsed.length > 0) {
+            localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
+            return { events: parsed, isLiveSheet: true };
+          }
+        } catch (err) {
+          console.warn('Could not refresh live Google Sheet via JSONP, using cache.', err);
+          const cached = localStorage.getItem(STORAGE_KEY_CUSTOM_DATA);
+          if (cached) {
+            try {
+              return { events: JSON.parse(cached), isLiveSheet: true };
+            } catch (e) {}
+          }
+        }
+      } else {
+        try {
+          const response = await fetch(savedUrl);
+          if (response.ok) {
+            const text = await response.text();
+            if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
+              const json = JSON.parse(text);
+              const parsed = Array.isArray(json) ? json : (Array.isArray(json.events) ? json.events : null);
+              if (parsed && parsed.length > 0) {
+                localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
+                return { events: parsed, isLiveSheet: true };
+              }
+            }
+            const parsed = parseCSV(text);
+            if (parsed.length > 0) {
               localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
               return { events: parsed, isLiveSheet: true };
             }
           }
-
-          const parsed = parseCSV(text);
-          if (parsed.length > 0) {
-            localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
-            return { events: parsed, isLiveSheet: true };
-          }
+        } catch (err) {
+          console.warn('Could not fetch custom URL, trying cache.', err);
         }
-      } catch (err) {
-        console.warn('Could not fetch live feed, trying local sync data.', err);
       }
     }
 
@@ -1372,6 +3986,10 @@ const SheetsSync = (function() {
     if (liveData) {
       localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(liveData));
       return { events: liveData, isLiveSheet: true };
+    }
+
+    if (schoolParam === 'snake-river') {
+      return { events: snakeRiverGames, isLiveSheet: false };
     }
 
     // Always use official Sugar-Salem schedule by default
@@ -1385,24 +4003,46 @@ const SheetsSync = (function() {
       return { success: true, count: DEFAULT_EVENTS.length, events: DEFAULT_EVENTS, isLive: false };
     }
 
-    let cleanUrl = url.trim();
-    if (cleanUrl.includes('docs.google.com/spreadsheets') && !cleanUrl.includes('output=csv')) {
-      if (cleanUrl.includes('/edit')) {
-        cleanUrl = cleanUrl.replace(/\/edit.*$/, '/export?format=csv');
-      } else if (cleanUrl.includes('/pubhtml')) {
-        cleanUrl = cleanUrl.replace('/pubhtml', '/pub?output=csv');
+    const cleanUrl = url.trim();
+    const gSheetMatch = cleanUrl.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+
+    if (gSheetMatch && gSheetMatch[1]) {
+      const sheetId = gSheetMatch[1];
+      const gidMatch = cleanUrl.match(/[#&?]gid=([0-9]+)/);
+      const gid = gidMatch ? gidMatch[1] : '';
+
+      try {
+        const table = await fetchGoogleSheetJSONP(sheetId, gid);
+        const parsed = parseGvizTable(table);
+        if (parsed.length === 0) {
+          throw new Error('No valid event rows found in Google Sheet');
+        }
+
+        localStorage.setItem(STORAGE_KEY_SHEET_URL, cleanUrl);
+        localStorage.setItem(STORAGE_KEY_CUSTOM_DATA, JSON.stringify(parsed));
+        return { success: true, count: parsed.length, events: parsed, isLive: true };
+      } catch (err) {
+        return { success: false, error: err.message };
       }
     }
 
+    // Fallback for direct JSON / CSV HTTP URLs
     try {
       const response = await fetch(cleanUrl);
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to retrieve sheet`);
+        throw new Error(`HTTP ${response.status}: Failed to retrieve data`);
       }
-      const csvText = await response.text();
-      const parsed = parseCSV(csvText);
+      const text = await response.text();
+      let parsed = [];
+      if (text.trim().startsWith('[') || text.trim().startsWith('{')) {
+        const json = JSON.parse(text);
+        parsed = Array.isArray(json) ? json : (Array.isArray(json.events) ? json.events : []);
+      } else {
+        parsed = parseCSV(text);
+      }
+
       if (parsed.length === 0) {
-        throw new Error('No valid event rows found in CSV');
+        throw new Error('No valid event rows found');
       }
 
       localStorage.setItem(STORAGE_KEY_SHEET_URL, cleanUrl);
@@ -1420,7 +4060,7 @@ const SheetsSync = (function() {
   }
 
   function getSavedSheetUrl() {
-    return localStorage.getItem(STORAGE_KEY_SHEET_URL) || DEFAULT_SHEET_URL;
+    return localStorage.getItem(STORAGE_KEY_SHEET_URL) || '';
   }
 
   return {

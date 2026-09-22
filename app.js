@@ -14,8 +14,11 @@ const SCHOOL_OPTIONS = [
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Application State
+  const schoolParam = new URLSearchParams(window.location.search).get('school');
+  const initialSchool = SCHOOL_OPTIONS.find(school => school.id === schoolParam);
+
   const state = {
-    schoolId: new URLSearchParams(window.location.search).get('school') || 'sugar-salem',
+    schoolId: initialSchool ? initialSchool.id : null,
     events: [],
     selectedSport: 'all',
     timeFilter: 'upcoming',
@@ -53,28 +56,65 @@ document.addEventListener('DOMContentLoaded', async () => {
     const recentSchoolsList = document.getElementById('recentSchoolsList');
     const recentSchoolsSection = document.getElementById('recentSchoolsSection');
     const backButton = document.getElementById('backToSchoolPickerBtn');
+    const closeButton = document.getElementById('closeSchoolPickerBtn');
+    const schoolNameTag = document.getElementById('schoolNameTag');
     if (!overlay || !searchInput || !allSchoolsList || !recentSchoolsList || !recentSchoolsSection) return;
 
     const schoolsByName = [...SCHOOL_OPTIONS].sort((a, b) => a.name.localeCompare(b.name));
-    const selectedId = new URLSearchParams(window.location.search).get('school') || state.schoolId;
-    const selectedSchool = SCHOOL_OPTIONS.find(school => school.id === selectedId);
+    const selectedSchool = SCHOOL_OPTIONS.find(school => school.id === state.schoolId);
+
+    function openPicker() {
+      overlay.hidden = false;
+      searchInput.value = '';
+      renderLists();
+      if (closeButton) {
+        closeButton.hidden = !state.schoolId;
+      }
+      setTimeout(() => searchInput.focus(), 50);
+    }
+
+    function closePicker() {
+      if (state.schoolId) {
+        overlay.hidden = true;
+      }
+    }
 
     if (selectedSchool) {
       overlay.hidden = true;
       updateSchoolNameTag(selectedSchool);
       if (backButton) backButton.hidden = false;
     } else {
-      overlay.hidden = false;
+      openPicker();
       if (backButton) backButton.hidden = true;
     }
 
     if (backButton) {
-      backButton.addEventListener('click', () => {
-        const destination = new URL(window.location.href);
-        destination.searchParams.delete('school');
-        window.location.href = destination.toString();
+      backButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        openPicker();
       });
     }
+
+    if (closeButton) {
+      closeButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        closePicker();
+      });
+    }
+
+    if (schoolNameTag) {
+      schoolNameTag.style.cursor = 'pointer';
+      schoolNameTag.title = 'Click to change school';
+      schoolNameTag.addEventListener('click', () => {
+        openPicker();
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !overlay.hidden && state.schoolId) {
+        closePicker();
+      }
+    });
 
     function getRecentSchools() {
       try {
@@ -133,10 +173,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const schoolNameTag = document.getElementById('schoolNameTag');
     const schoolSubtitle = document.querySelector('.brand-subtitle');
     const schoolPickerButton = document.getElementById('backToSchoolPickerBtn');
+    if (!school) {
+      document.documentElement.removeAttribute('data-school');
+      if (schoolNameTag) schoolNameTag.textContent = 'Select School';
+      if (schoolSubtitle) schoolSubtitle.textContent = 'High School Athletics & Events Hub';
+      if (schoolPickerButton) schoolPickerButton.hidden = true;
+      return;
+    }
     document.documentElement.setAttribute('data-school', school.id);
     if (schoolNameTag) schoolNameTag.textContent = `${school.name.replace(' High School', '')} ${school.mascot}`;
     if (schoolSubtitle) schoolSubtitle.textContent = `${school.name} Athletics & Events Hub`;
-    if (schoolPickerButton) schoolPickerButton.innerHTML = `<i class="fa-solid fa-school"></i><span class="btn-text">${school.name.replace(' High School', '')}</span><i class="fa-solid fa-chevron-down school-picker-chevron"></i>`;
+    if (schoolPickerButton) {
+      schoolPickerButton.hidden = false;
+      schoolPickerButton.innerHTML = `<i class="fa-solid fa-school"></i><span class="btn-text">${school.name.replace(' High School', '')}</span><i class="fa-solid fa-chevron-down school-picker-chevron"></i>`;
+    }
   }
 
   function getCurrentSchoolName() {
@@ -184,15 +234,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Data Loading & Distribution ---
   async function loadAndDistributeData() {
-    const { events, isLiveSheet } = await SheetsSync.loadEvents();
-    const hasSchoolData = state.schoolId === 'sugar-salem' || state.schoolId === 'snake-river';
+    if (GameDayFirebase.isConfigured()) {
+      try {
+        const settings = await GameDayFirebase.loadSettings();
+        if (settings.schoolName) {
+          document.title = `GameDay+ | ${settings.schoolName}`;
+          document.querySelector('.brand-subtitle').textContent = `${settings.schoolName} Athletics & Events Hub`;
+        }
+        if (settings.primaryColor) document.documentElement.style.setProperty('--primary', settings.primaryColor);
+        if (settings.accentColor) document.documentElement.style.setProperty('--accent', settings.accentColor);
+      } catch (error) {
+        console.warn('Could not load school settings.', error);
+      }
+    }
+    let events;
+    let isLiveFirestore = false;
+    try {
+      ({ events, isLiveFirestore } = await GameDayFirebase.loadEvents());
+    } catch (error) {
+      console.error('Firestore event load failed; using existing data source.', error);
+      const fallback = await SheetsSync.loadEvents();
+      events = fallback.events;
+    }
+    const hasSchoolData = events.length > 0;
     state.events = hasSchoolData ? events : [];
 
     // Update Status Indicator
     const dot = document.getElementById('sheetStatusDot');
     if (dot) {
-      dot.style.background = hasSchoolData && isLiveSheet ? '#10b981' : '#f59e0b';
-      dot.title = hasSchoolData && isLiveSheet ? 'Connected to Live Google Sheet' : 'No school data available yet';
+      dot.style.background = isLiveFirestore ? '#10b981' : (hasSchoolData ? '#3b82f6' : '#f59e0b');
+      dot.title = isLiveFirestore ? 'Connected to Firestore' : (hasSchoolData ? 'Using Built-in Schedule' : 'No school data available yet');
     }
 
     // Refresh all modules
@@ -208,7 +279,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const timestampLabel = document.getElementById('lastUpdatedLabel');
     if (timestampLabel) {
       timestampLabel.textContent = hasSchoolData
-        ? `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${isLiveSheet ? '(Live Sheet)' : '(Sample Mode)'}`
+        ? `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${isLiveFirestore ? '(Firestore)' : '(Sample Mode)'}`
         : 'School data coming soon';
     }
   }

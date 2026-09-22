@@ -26,6 +26,9 @@
   <!-- School Picker Overlay -->
   <div class="school-picker-overlay" id="schoolPickerOverlay" role="dialog" aria-labelledby="schoolPickerTitle">
     <div class="school-picker-content">
+      <button type="button" id="closeSchoolPickerBtn" class="school-picker-close-btn" aria-label="Close school picker" title="Close" hidden>
+        <i class="fa-solid fa-xmark"></i>
+      </button>
       <div class="school-picker-header">
         <p class="school-picker-eyebrow">GameDay+</p>
         <h2 id="schoolPickerTitle">Find Your School</h2>
@@ -532,6 +535,11 @@
 
   <!-- Scripts -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-client.js"></script>
   <script src="sheets-sync.js"></script>
   <script src="map.js"></script>
   <script src="calendar.js"></script>
