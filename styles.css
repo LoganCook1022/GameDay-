@@ -445,6 +445,41 @@ button {
   transform: translateY(-1px);
 }
 
+/* --- Sign In / Sign Out Header Button --- */
+.sign-in-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  background: var(--bg-input);
+  border: 1.5px solid var(--border-subtle);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sign-in-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-color);
+  color: var(--text-main);
+  transform: translateY(-1px);
+}
+
+.sign-in-btn:active {
+  transform: scale(0.95);
+}
+
+.sign-in-name {
+  font-weight: 700;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .live-dot {
   width: 8px;
   height: 8px;
@@ -2979,6 +3014,7 @@ button {
   .brand-subtitle { display: none; }
   .header-actions { gap: 6px; }
   .search-toggle-btn, .more-menu-btn { width: 2.35rem; height: 2.35rem; }
+  .sign-in-btn { height: 2.35rem; padding: 0 10px; border-radius: 10px; font-size: .7rem; }
   .action-btn { display: none; }
   .hero-section { padding: 22px 16px 20px; border-radius: 0 0 22px 22px; }
   .hero-container { display: block; }
@@ -3110,6 +3146,7 @@ button {
   .header-actions .action-btn .btn-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .school-picker-chevron { color: rgba(255,255,255,.75); }
   .header-actions .search-toggle-btn, .header-actions .more-menu-btn { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.25); color: #fff; }
+  .header-actions .sign-in-btn { border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.1); color: #fff; }
 }
 
 /* Shared mobile page language for the existing calendar, map, stats and details views */

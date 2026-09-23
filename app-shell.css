@@ -80,7 +80,8 @@ select:focus-visible {
 }
 .search-toggle-btn,
 .more-menu-btn,
-.action-btn {
+.action-btn,
+.sign-in-btn {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.22);
   color: #fff;
@@ -489,7 +490,8 @@ button:active,
 .brand-badge,
 .search-toggle-btn,
 .more-menu-btn,
-.action-btn {
+.action-btn,
+.sign-in-btn {
   backdrop-filter: blur(14px) saturate(130%);
   -webkit-backdrop-filter: blur(14px) saturate(130%);
 }
@@ -498,14 +500,16 @@ button:active,
 [data-theme="light"] .brand-subtitle,
 [data-theme="light"] .search-toggle-btn,
 [data-theme="light"] .more-menu-btn,
-[data-theme="light"] .action-btn {
+[data-theme="light"] .action-btn,
+[data-theme="light"] .sign-in-btn {
   color: var(--app-ink);
 }
 
 [data-theme="light"] .school-tag,
 [data-theme="light"] .search-toggle-btn,
 [data-theme="light"] .more-menu-btn,
-[data-theme="light"] .action-btn {
+[data-theme="light"] .action-btn,
+[data-theme="light"] .sign-in-btn {
   background: rgba(255, 255, 255, 0.55);
   border-color: rgba(35, 69, 110, 0.13);
 }

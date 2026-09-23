@@ -10,11 +10,21 @@ const AdminApp = (() => {
       return;
     }
     firebaseClient.auth().onAuthStateChanged(user => {
-      document.getElementById('loginView').hidden = Boolean(user);
-      document.getElementById('dashboardView').hidden = !user;
-      if (user) renderSection('overview');
+      if (!user) {
+        document.getElementById('loginView').hidden = false;
+        document.getElementById('dashboardView').hidden = true;
+        return;
+      }
+      authorizeAndRender(user);
     });
     document.getElementById('loginForm').addEventListener('submit', signIn);
+    document.getElementById('googleSignInBtn').addEventListener('click', async () => {
+      const error = document.getElementById('loginError');
+      error.textContent = '';
+      try {
+        await firebaseClient.signInWithGoogle();
+      } catch (googleError) { error.textContent = googleError.message; }
+    });
     document.getElementById('signOutBtn').addEventListener('click', () => firebaseClient.auth().signOut());
     document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab === button));
@@ -27,8 +37,22 @@ const AdminApp = (() => {
     const error = document.getElementById('loginError');
     error.textContent = '';
     try {
-      await firebaseClient.auth().signInWithEmailAndPassword(emailInput.value, passwordInput.value);
+      await firebaseClient.signInWithEmail(emailInput.value, passwordInput.value);
     } catch (authError) { error.textContent = authError.message; }
+  }
+
+  async function authorizeAndRender(user) {
+    const isAdmin = await firebaseClient.isAdminUser(user);
+    if (!isAdmin) {
+      await firebaseClient.signOut();
+      document.getElementById('loginView').hidden = false;
+      document.getElementById('dashboardView').hidden = true;
+      document.getElementById('loginError').textContent = 'Not authorized. Ask your organizer to promote this account to admin.';
+      return;
+    }
+    document.getElementById('loginView').hidden = true;
+    document.getElementById('dashboardView').hidden = false;
+    renderSection('overview');
   }
 
   async function renderSection(section) {

@@ -53,6 +53,27 @@ const GameDayFirebase = (() => {
 
   function isConfigured() { return configured; }
   function auth() { return firebase.auth(); }
+  function signInWithEmail(email, password) {
+    return firebase.auth().signInWithEmailAndPassword(email, password);
+  }
+  function createAccount(email, password) {
+    return firebase.auth().createUserWithEmailAndPassword(email, password);
+  }
+  function signInWithGoogle() {
+    return firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
+  }
+  function signOut() { return firebase.auth().signOut(); }
+  function onAuthStateChanged(callback) { return firebase.auth().onAuthStateChanged(callback); }
+  async function isAdminUser(user) {
+    const current = user || firebase.auth().currentUser;
+    if (!current) return false;
+    try {
+      const token = await current.getIdTokenResult(true);
+      return token.token && token.token.admin === true;
+    } catch (error) {
+      return false;
+    }
+  }
   function events() { return collection('events'); }
   function resources(name) { return collection(name); }
   function settings() { return db.collection('schools').doc(schoolId).collection('settings').doc('school'); }
@@ -63,7 +84,23 @@ const GameDayFirebase = (() => {
     return snapshot.exists ? snapshot.data() : {};
   }
 
-  return { schoolId, isConfigured, auth, events, resources, settings, loadEvents, loadSettings, normalizeEvent };
+  return {
+    schoolId,
+    isConfigured,
+    auth,
+    signInWithEmail,
+    createAccount,
+    signInWithGoogle,
+    signOut,
+    onAuthStateChanged,
+    isAdminUser,
+    events,
+    resources,
+    settings,
+    loadEvents,
+    loadSettings,
+    normalizeEvent
+  };
 })();
 
 window.GameDayFirebase = GameDayFirebase;

@@ -6,10 +6,12 @@
   "main": "services/ical-sync.js",
   "scripts": {
     "sync:ical": "node services/ical-sync.js",
-    "sync:ical:once": "node services/ical-sync.js --once"
+    "sync:ical:once": "node services/ical-sync.js --once",
+    "set-admin": "node services/set-claims.js"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
+    "firebase-admin": "^12.0.0",
     "node-cron": "^3.0.3",
     "node-ical": "^0.20.1"
   }

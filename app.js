@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupNavigationTabs();
   setupFiltersAndSearch();
   setupModals();
+  initAuthButton();
   startCountdownTimer();
 
   // --- School Picker ---
@@ -230,6 +231,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('gameday_theme', theme);
+  }
+
+  // --- Account Sign In / Sign Out ---
+  function initAuthButton() {
+    const signInBtn = document.getElementById('signInBtn');
+    if (!signInBtn || !GameDayFirebase.isConfigured() || !GameDayFirebase.auth) return;
+
+    const schoolQS = state.schoolId ? `?school=${encodeURIComponent(state.schoolId)}` : '';
+
+    function renderSignedOut() {
+      signInBtn.title = 'Sign in';
+      signInBtn.setAttribute('aria-label', 'Sign in');
+      signInBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span class="btn-text">Sign In</span>';
+    }
+
+    function renderSignedIn(user) {
+      const name = (user.displayName || user.email || 'Signed In').split(' ')[0];
+      signInBtn.title = 'Sign out';
+      signInBtn.setAttribute('aria-label', 'Sign out');
+      signInBtn.innerHTML = '<i class="fa-solid fa-user-check"></i><span class="btn-text">Sign Out</span><span class="sign-in-name">' + name.replace(/</g, '&lt;') + '</span>';
+    }
+
+    signInBtn.addEventListener('click', () => {
+      const user = GameDayFirebase.auth().currentUser;
+      if (user) {
+        GameDayFirebase.signOut();
+      } else {
+        window.location.href = `signin.html${schoolQS}`;
+      }
+    });
+
+    GameDayFirebase.onAuthStateChanged(user => {
+      if (user) {
+        renderSignedIn(user);
+      } else {
+        renderSignedOut();
+      }
+    });
   }
 
   // --- Data Loading & Distribution ---
