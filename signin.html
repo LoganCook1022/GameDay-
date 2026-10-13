@@ -37,14 +37,31 @@
         </div>
 
         <form class="signin-form" id="authForm" novalidate>
+          <div class="saved-accounts-bar" id="savedAccountsBar" hidden>
+            <span class="saved-accounts-title"><i class="fa-solid fa-clock-rotate-left"></i> Saved accounts</span>
+            <div class="saved-accounts-list" id="savedAccountsList"></div>
+          </div>
+
           <label class="signin-field">
             Email
-            <input type="email" id="emailInput" required autocomplete="email" placeholder="you@example.com">
+            <input type="email" id="emailInput" name="email" required autocomplete="username" list="savedEmailsList" placeholder="you@example.com">
+            <datalist id="savedEmailsList"></datalist>
           </label>
           <label class="signin-field">
             Password
-            <input type="password" id="passwordInput" required autocomplete="current-password" placeholder="At least 6 characters">
+            <div class="password-input-wrapper">
+              <input type="password" id="passwordInput" name="password" required autocomplete="current-password" placeholder="At least 6 characters">
+              <button type="button" class="toggle-password-btn" id="togglePasswordBtn" aria-label="Show password" title="Show/Hide password">
+                <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
+              </button>
+            </div>
           </label>
+          <div class="signin-options">
+            <label class="remember-label" for="rememberMeCheckbox">
+              <input type="checkbox" id="rememberMeCheckbox" checked>
+              <span>Remember email and password</span>
+            </label>
+          </div>
           <p class="error-msg" id="authError" role="alert"></p>
           <button type="submit" class="btn-primary" id="authSubmitBtn">Sign In</button>
         </form>

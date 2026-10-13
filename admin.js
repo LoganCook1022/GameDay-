@@ -3,7 +3,137 @@ const AdminApp = (() => {
   const content = document.getElementById('adminContent');
   let collections = {};
 
+  const STORAGE_KEY = 'gameday_saved_credentials';
+  const LEGACY_EMAIL_KEY = 'gameday_remember_email';
+  const LEGACY_PASS_KEY = 'gameday_remember_password';
+  const LEGACY_REMEMBER_KEY = 'gameday_remember_me';
+
+  function getSavedStore() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          if (!parsed.accounts) parsed.accounts = {};
+          return parsed;
+        }
+      }
+    } catch (_) {}
+
+    const legacyEmail = localStorage.getItem(LEGACY_EMAIL_KEY);
+    const legacyPass = localStorage.getItem(LEGACY_PASS_KEY);
+    const legacyRemember = localStorage.getItem(LEGACY_REMEMBER_KEY) !== 'false';
+    const store = {
+      remember: legacyRemember,
+      lastUsed: legacyEmail ? legacyEmail.toLowerCase() : '',
+      accounts: {}
+    };
+    if (legacyEmail && legacyPass) {
+      store.accounts[legacyEmail.toLowerCase()] = {
+        email: legacyEmail,
+        password: legacyPass,
+        savedAt: Date.now()
+      };
+    }
+    return store;
+  }
+
+  function saveStore(store) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+      localStorage.setItem(LEGACY_REMEMBER_KEY, store.remember ? 'true' : 'false');
+      if (store.remember && store.lastUsed && store.accounts[store.lastUsed]) {
+        localStorage.setItem(LEGACY_EMAIL_KEY, store.accounts[store.lastUsed].email);
+        localStorage.setItem(LEGACY_PASS_KEY, store.accounts[store.lastUsed].password);
+      } else if (!store.remember) {
+        localStorage.removeItem(LEGACY_EMAIL_KEY);
+        localStorage.removeItem(LEGACY_PASS_KEY);
+      }
+    } catch (_) {}
+  }
+
+  function populateAdminCredentials() {
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const rememberCheckbox = document.getElementById('adminRememberMe');
+    const datalist = document.getElementById('adminSavedEmailsList');
+    if (!emailInput || !passwordInput) return;
+
+    const store = getSavedStore();
+    if (rememberCheckbox) {
+      rememberCheckbox.checked = store.remember !== false;
+    }
+
+    const accountKeys = Object.keys(store.accounts || {});
+    if (datalist) {
+      datalist.innerHTML = '';
+      accountKeys.forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = store.accounts[k].email;
+        datalist.appendChild(opt);
+      });
+    }
+
+    if (store.remember !== false && accountKeys.length > 0) {
+      const activeKey = (store.lastUsed && store.accounts[store.lastUsed])
+        ? store.lastUsed
+        : accountKeys[0];
+      const activeAcc = store.accounts[activeKey];
+      if (activeAcc) {
+        if (!emailInput.value) emailInput.value = activeAcc.email;
+        if (!passwordInput.value) passwordInput.value = activeAcc.password;
+      }
+    }
+  }
+
+  function rememberAdminCredentials(email, password) {
+    const rememberCheckbox = document.getElementById('adminRememberMe');
+    const shouldRemember = rememberCheckbox ? rememberCheckbox.checked : true;
+    const store = getSavedStore();
+    const key = email.trim().toLowerCase();
+    if (shouldRemember) {
+      store.remember = true;
+      store.lastUsed = key;
+      store.accounts[key] = {
+        email: email.trim(),
+        password: password || '',
+        savedAt: Date.now()
+      };
+    } else {
+      store.remember = false;
+      delete store.accounts[key];
+      if (store.lastUsed === key) {
+        const remaining = Object.keys(store.accounts);
+        store.lastUsed = remaining.length ? remaining[0] : '';
+      }
+    }
+    saveStore(store);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
+    populateAdminCredentials();
+
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
+    if (emailInput && passwordInput) {
+      emailInput.addEventListener('input', () => {
+        const key = emailInput.value.trim().toLowerCase();
+        const store = getSavedStore();
+        if (store.accounts && store.accounts[key]) {
+          passwordInput.value = store.accounts[key].password;
+        }
+      });
+    }
+
+    const toggleBtn = document.getElementById('adminTogglePasswordBtn');
+    if (toggleBtn && passwordInput) {
+      toggleBtn.addEventListener('click', () => {
+        const isPass = passwordInput.type === 'password';
+        passwordInput.type = isPass ? 'text' : 'password';
+        toggleBtn.setAttribute('aria-label', isPass ? 'Hide password' : 'Show password');
+      });
+    }
+
     if (!firebaseClient.isConfigured()) {
       document.getElementById('loginError').textContent = 'Firebase is not configured. Add your project settings to firebase-config.js.';
       document.querySelector('#loginForm button').disabled = true;
@@ -13,6 +143,7 @@ const AdminApp = (() => {
       if (!user) {
         document.getElementById('loginView').hidden = false;
         document.getElementById('dashboardView').hidden = true;
+        populateAdminCredentials();
         return;
       }
       authorizeAndRender(user);
@@ -34,10 +165,15 @@ const AdminApp = (() => {
 
   async function signIn(event) {
     event.preventDefault();
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
     const error = document.getElementById('loginError');
     error.textContent = '';
+    const emailVal = emailInput.value.trim();
+    const passVal = passwordInput.value;
     try {
-      await firebaseClient.signInWithEmail(emailInput.value, passwordInput.value);
+      await firebaseClient.signInWithEmail(emailVal, passVal);
+      rememberAdminCredentials(emailVal, passVal);
     } catch (authError) { error.textContent = authError.message; }
   }
 
@@ -73,9 +209,74 @@ const AdminApp = (() => {
   function summaryCard(label, value) { return `<div class="summary-card"><span class="muted">${label}</span><strong>${value}</strong></div>`; }
 
   async function renderEvents() {
-    const events = await loadCollection('events');
-    content.innerHTML = `<div class="section-heading"><h2>Events</h2><button class="primary" id="newEventBtn">Add event</button></div><div class="resource-list">${events.length ? events.map(event => resourceRow(event.id, event.eventName || event.opponent || event.sport, `${event.date || 'No date'} · ${event.status || 'Scheduled'}`)).join('') : '<p class="muted">No events yet.</p>'}</div><div id="eventFormSlot"></div>`;
+    let events = [];
+    try {
+      events = await loadCollection('events');
+    } catch (err) {
+      console.warn('loadCollection events failed:', err);
+      events = [];
+    }
+    const hasEvents = events.length > 0;
+
+    content.innerHTML = `
+      <div class="section-heading" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+        <div>
+          <h2 style="margin:0;">Events &amp; Games (${events.length})</h2>
+          <p class="muted" style="margin:4px 0 0;font-size:0.85rem;">Live Firestore collection for school: <strong>${firebaseClient.schoolId}</strong></p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="secondary" id="syncEventsBtn" title="Sync / Upload built-in schedule into Firestore">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            Sync to Firestore
+          </button>
+          <button class="primary" id="newEventBtn">+ Add event</button>
+        </div>
+      </div>
+      <p id="eventFeedback" class="muted" style="margin:0 0 14px;"></p>
+      ${!hasEvents ? `
+        <div class="panel" style="padding:24px;border:1px dashed #cbd5e1;text-align:center;margin-top:10px;">
+          <h3 style="margin-top:0;">No events currently stored in Firestore</h3>
+          <p class="muted" style="max-width:540px;margin:8px auto 16px;">The public app is currently using built-in fallback events. You can upload the complete schedule directly to Firestore in one click, or add events manually.</p>
+          <button class="primary" id="emptySeedEventsBtn" style="width:auto;display:inline-block;padding:10px 24px;">Upload Schedule to Firestore</button>
+        </div>
+      ` : `
+        <div class="resource-list">
+          ${events.map(event => resourceRow(
+            event.id,
+            event.eventName || (event.sport ? `${event.sport} vs ${event.opponent || 'Opponent'}` : event.opponent),
+            `${event.sport || 'Event'} · ${event.date || 'No date'} ${event.time ? 'at ' + event.time : ''} · ${event.locationType || 'Home'} · ${event.status || 'Scheduled'}`
+          )).join('')}
+        </div>
+      `}
+      <div id="eventFormSlot"></div>
+    `;
+
     document.getElementById('newEventBtn').addEventListener('click', () => renderEventForm());
+
+    async function triggerSync(btnEl) {
+      if (!confirm('This will upload and sync all school events and games from the schedule into Firestore. Continue?')) return;
+      const originalText = btnEl.innerHTML;
+      btnEl.disabled = true;
+      btnEl.textContent = 'Syncing to Firestore...';
+      const feedback = document.getElementById('eventFeedback');
+      if (feedback) feedback.textContent = 'Uploading events to Firestore, please wait...';
+      try {
+        const count = await firebaseClient.seedEventsToFirestore();
+        if (feedback) feedback.textContent = `Successfully synced ${count} events to Firestore!`;
+        await renderEvents();
+      } catch (err) {
+        if (feedback) feedback.textContent = `Sync failed: ${err.message}`;
+        btnEl.disabled = false;
+        btnEl.innerHTML = originalText;
+      }
+    }
+
+    const syncBtn = document.getElementById('syncEventsBtn');
+    if (syncBtn) syncBtn.addEventListener('click', () => triggerSync(syncBtn));
+
+    const emptySeedBtn = document.getElementById('emptySeedEventsBtn');
+    if (emptySeedBtn) emptySeedBtn.addEventListener('click', () => triggerSync(emptySeedBtn));
+
     content.querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => renderEventForm(button.dataset.edit)));
     content.querySelectorAll('[data-delete]').forEach(button => button.addEventListener('click', () => deleteDocument('events', button.dataset.delete, 'event')));
   }
@@ -84,17 +285,50 @@ const AdminApp = (() => {
 
   function renderEventForm(id = '') {
     const existing = (collections.events || []).find(event => event.id === id) || {};
-    document.getElementById('eventFormSlot').innerHTML = `<form id="eventForm" class="panel" style="padding:20px;margin-top:20px"><h3>${id ? 'Edit' : 'Add'} event</h3><div class="form-grid"><label>Event name<input name="eventName" required value="${escapeAttr(existing.eventName)}"></label><label>Sport<input name="sport" required value="${escapeAttr(existing.sport)}"></label><label>Date<input name="date" type="date" required value="${escapeAttr(existing.date)}"></label><label>Start time<input name="startTime" type="time" value="${escapeAttr(existing.startTime || existing.time)}"></label><label>Event type<select name="eventType"><option>Game</option><option>Practice</option><option>Club Meeting</option><option>Competition</option><option>Tournament</option><option>Other</option></select></label><label>Status<select name="status"><option>Scheduled</option><option>Completed</option><option>Canceled</option><option>Postponed</option></select></label><label>Home team<input name="homeTeam" value="${escapeAttr(existing.homeTeam)}"></label><label>Away team<input name="awayTeam" value="${escapeAttr(existing.awayTeam)}"></label><label>Opponent<input name="opponent" value="${escapeAttr(existing.opponent)}"></label><label>Home/Away<select name="locationType"><option>Home</option><option>Away</option></select></label><label>Location<input name="location" value="${escapeAttr(existing.location || existing.venueName)}"></label><label>Address<input name="address" value="${escapeAttr(existing.address || existing.venueAddress)}"></label><label>Home score<input name="homeScore" type="number" min="0" value="${escapeAttr(existing.homeScore ?? existing.ourScore)}"></label><label>Away score<input name="awayScore" type="number" min="0" value="${escapeAttr(existing.awayScore ?? existing.oppScore)}"></label><label class="wide">Description<textarea name="description">${escapeHtml(existing.description)}</textarea></label></div><div class="form-actions"><button class="primary" type="submit">Save event</button><button type="button" class="secondary" id="cancelForm">Cancel</button></div><p id="formError" class="error"></p></form>`;
+    document.getElementById('eventFormSlot').innerHTML = `
+      <form id="eventForm" class="panel" style="padding:24px;margin-top:20px">
+        <h3>${id ? 'Edit' : 'Add'} event</h3>
+        <div class="form-grid">
+          <label>Event name<input name="eventName" required value="${escapeAttr(existing.eventName || '')}"></label>
+          <label>Sport<input name="sport" required value="${escapeAttr(existing.sport || '')}"></label>
+          <label>Date<input name="date" type="date" required value="${escapeAttr(existing.date || '')}"></label>
+          <label>Start time<input name="startTime" type="text" placeholder="e.g. 7:00 PM" value="${escapeAttr(existing.startTime || existing.time || '')}"></label>
+          <label>End time<input name="endTime" type="text" placeholder="e.g. 9:00 PM" value="${escapeAttr(existing.endTime || '')}"></label>
+          <label>Event type<select name="eventType"><option>Game</option><option>Practice</option><option>Club Meeting</option><option>Competition</option><option>Tournament</option><option>Other</option></select></label>
+          <label>Status<select name="status"><option>Scheduled</option><option>Upcoming</option><option>In Progress</option><option>Final</option><option>Completed</option><option>Canceled</option><option>Postponed</option></select></label>
+          <label>Level<select name="level"><option>Varsity</option><option>JV</option><option>Freshman</option><option>Club</option></select></label>
+          <label>Opponent<input name="opponent" value="${escapeAttr(existing.opponent || '')}"></label>
+          <label>Opponent Mascot<input name="opponentMascot" placeholder="e.g. Panthers" value="${escapeAttr(existing.opponentMascot || '')}"></label>
+          <label>Home/Away<select name="locationType"><option>Home</option><option>Away</option><option>Neutral</option></select></label>
+          <label>Location / Venue<input name="location" placeholder="e.g. Sugar-Salem High School" value="${escapeAttr(existing.location || existing.venueName || '')}"></label>
+          <label>Address<input name="address" placeholder="e.g. #1 Digger Dr, Sugar City, ID 83448" value="${escapeAttr(existing.address || existing.venueAddress || '')}"></label>
+          <label>Home / Our score<input name="homeScore" type="number" min="0" value="${escapeAttr(existing.homeScore ?? existing.ourScore ?? '')}"></label>
+          <label>Away / Opponent score<input name="awayScore" type="number" min="0" value="${escapeAttr(existing.awayScore ?? existing.oppScore ?? '')}"></label>
+          <label class="wide">Description<textarea name="description">${escapeHtml(existing.description || '')}</textarea></label>
+        </div>
+        <div class="form-actions">
+          <button class="primary" type="submit">Save event to Firestore</button>
+          <button type="button" class="secondary" id="cancelForm">Cancel</button>
+        </div>
+        <p id="formError" class="error"></p>
+      </form>
+    `;
     document.querySelector('[name=status]').value = existing.status || 'Scheduled';
     document.querySelector('[name=eventType]').value = existing.eventType || 'Game';
     document.querySelector('[name=locationType]').value = existing.locationType || 'Home';
+    if (existing.level) document.querySelector('[name=level]').value = existing.level;
     document.getElementById('cancelForm').addEventListener('click', () => document.getElementById('eventFormSlot').replaceChildren());
     document.getElementById('eventForm').addEventListener('submit', async event => {
       event.preventDefault();
       const values = Object.fromEntries(new FormData(event.target));
-      if (values.homeScore !== '') values.homeScore = Number(values.homeScore);
-      if (values.awayScore !== '') values.awayScore = Number(values.awayScore);
-      try { await saveDocument('events', id, values); await renderEvents(); } catch (error) { document.getElementById('formError').textContent = error.message; }
+      if (values.homeScore !== '') values.homeScore = Number(values.homeScore); else values.homeScore = null;
+      if (values.awayScore !== '') values.awayScore = Number(values.awayScore); else values.awayScore = null;
+      try {
+        await saveDocument('events', id, values);
+        await renderEvents();
+      } catch (error) {
+        document.getElementById('formError').textContent = error.message;
+      }
     });
   }
 
@@ -119,9 +353,35 @@ const AdminApp = (() => {
     document.getElementById('settingsForm').addEventListener('submit', async event => { event.preventDefault(); await firebaseClient.settings().set(Object.fromEntries(new FormData(event.target)), { merge: true }); document.getElementById('settingsMessage').textContent = 'Settings saved.'; });
   }
 
-  async function loadCollection(name) { const snapshot = await firebaseClient.resources(name).get(); collections[name] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); return collections[name]; }
-  async function saveDocument(name, id, data) { const reference = id ? firebaseClient.resources(name).doc(id) : firebaseClient.resources(name).doc(); await reference.set({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true }); }
-  async function deleteDocument(name, id, label) { if (!confirm(`Delete this ${label}? This cannot be undone.`)) return; await firebaseClient.resources(name).doc(id).delete(); renderSection(name === 'events' ? 'events' : name); }
+  async function loadCollection(name) {
+    if (name === 'events') {
+      const res = await firebaseClient.loadEvents();
+      collections.events = res.events;
+      return res.events;
+    }
+    const snapshot = await firebaseClient.resources(name).get();
+    collections[name] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return collections[name];
+  }
+
+  async function saveDocument(name, id, data) {
+    if (name === 'events') {
+      return firebaseClient.saveEvent(id, data);
+    }
+    const reference = id ? firebaseClient.resources(name).doc(id) : firebaseClient.resources(name).doc();
+    await reference.set({ ...data, updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+  }
+
+  async function deleteDocument(name, id, label) {
+    if (!confirm(`Delete this ${label}? This cannot be undone.`)) return;
+    if (name === 'events') {
+      await firebaseClient.deleteEvent(id);
+    } else {
+      await firebaseClient.resources(name).doc(id).delete();
+    }
+    renderSection(name === 'events' ? 'events' : name);
+  }
+
   function showError(error) { content.innerHTML = `<p class="error">Unable to load this section: ${escapeHtml(error.message)}</p>`; }
   function escapeHtml(value = '') { return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
   const escapeAttr = escapeHtml;

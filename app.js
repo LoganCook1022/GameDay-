@@ -286,14 +286,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.warn('Could not load school settings.', error);
       }
     }
-    let events;
+    let events = [];
     let isLiveFirestore = false;
     try {
-      ({ events, isLiveFirestore } = await GameDayFirebase.loadEvents());
+      const result = await GameDayFirebase.loadEvents();
+      events = result.events || [];
+      isLiveFirestore = Boolean(result.isLiveFirestore);
     } catch (error) {
-      console.error('Firestore event load failed; using existing data source.', error);
+      console.error('Firestore event load failed; using fallback data source.', error);
       const fallback = await SheetsSync.loadEvents();
-      events = fallback.events;
+      events = fallback.events || [];
     }
     const hasSchoolData = events.length > 0;
     state.events = hasSchoolData ? events : [];
@@ -318,9 +320,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const timestampLabel = document.getElementById('lastUpdatedLabel');
     if (timestampLabel) {
       timestampLabel.textContent = hasSchoolData
-        ? `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${isLiveFirestore ? '(Firestore)' : '(Sample Mode)'}`
+        ? `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ${isLiveFirestore ? '(Firestore Live)' : '(Schedule Mode)'}`
         : 'School data coming soon';
     }
+  }
+
+  // Subscribe to real-time events from Firestore
+  if (GameDayFirebase && typeof GameDayFirebase.onEventsSnapshot === 'function') {
+    GameDayFirebase.onEventsSnapshot(liveEvents => {
+      if (liveEvents && liveEvents.length > 0) {
+        state.events = liveEvents;
+        syncSportFilterAvailability();
+        renderHeroMatchup();
+        renderFeed();
+        GameDayMap.updateVenues(state.events);
+        const school = SCHOOL_OPTIONS.find(option => option.id === state.schoolId);
+        const schoolName = school ? school.name.replace(' High School', '') : 'School';
+        GameDayCalendar.updateEvents(state.events, schoolName);
+        GameDayStats.updateEvents(state.events, schoolName);
+        const dot = document.getElementById('sheetStatusDot');
+        if (dot) {
+          dot.style.background = '#10b981';
+          dot.title = 'Connected to Firestore (Live)';
+        }
+        const timestampLabel = document.getElementById('lastUpdatedLabel');
+        if (timestampLabel) {
+          timestampLabel.textContent = `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (Firestore Live)`;
+        }
+      }
+    });
   }
 
   // --- Hero Section & Countdown ---

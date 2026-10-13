@@ -7,6 +7,7 @@
   "scripts": {
     "sync:ical": "node services/ical-sync.js",
     "sync:ical:once": "node services/ical-sync.js --once",
+    "seed:firestore": "node services/seed-firestore.js",
     "set-admin": "node services/set-claims.js"
   },
   "dependencies": {
