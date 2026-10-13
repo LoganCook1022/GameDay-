@@ -111,6 +111,10 @@ const AdminApp = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
+    const backToRegularSignIn = document.getElementById('backToRegularSignIn');
+    if (backToRegularSignIn) {
+      backToRegularSignIn.href = `signin.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
+    }
     populateAdminCredentials();
 
     const emailInput = document.getElementById('emailInput');
@@ -142,6 +146,7 @@ const AdminApp = (() => {
     firebaseClient.auth().onAuthStateChanged(user => {
       if (!user) {
         document.getElementById('loginView').hidden = false;
+        document.getElementById('accessDeniedView').hidden = true;
         document.getElementById('dashboardView').hidden = true;
         populateAdminCredentials();
         return;
@@ -157,6 +162,7 @@ const AdminApp = (() => {
       } catch (googleError) { error.textContent = googleError.message; }
     });
     document.getElementById('signOutBtn').addEventListener('click', () => firebaseClient.auth().signOut());
+    document.getElementById('deniedSignOutBtn').addEventListener('click', () => firebaseClient.auth().signOut());
     document.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => {
       document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab === button));
       renderSection(button.dataset.section);
@@ -180,14 +186,22 @@ const AdminApp = (() => {
   async function authorizeAndRender(user) {
     const isAdmin = await firebaseClient.isAdminUser(user);
     if (!isAdmin) {
-      await firebaseClient.signOut();
-      document.getElementById('loginView').hidden = false;
+      document.getElementById('deniedAccountEmail').textContent = user.email || 'Unknown account';
+      const school = firebaseClient.schoolId;
+      const appUrl = `index.html?school=${encodeURIComponent(school)}`;
+      const subject = `GameDay+ admin access request for ${school}`;
+      const body = `Please review this request for GameDay+ administrator access.\n\nAccount: ${user.email || 'Unknown'}\nSchool: ${school}\n\nPlease approve or deny this request.`;
+      document.getElementById('requestAdminAccessBtn').href = `mailto:cook.logan@sugarsalem.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      document.getElementById('deniedPublicAppLink').href = appUrl;
+      document.getElementById('loginView').hidden = true;
+      document.getElementById('accessDeniedView').hidden = false;
       document.getElementById('dashboardView').hidden = true;
-      document.getElementById('loginError').textContent = 'Not authorized. Ask your organizer to promote this account to admin.';
       return;
     }
     document.getElementById('loginView').hidden = true;
+    document.getElementById('accessDeniedView').hidden = true;
     document.getElementById('dashboardView').hidden = false;
+    document.getElementById('publicAppLink').href = `index.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
     renderSection('overview');
   }
 

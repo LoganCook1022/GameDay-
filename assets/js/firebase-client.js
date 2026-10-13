@@ -185,10 +185,7 @@ const GameDayFirebase = (() => {
     try {
       const tokenResult = await current.getIdTokenResult(true);
       const claims = tokenResult.claims || {};
-      if (claims.admin === true || claims.role === 'admin') return true;
-      const email = (current.email || '').toLowerCase();
-      if (email.includes('admin') || email.endsWith('@sugarsalem.com')) return true;
-      return false;
+      return claims.admin === true;
     } catch (error) {
       return false;
     }

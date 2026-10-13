@@ -4,9 +4,10 @@
 
   const params = new URLSearchParams(window.location.search);
   const school = params.get('school');
-  const schoolQS = school ? `?school=${encodeURIComponent(school)}` : '';
   const homeUrl = school ? `index.html?school=${encodeURIComponent(school)}` : 'index.html';
   const adminUrl = school ? `admin.html?school=${encodeURIComponent(school)}` : 'admin.html';
+  const adminSignInLink = document.getElementById('adminSignInLink');
+  if (adminSignInLink) adminSignInLink.href = adminUrl;
 
   const authCard = document.getElementById('authCard');
   const signedInCard = document.getElementById('signedInCard');
@@ -268,11 +269,7 @@
 
   function routeAfterAuth() {
     routing = true;
-    GameDayFirebase.isAdminUser().then(isAdmin => {
-      window.location.href = isAdmin ? adminUrl : homeUrl;
-    }).catch(() => {
-      window.location.href = homeUrl;
-    });
+    window.location.href = homeUrl;
   }
 
   async function handleAuth(actionPromise, emailToRemember, passwordToRemember) {
