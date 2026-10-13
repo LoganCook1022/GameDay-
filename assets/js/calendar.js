@@ -121,6 +121,17 @@ const GameDayCalendar = (function() {
 
     // Default select today
     selectedDateString = formatDateToISO(new Date());
+
+    // Delegate interactions in the selected-date detail drawer.
+    const listEl = document.getElementById('selectedEventsList');
+    if (listEl) {
+      listEl.addEventListener('click', (e) => {
+        const dirBtn = e.target.closest('[data-cal-venue]');
+        if (dirBtn) { handleDirectionsClick(dirBtn.dataset.calVenue); return; }
+        const icsBtn = e.target.closest('[data-cal-ics]');
+        if (icsBtn) { downloadICS(icsBtn.dataset.calIcs); return; }
+      });
+    }
   }
 
   function updateEvents(events, schoolName = 'Sugar-Salem') {
@@ -224,11 +235,13 @@ const GameDayCalendar = (function() {
     const chipsHtml = visibleEvents.map(evt => {
       const sportLower = (evt.sport || '').toLowerCase();
       const color = getSportColor(sportLower);
-      return `
-        <div class="cal-chip" style="background-color: ${color};" title="${evt.sport} vs ${evt.opponent} at ${evt.time}">
-          ${evt.locationType === 'Home' ? '🏠' : '🚌'} ${evt.time || 'TBD'}
-        </div>
-      `;
+      return GameDayRender.calendarChip({
+        sport: evt.sport || '',
+        opponent: evt.opponent || '',
+        time: evt.time,
+        isHome: evt.locationType === 'Home',
+        color
+      });
     }).join('');
 
     const moreHtml = overflowCount > 0 ? `
@@ -287,19 +300,15 @@ const GameDayCalendar = (function() {
       const dayEvents = allEvents.filter(e => e.date === isoStr);
 
       const eventsHtml = dayEvents.length > 0 ? dayEvents.map(evt => {
-        const sportColor = getSportColor(evt.sport.toLowerCase());
+        const sportColor = getSportColor((evt.sport || '').toLowerCase());
         const isHome = evt.locationType === 'Home';
-        return `
-          <div class="cal-week-event-card" style="border-left-color: ${sportColor};">
-            <div>
-              <strong>${evt.sport}</strong> vs ${evt.opponent}
-              <span style="color: var(--text-muted); margin-left: 4px;">(${isHome ? '🏠 Home' : '🚌 Away'})</span>
-            </div>
-            <div style="font-weight: 700; color: ${sportColor};">
-              ${evt.time || 'TBD'}
-            </div>
-          </div>
-        `;
+        return GameDayRender.weekEventCard({
+          sport: evt.sport || '',
+          opponent: evt.opponent || '',
+          isHome,
+          color: sportColor,
+          time: evt.time
+        });
       }).join('') : `<div class="cal-week-empty-day">No games scheduled</div>`;
 
       html += `
@@ -363,72 +372,28 @@ const GameDayCalendar = (function() {
     });
 
     listEl.innerHTML = sortedEvents.map(evt => {
-      const sportColor = getSportColor(evt.sport.toLowerCase());
+      const sportColor = getSportColor((evt.sport || '').toLowerCase());
       const gcalLink = generateGoogleCalendarUrl(evt);
       const isHome = evt.locationType === 'Home';
-      const timeStr = evt.time || 'TBD';
-      const opponentStr = evt.opponent || 'TBA';
 
-      return `
-        <div class="selected-event-item">
-          <div style="display: flex; gap: var(--space-md); align-items: flex-start; margin-bottom: var(--space-md);">
-            <div style="background: ${sportColor}18; color: ${sportColor}; padding: var(--space-md); border-radius: var(--radius-md); flex-shrink: 0; text-align: center; min-width: 54px; border: 1px solid ${sportColor}40;">
-              <div style="font-size: 1.15rem; font-weight: 800;">${evt.sport.substring(0, 3).toUpperCase()}</div>
-            </div>
-            <div style="flex: 1;">
-              <div style="font-weight: 800; font-size: var(--text-lg); margin-bottom: var(--space-xs);">
-                ${evt.sport} ${evt.gender || 'Varsity'} ${evt.level ? '(' + evt.level + ')' : ''}
-              </div>
-              <div class="event-time-badge">
-                <i class="fa-regular fa-clock" style="margin-right: 4px;"></i>${timeStr}
-              </div>
-            </div>
-            <span class="event-status-badge status-${(evt.status || 'upcoming').toLowerCase()}">${evt.status || 'Scheduled'}</span>
-          </div>
-
-          <div class="matchup-row">
-            <div class="team-box">
-              <span class="team-name">${currentSchoolName} High</span>
-              <span class="team-type">${isHome ? 'Host' : 'Visitor'}</span>
-            </div>
-            <div style="font-weight: 800; font-size: var(--text-lg); color: var(--text-muted); text-align: center; padding: 0 4px;">
-              ${evt.status === 'Final' ? '<span style="color:var(--text-main); font-size: 1.2rem;">' + (evt.ourScore ?? '-') + ' - ' + (evt.oppScore ?? '-') + '</span>' : 'VS'}
-            </div>
-            <div style="flex: 1; text-align: center;">
-              <div style="font-weight: 700; font-size: var(--text-xs); color: var(--text-muted); text-transform: uppercase;">${isHome ? 'Visitor' : 'Opponent'}</div>
-              <div style="font-weight: 800; font-size: var(--text-lg); color: var(--text-main);">${opponentStr}</div>
-            </div>
-          </div>
-
-          <div style="margin-bottom: var(--space-lg);">
-            <div style="font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: var(--space-xs);">
-              <i class="fa-solid fa-map-pin"></i> Venue & Location
-            </div>
-            <div style="font-weight: 700; color: var(--text-main);">${evt.venueName}</div>
-            <div style="font-size: var(--text-xs); color: var(--text-muted); margin-top: 2px;">
-              ${evt.venueAddress || ''} &bull; ${isHome ? '🏠 Home Game' : '🚌 Away Game'}
-            </div>
-          </div>
-
-          ${evt.highlights ? `
-            <div style="font-size: var(--text-xs); color: var(--text-muted); background: var(--bg-card); padding: var(--space-sm) var(--space-md); border-radius: var(--radius-sm); margin-bottom: var(--space-lg); border-left: 3px solid var(--primary);">
-              <i class="fa-solid fa-circle-info" style="color: var(--primary); margin-right: 4px;"></i> ${evt.highlights}
-            </div>
-          ` : ''}
-
-          <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
-            <button class="btn-primary" onclick="GameDayCalendar.handleDirectionsClick('${escapeQuotes(evt.venueName)}')">
-              <i class="fa-solid fa-location-arrow"></i> Directions
-            </button>
-            <a href="${gcalLink}" target="_blank" rel="noopener" class="btn-secondary" style="text-decoration: none;">
-              <i class="fa-solid fa-calendar-plus"></i> Google Cal
-            </a>
-            <button class="btn-ics-export" onclick="GameDayCalendar.downloadICS('${evt.id}')" title="Download iCalendar file (.ics)">
-              <i class="fa-solid fa-download"></i> .ics (iCal)
-            </button>
-          </div>
-        </div>
-      `;
+      return GameDayRender.selectedEvent({
+        sport: evt.sport || '',
+        gender: evt.gender,
+        level: evt.level,
+        timeStr: evt.time || 'TBD',
+        status: evt.status,
+        currentSchoolName,
+        isHome,
+        ourScore: evt.ourScore ?? '-',
+        oppScore: evt.oppScore ?? '-',
+        opponentStr: evt.opponent || 'TBA',
+        venueName: evt.venueName || '',
+        venueAddress: evt.venueAddress,
+        highlights: evt.highlights,
+        gcalLink,
+        sportColor,
+        id: evt.id
+      });
     }).join('');
   }
 
@@ -499,7 +464,8 @@ const GameDayCalendar = (function() {
     if (!evt) return;
 
     const icsContent = buildICSContent([evt]);
-    saveICSFile(icsContent, `${evt.date}-${evt.sport.toLowerCase()}-sugar-salem.ics`);
+    const sportSlug = (evt.sport || 'event').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    saveICSFile(icsContent, `${evt.date}-${sportSlug}-sugar-salem.ics`);
   }
 
   function downloadMonthICS() {
@@ -589,10 +555,6 @@ const GameDayCalendar = (function() {
 
   function escapeICS(value) {
     return String(value || '').replace(/[\\;,\n]/g, match => match === '\n' ? '\\n' : `\\${match}`);
-  }
-
-  function escapeQuotes(str) {
-    return (str || '').replace(/'/g, "\\'");
   }
 
   return {

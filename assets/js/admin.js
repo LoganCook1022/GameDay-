@@ -3,54 +3,8 @@ const AdminApp = (() => {
   const content = document.getElementById('adminContent');
   let collections = {};
 
-  const STORAGE_KEY = 'gameday_saved_credentials';
-  const LEGACY_EMAIL_KEY = 'gameday_remember_email';
-  const LEGACY_PASS_KEY = 'gameday_remember_password';
-  const LEGACY_REMEMBER_KEY = 'gameday_remember_me';
-
-  function getSavedStore() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
-          if (!parsed.accounts) parsed.accounts = {};
-          return parsed;
-        }
-      }
-    } catch (_) {}
-
-    const legacyEmail = localStorage.getItem(LEGACY_EMAIL_KEY);
-    const legacyPass = localStorage.getItem(LEGACY_PASS_KEY);
-    const legacyRemember = localStorage.getItem(LEGACY_REMEMBER_KEY) !== 'false';
-    const store = {
-      remember: legacyRemember,
-      lastUsed: legacyEmail ? legacyEmail.toLowerCase() : '',
-      accounts: {}
-    };
-    if (legacyEmail && legacyPass) {
-      store.accounts[legacyEmail.toLowerCase()] = {
-        email: legacyEmail,
-        password: legacyPass,
-        savedAt: Date.now()
-      };
-    }
-    return store;
-  }
-
-  function saveStore(store) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-      localStorage.setItem(LEGACY_REMEMBER_KEY, store.remember ? 'true' : 'false');
-      if (store.remember && store.lastUsed && store.accounts[store.lastUsed]) {
-        localStorage.setItem(LEGACY_EMAIL_KEY, store.accounts[store.lastUsed].email);
-        localStorage.setItem(LEGACY_PASS_KEY, store.accounts[store.lastUsed].password);
-      } else if (!store.remember) {
-        localStorage.removeItem(LEGACY_EMAIL_KEY);
-        localStorage.removeItem(LEGACY_PASS_KEY);
-      }
-    } catch (_) {}
-  }
+  const credentials = window.GameDayCredentials;
+  const utils = window.GameDayUtils || {};
 
   function populateAdminCredentials() {
     const emailInput = document.getElementById('emailInput');
@@ -59,7 +13,7 @@ const AdminApp = (() => {
     const datalist = document.getElementById('adminSavedEmailsList');
     if (!emailInput || !passwordInput) return;
 
-    const store = getSavedStore();
+    const store = credentials.getStore();
     if (rememberCheckbox) {
       rememberCheckbox.checked = store.remember !== false;
     }
@@ -74,40 +28,17 @@ const AdminApp = (() => {
       });
     }
 
-    if (store.remember !== false && accountKeys.length > 0) {
-      const activeKey = (store.lastUsed && store.accounts[store.lastUsed])
-        ? store.lastUsed
-        : accountKeys[0];
-      const activeAcc = store.accounts[activeKey];
-      if (activeAcc) {
-        if (!emailInput.value) emailInput.value = activeAcc.email;
-        if (!passwordInput.value) passwordInput.value = activeAcc.password;
-      }
+    // Pre-fill the remembered email only. Passwords are never stored or auto-filled.
+    if (store.remember !== false) {
+      const active = credentials.getActiveAccount(store);
+      if (active && !emailInput.value) emailInput.value = active.email;
     }
   }
 
-  function rememberAdminCredentials(email, password) {
+  function rememberAdminCredentials(email) {
     const rememberCheckbox = document.getElementById('adminRememberMe');
     const shouldRemember = rememberCheckbox ? rememberCheckbox.checked : true;
-    const store = getSavedStore();
-    const key = email.trim().toLowerCase();
-    if (shouldRemember) {
-      store.remember = true;
-      store.lastUsed = key;
-      store.accounts[key] = {
-        email: email.trim(),
-        password: password || '',
-        savedAt: Date.now()
-      };
-    } else {
-      store.remember = false;
-      delete store.accounts[key];
-      if (store.lastUsed === key) {
-        const remaining = Object.keys(store.accounts);
-        store.lastUsed = remaining.length ? remaining[0] : '';
-      }
-    }
-    saveStore(store);
+    credentials.rememberEmail(email, shouldRemember);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -129,15 +60,6 @@ const AdminApp = (() => {
 
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
-    if (emailInput && passwordInput) {
-      emailInput.addEventListener('input', () => {
-        const key = emailInput.value.trim().toLowerCase();
-        const store = getSavedStore();
-        if (store.accounts && store.accounts[key]) {
-          passwordInput.value = store.accounts[key].password;
-        }
-      });
-    }
 
     const toggleBtn = document.getElementById('adminTogglePasswordBtn');
     if (toggleBtn && passwordInput) {
@@ -153,9 +75,6 @@ const AdminApp = (() => {
       document.querySelector('#loginForm button').disabled = true;
       return;
     }
-
-    // Check if Logan opened an approval link from his email
-    handleApprovalFlow();
 
     // Request Access Navigation
     const openReqBtn = document.getElementById('openRequestAccessBtn');
@@ -178,33 +97,33 @@ const AdminApp = (() => {
     if (reqForm) {
       reqForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('reqEmailInput').value.trim();
+        const email = document.getElementById('reqEmailInput').value.trim().toLowerCase();
         const school = document.getElementById('reqSchoolSelect').value;
         const role = document.getElementById('reqRoleInput').value.trim();
 
         if (!email) return;
-        reqStatus.textContent = 'Recording request and preparing email to cook.logan@sugarsalem.com...';
+        reqStatus.textContent = `Recording request and preparing email to ${reviewerEmail()}...`;
 
-        await firebaseClient.recordAdminRequest(email, school, role);
+        const result = await firebaseClient.recordAdminRequest(email, school, role);
         const mailtoUrl = buildAdminRequestMailto(email, school, role);
         window.location.href = mailtoUrl;
 
-        reqStatus.innerHTML = 'Email client opened addressed to <strong>cook.logan@sugarsalem.com</strong> with a 1-click button for Logan to approve your access.';
+        reqStatus.textContent = result.recorded
+          ? `Request recorded. An email addressed to ${reviewerEmail()} is ready to send with a one-click approval link.`
+          : `An email addressed to ${reviewerEmail()} is ready to send with a one-click approval link. Sign in with this address first to have the request tracked in GameDay+.`;
       });
     }
 
     firebaseClient.auth().onAuthStateChanged(user => {
-      // If approval view is active, don't override it
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('action') === 'approve') return;
-
       if (!user) {
         document.getElementById('loginView').hidden = false;
         document.getElementById('accessDeniedView').hidden = true;
         document.getElementById('dashboardView').hidden = true;
         if (document.getElementById('requestAccessView')) document.getElementById('requestAccessView').hidden = true;
         if (document.getElementById('approvalView')) document.getElementById('approvalView').hidden = true;
-        populateAdminCredentials();
+    populateAdminCredentials();
+    applyReviewerLabels();
+
         return;
       }
       authorizeAndRender(user);
@@ -225,8 +144,29 @@ const AdminApp = (() => {
     }));
   });
 
+  function reviewerEmail() {
+    return window.GAMEDAY_ADMIN_REVIEWER_EMAIL || 'cook.logan@sugarsalem.com';
+  }
+
+  // Keeps the static markup in sync with the configured reviewer address.
+  function applyReviewerLabels() {
+    const email = reviewerEmail();
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    setText('requestReviewerEmail', email);
+    setText('deniedReviewerEmail', email);
+    setText('approvalReviewerEmail', email);
+    setText('requestReviewerName', 'the district administrator');
+    const submitBtn = document.getElementById('requestSubmitBtn');
+    if (submitBtn) submitBtn.textContent = `Send Request Email to ${email}`;
+    const deniedBtn = document.getElementById('requestAdminAccessBtn');
+    if (deniedBtn && !deniedBtn.getAttribute('href')) deniedBtn.setAttribute('href', `mailto:${email}`);
+  }
+
   function buildAdminRequestMailto(applicantEmail, school, role = '') {
-    const targetEmail = 'cook.logan@sugarsalem.com';
+    const targetEmail = reviewerEmail();
     const host = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://school-project-6dd54.web.app';
     const path = window.location.pathname ? window.location.pathname.replace(/\/[^/]*$/, '/admin.html') : '/admin.html';
     const approveUrl = `${host}${path}?action=approve&email=${encodeURIComponent(applicantEmail)}&school=${encodeURIComponent(school)}`;
@@ -235,7 +175,7 @@ const AdminApp = (() => {
     const body = `GameDay+ Administrator Access Request
 ==================================================
 
-Hello Logan,
+Hello,
 
 An administrator access request has been submitted for GameDay+:
 
@@ -244,13 +184,12 @@ An administrator access request has been submitted for GameDay+:
 ${role ? '• Position / Role: ' + role + '\n' : ''}• Date & Time: ${new Date().toLocaleString()}
 
 ==================================================
-ONE-CLICK APPROVAL FOR LOGAN COOK:
-Press the link below to approve administrator access:
+ONE-CLICK APPROVAL:
+Press the link below to open GameDay+ and confirm approval with one click:
 
-👉 APPROVE ADMIN ACCESS:
 ${approveUrl}
 
-(Clicking this link opens GameDay+ and allows you to confirm approval with one click)
+(Only a signed-in global administrator can complete this approval.)
 ==================================================
 
 Thank you,
@@ -259,70 +198,79 @@ GameDay+ System`;
     return `mailto:${targetEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   }
 
-  function handleApprovalFlow() {
+  // The approval link only opens the approval screen for a signed-in global
+  // administrator; every write is re-checked by the Firestore rules.
+  async function handleApprovalFlow() {
     const urlParams = new URLSearchParams(window.location.search);
-    const action = urlParams.get('action');
-    const approveEmail = (urlParams.get('email') || '').trim();
+    if (urlParams.get('action') !== 'approve') return false;
+
+    const approveEmail = (urlParams.get('email') || '').trim().toLowerCase();
     const approveSchool = urlParams.get('school') || firebaseClient.schoolId;
+    if (!approveEmail) return false;
 
-    if (action === 'approve' && approveEmail) {
-      document.getElementById('loginView').hidden = true;
-      document.getElementById('accessDeniedView').hidden = true;
-      document.getElementById('dashboardView').hidden = true;
-      if (document.getElementById('requestAccessView')) document.getElementById('requestAccessView').hidden = true;
-
-      const approvalView = document.getElementById('approvalView');
-      if (approvalView) {
-        approvalView.hidden = false;
-        document.getElementById('approvalAccountEmail').textContent = approveEmail;
-        document.getElementById('approvalSchoolName').textContent = `${approveSchool.toUpperCase()} (${approveSchool})`;
-
-        const confirmBtn = document.getElementById('confirmApproveBtn');
-        const denyBtn = document.getElementById('denyApproveBtn');
-        const successBox = document.getElementById('approvalSuccessBox');
-        const actionsDiv = document.getElementById('approvalActions');
-        const notifyBtn = document.getElementById('sendApprovalNotificationBtn');
-
-        confirmBtn.onclick = async () => {
-          confirmBtn.disabled = true;
-          confirmBtn.textContent = 'Approving access...';
-          try {
-            await firebaseClient.approveAdminUser(approveEmail, approveSchool);
-            actionsDiv.hidden = true;
-            successBox.hidden = false;
-
-            const notifySubject = `GameDay+ Admin Access Approved for ${approveSchool}`;
-            const host = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://school-project-6dd54.web.app';
-            const notifyBody = `Hello,\n\nYour request for administrator access to GameDay+ for ${approveSchool} has been approved by Logan Cook.\n\nYou can now sign in at:\n${host}/admin.html\n\nWelcome to GameDay+!`;
-            notifyBtn.href = `mailto:${encodeURIComponent(approveEmail)}?subject=${encodeURIComponent(notifySubject)}&body=${encodeURIComponent(notifyBody)}`;
-          } catch (err) {
-            alert('Approval error: ' + err.message);
-            confirmBtn.disabled = false;
-            confirmBtn.textContent = 'Approve Admin Access';
-          }
-        };
-
-        denyBtn.onclick = () => {
-          if (confirm(`Deny admin access request for ${approveEmail}?`)) {
-            window.location.href = 'admin.html';
-          }
-        };
-
-        return true;
-      }
+    const context = await firebaseClient.getAdminContext();
+    if (!context.isGlobal) {
+      const error = document.getElementById('loginError');
+      if (error) error.textContent = 'Sign in as a global administrator to review an access request.';
+      return false;
     }
-    return false;
+
+    document.getElementById('loginView').hidden = true;
+    document.getElementById('accessDeniedView').hidden = true;
+    document.getElementById('dashboardView').hidden = true;
+    if (document.getElementById('requestAccessView')) document.getElementById('requestAccessView').hidden = true;
+
+    const approvalView = document.getElementById('approvalView');
+    if (!approvalView) return false;
+
+    approvalView.hidden = false;
+    document.getElementById('approvalAccountEmail').textContent = approveEmail;
+    document.getElementById('approvalSchoolName').textContent = `${String(approveSchool).toUpperCase()} (${approveSchool})`;
+
+    const confirmBtn = document.getElementById('confirmApproveBtn');
+    const denyBtn = document.getElementById('denyApproveBtn');
+    const successBox = document.getElementById('approvalSuccessBox');
+    const actionsDiv = document.getElementById('approvalActions');
+    const notifyBtn = document.getElementById('sendApprovalNotificationBtn');
+
+    confirmBtn.onclick = async () => {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Approving access...';
+      try {
+        await firebaseClient.approveAdminUser(approveEmail, approveSchool);
+        actionsDiv.hidden = true;
+        successBox.hidden = false;
+
+        const notifySubject = `GameDay+ Admin Access Approved for ${approveSchool}`;
+        const host = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://school-project-6dd54.web.app';
+        const notifyBody = `Hello,\n\nYour request for administrator access to GameDay+ for ${approveSchool} has been approved.\n\nYou can now sign in at:\n${host}/admin.html\n\nWelcome to GameDay+!`;
+        notifyBtn.href = `mailto:${encodeURIComponent(approveEmail)}?subject=${encodeURIComponent(notifySubject)}&body=${encodeURIComponent(notifyBody)}`;
+      } catch (err) {
+        alert('Approval error: ' + err.message);
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Approve Admin Access';
+      }
+    };
+
+    denyBtn.onclick = () => {
+      if (confirm(`Deny admin access request for ${approveEmail}?`)) {
+        window.location.href = 'admin.html';
+      }
+    };
+
+    return true;
   }
 
-  window.approveReqDirectly = async (email, school) => {
+  // Approve buttons in the dashboard use a delegated handler so that no account
+  // data is ever interpolated into an inline event attribute.
+  async function approveRequest(email, school) {
     try {
       await firebaseClient.approveAdminUser(email, school);
-      alert(`Admin access approved for ${email}!`);
-      renderSection('overview');
+      await renderSection('overview');
     } catch (err) {
       alert('Could not approve: ' + err.message);
     }
-  };
+  }
 
   async function signIn(event) {
     event.preventDefault();
@@ -332,21 +280,16 @@ GameDay+ System`;
     error.textContent = '';
     const emailVal = emailInput.value.trim();
     const passVal = passwordInput.value;
-    // Super admin bypass: if email matches, skip Firebase auth
-    if (emailVal.toLowerCase() === 'cook.logan@sugarsalem.com') {
-      // Directly render admin dashboard without Firebase auth
-      const fakeUser = { email: emailVal };
-      await authorizeAndRender(fakeUser);
-      return;
-    }
+    // Every sign-in goes through Firebase Auth. There is no email allow-list
+    // bypass: authorization is decided by the custom claims and the admins roster.
     try {
       await firebaseClient.signInWithEmail(emailVal, passVal);
-      rememberAdminCredentials(emailVal, passVal);
+      rememberAdminCredentials(emailVal);
     } catch (authError) { error.textContent = authError.message; }
   }
 
   async function authorizeAndRender(user) {
-    if (handleApprovalFlow()) return;
+    if (await handleApprovalFlow()) return;
 
     const isAdmin = await firebaseClient.isAdminUser(user);
     if (!isAdmin) {
@@ -388,9 +331,8 @@ GameDay+ System`;
 
   async function renderOverview() {
     try {
-      const currentUser = firebaseClient.auth().currentUser;
-      const userEmail = (currentUser && currentUser.email ? currentUser.email : '').toLowerCase();
-      const isSuper = userEmail === 'cook.logan@sugarsalem.com';
+      const context = await firebaseClient.getAdminContext();
+      const isSuper = context.isGlobal;
 
       const [events, sports, clubs, teams] = await Promise.all(['events', 'sports', 'clubs', 'teams'].map(loadCollection));
 
@@ -406,7 +348,7 @@ GameDay+ System`;
           <div style="margin-top:28px;border-top:1px solid #d8e0ea;padding-top:20px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
               <h3 style="margin:0;">Super Administrator Management</h3>
-              <span class="muted" style="font-size:0.85rem;font-weight:600;">cook.logan@sugarsalem.com</span>
+              <span class="muted" style="font-size:0.85rem;font-weight:600;">${escapeHtml(context.email || '')}</span>
             </div>
             <div class="summary-grid" style="margin-bottom:16px;">
               <div class="summary-card"><span class="muted">Pending Requests</span><strong>${pendingList.length}</strong></div>
@@ -419,10 +361,10 @@ GameDay+ System`;
                   ${pendingList.map(req => `
                     <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #fef3c7;border-radius:6px;padding:10px 14px;flex-wrap:wrap;gap:8px;">
                       <div>
-                        <strong>${req.email}</strong> &bull; <span class="muted">${req.schoolId || 'sugar-salem'}</span>
-                        ${req.note ? `<div class="muted" style="font-size:0.8rem;">${req.note}</div>` : ''}
+                        <strong>${escapeHtml(req.email || '')}</strong> &bull; <span class="muted">${escapeHtml(req.schoolId || 'sugar-salem')}</span>
+                        ${req.note ? `<div class="muted" style="font-size:0.8rem;">${escapeHtml(req.note)}</div>` : ''}
                       </div>
-                      <button class="primary" style="background:#16a34a;border-color:#16a34a;padding:6px 14px;font-size:0.85rem;width:auto;" onclick="window.approveReqDirectly('${req.email}', '${req.schoolId || firebaseClient.schoolId}')">
+                      <button class="primary" data-approve-email="${escapeAttr(req.email || '')}" data-approve-school="${escapeAttr(req.schoolId || firebaseClient.schoolId)}" style="background:#16a34a;border-color:#16a34a;padding:6px 14px;font-size:0.85rem;width:auto;">
                         Approve
                       </button>
                     </div>
@@ -436,7 +378,7 @@ GameDay+ System`;
 
       content.innerHTML = `
         <h2>Dashboard</h2>
-        <p class="muted">School: ${firebaseClient.schoolId}</p>
+        <p class="muted">School: ${escapeHtml(firebaseClient.schoolId)}</p>
         <div class="summary-grid">
           ${summaryCard('Upcoming events', events.filter(event => event.date >= new Date().toISOString().slice(0, 10)).length)}
           ${summaryCard('Sports', sports.length)}
@@ -445,6 +387,10 @@ GameDay+ System`;
         </div>
         ${superAdminHtml}
       `;
+
+      content.querySelectorAll('[data-approve-email]').forEach(button => {
+        button.addEventListener('click', () => approveRequest(button.dataset.approveEmail, button.dataset.approveSchool));
+      });
     } catch (error) { showError(error); }
   }
 
@@ -464,7 +410,7 @@ GameDay+ System`;
       <div class="section-heading" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
         <div>
           <h2 style="margin:0;">Events &amp; Games (${events.length})</h2>
-          <p class="muted" style="margin:4px 0 0;font-size:0.85rem;">Live Firestore collection for school: <strong>${firebaseClient.schoolId}</strong></p>
+          <p class="muted" style="margin:4px 0 0;font-size:0.85rem;">Live Firestore collection for school: <strong>${escapeHtml(firebaseClient.schoolId)}</strong></p>
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
           <button class="secondary" id="syncEventsBtn" title="Sync / Upload built-in schedule into Firestore">
@@ -591,7 +537,7 @@ GameDay+ System`;
 
   async function renderSettings() {
     const snapshot = await firebaseClient.settings().get(); const settings = snapshot.exists ? snapshot.data() : {};
-    content.innerHTML = `<h2>School Settings</h2><form id="settingsForm" class="form-grid"><label>School name<input name="schoolName" required value="${escapeAttr(settings.schoolName)}"></label><label>Logo URL<input name="logoUrl" type="url" value="${escapeAttr(settings.logoUrl)}"></label><label>Primary color<input name="primaryColor" type="color" value="${settings.primaryColor || '#1769aa'}"></label><label>Accent color<input name="accentColor" type="color" value="${settings.accentColor || '#f2b134'}"></label><label class="wide">Description<textarea name="description">${escapeHtml(settings.description)}</textarea></label><div class="form-actions wide"><button class="primary">Save settings</button></div><p id="settingsMessage" class="muted"></p></form>`;
+    content.innerHTML = `<h2>School Settings</h2><form id="settingsForm" class="form-grid"><label>School name<input name="schoolName" required value="${escapeAttr(settings.schoolName)}"></label><label>Logo URL<input name="logoUrl" type="url" value="${escapeAttr(settings.logoUrl)}"></label><label>Primary color<input name="primaryColor" type="color" value="${escapeAttr(settings.primaryColor || '#1769aa')}"></label><label>Accent color<input name="accentColor" type="color" value="${escapeAttr(settings.accentColor || '#f2b134')}"></label><label class="wide">Description<textarea name="description">${escapeHtml(settings.description)}</textarea></label><div class="form-actions wide"><button class="primary">Save settings</button></div><p id="settingsMessage" class="muted"></p></form>`;
     document.getElementById('settingsForm').addEventListener('submit', async event => { event.preventDefault(); await firebaseClient.settings().set(Object.fromEntries(new FormData(event.target)), { merge: true }); document.getElementById('settingsMessage').textContent = 'Settings saved.'; });
   }
 
@@ -625,6 +571,6 @@ GameDay+ System`;
   }
 
   function showError(error) { content.innerHTML = `<p class="error">Unable to load this section: ${escapeHtml(error.message)}</p>`; }
-  function escapeHtml(value = '') { return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char])); }
-  const escapeAttr = escapeHtml;
+  function escapeHtml(value = '') { return utils.escapeHtml ? utils.escapeHtml(value) : String(value); }
+  const escapeAttr = (value = '') => (utils.escapeAttr ? utils.escapeAttr(value) : escapeHtml(value));
 })();

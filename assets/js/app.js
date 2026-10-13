@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupNavigationTabs();
   setupFiltersAndSearch();
   setupModals();
+  setupDelegatedHandlers();
   initAuthButton();
   startCountdownTimer();
 
@@ -129,16 +130,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderSchoolList(list, schools) {
-      list.innerHTML = schools.map(school => `
-        <li>
-          <button type="button" data-school-id="${school.id}">
-            <span>
-              <span class="school-name">${school.name}</span>
-              <span class="school-mascot">${school.mascot}</span>
-            </span>
-          </button>
-        </li>
-      `).join('');
+      list.innerHTML = schools.map(school => GameDayRender.schoolListItem(school)).join('');
     }
 
     function renderLists(query = '') {
@@ -186,7 +178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (schoolSubtitle) schoolSubtitle.textContent = `${school.name} Athletics & Events Hub`;
     if (schoolPickerButton) {
       schoolPickerButton.hidden = false;
-      schoolPickerButton.innerHTML = `<i class="fa-solid fa-school"></i><span class="btn-text">${school.name.replace(' High School', '')}</span><i class="fa-solid fa-chevron-down school-picker-chevron"></i>`;
+      schoolPickerButton.innerHTML = `<i class="fa-solid fa-school"></i><span class="btn-text">${GameDayUtils.escapeHtml(school.name.replace(' High School', ''))}</span><i class="fa-solid fa-chevron-down school-picker-chevron"></i>`;
     }
   }
 
@@ -250,7 +242,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const name = (user.displayName || user.email || 'Signed In').split(' ')[0];
       signInBtn.title = 'Sign out';
       signInBtn.setAttribute('aria-label', 'Sign out');
-      signInBtn.innerHTML = '<i class="fa-solid fa-user-check"></i><span class="btn-text">Sign Out</span><span class="sign-in-name">' + name.replace(/</g, '&lt;') + '</span>';
+      signInBtn.innerHTML = '<i class="fa-solid fa-user-check"></i><span class="btn-text">Sign Out</span><span class="sign-in-name">' + GameDayUtils.escapeHtml(name) + '</span>';
     }
 
     signInBtn.addEventListener('click', () => {
@@ -380,27 +372,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const opponentLabel = nextGame.opponent.replace(/\s+(High School|HS)$/i, '');
     const sportIcon = getSportIcon(nextGame.sport);
 
-    heroMatchupEl.innerHTML = `
-      <div class="hero-game-kicker"><span class="hero-sport-icon"><i class="fa-solid ${sportIcon}"></i></span> ${teamLabel}</div>
-      <div class="hero-teams" aria-label="${schoolName} versus ${opponentLabel}">
-        <div class="hero-team"><div class="team-crest crest-school">${getSchoolInitials(schoolName)}</div><strong>${schoolName}</strong><small>${isHome ? 'Home' : 'Away'}</small></div>
-        <span class="hero-vs">VS</span>
-        <div class="hero-team"><div class="team-crest crest-opponent">${getOpponentInitials(opponentLabel)}</div><strong>${opponentLabel}</strong><small>${isHome ? 'Visitor' : 'Host'}</small></div>
-      </div>
-      <div class="hero-details">
-        <span><i class="fa-regular fa-calendar"></i><b>${formatFriendlyDate(nextGame.date)}</b><small>${nextGame.time}</small></span>
-        <span><i class="fa-solid fa-location-dot"></i><b>${nextGame.venueName}</b><small>${nextGame.locationType} venue</small></span>
-      </div>
-    `;
+    heroMatchupEl.innerHTML = GameDayRender.heroMatchup({
+      teamLabel,
+      schoolName,
+      opponentLabel,
+      sportIcon,
+      isHome,
+      schoolInitials: getSchoolInitials(schoolName),
+      opponentInitials: getOpponentInitials(opponentLabel),
+      friendlyDate: formatFriendlyDate(nextGame.date),
+      time: nextGame.time,
+      venueName: nextGame.venueName,
+      locationType: nextGame.locationType
+    });
 
-    heroActionsEl.innerHTML = `
-      <button class="btn-hero-action btn-hero-primary" onclick="openGameModalById('${nextGame.id}')">
-        <i class="fa-solid fa-eye"></i> View Game
-      </button>
-      <button class="btn-hero-action btn-hero-secondary" onclick="GameDayMap.openVenueByName('${escapeQuotes(nextGame.venueName)}')">
-        <i class="fa-solid fa-location-arrow"></i> Directions
-      </button>
-    `;
+    heroActionsEl.innerHTML = GameDayRender.heroActions({
+      id: nextGame.id,
+      venueName: nextGame.venueName
+    });
 
     state.nextGameTarget = nextGame;
   }
@@ -666,31 +655,72 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     grid.innerHTML = orderedEvents.map(evt => {
       const isHome = evt.locationType === 'Home';
-      const sportColor = getSportColor(evt.sport.toLowerCase());
-      const sportIcon = getSportIcon(evt.sport);
+      const sport = evt.sport || '';
+      const sportColor = getSportColor(sport.toLowerCase());
+      const sportIcon = getSportIcon(sport);
       const hasScores = evt.ourScore !== null && evt.oppScore !== null;
       const isWin = hasScores && evt.ourScore > evt.oppScore;
       const eventTitle = getTeamLabel(evt);
-      const resultLabel = hasScores ? `${evt.ourScore}&ndash;${evt.oppScore}` : evt.time;
-      const resultContext = hasScores ? (isWin ? 'Win' : 'Final') : evt.status;
 
-      return `
-        <article class="event-card event-card--agenda" tabindex="0" role="button" aria-label="View details for ${eventTitle} versus ${evt.opponent}" onclick="openGameModalById('${evt.id}')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openGameModalById('${evt.id}'); }">
-          <div class="event-sport-mark" style="--event-color: ${sportColor};"><i class="fa-solid ${sportIcon}" aria-hidden="true"></i></div>
-          <div class="event-card-content">
-            <p class="event-date-label">${formatRelativeEventDate(evt.date, todayStr)}</p>
-            <h3 class="event-title">${eventTitle}</h3>
-            <p class="event-opponent">${getCurrentSchoolName()} <span>vs.</span> ${evt.opponent}</p>
-            <p class="event-location"><i class="fa-solid ${isHome ? 'fa-house' : 'fa-location-dot'}" aria-hidden="true"></i>${evt.locationType} &middot; ${evt.venueName}</p>
-          </div>
-          <div class="event-card-side">
-            <strong class="event-time ${hasScores && isWin ? 'event-result-win' : ''}">${resultLabel}</strong>
-            <span class="event-status-badge status-${evt.status.toLowerCase()}">${resultContext}</span>
-            <i class="fa-solid fa-chevron-right event-card-chevron" aria-hidden="true"></i>
-          </div>
-        </article>
-      `;
+      return GameDayRender.eventCard({
+        id: evt.id,
+        isHome,
+        sportColor,
+        sportIcon,
+        hasScores,
+        isWin,
+        ourScore: evt.ourScore,
+        oppScore: evt.oppScore,
+        time: evt.time,
+        status: evt.status,
+        relativeDate: formatRelativeEventDate(evt.date, todayStr),
+        eventTitle,
+        schoolName: getCurrentSchoolName(),
+        opponent: evt.opponent,
+        locationType: evt.locationType,
+        venueName: evt.venueName
+      });
     }).join('');
+  }
+
+  // Delegate interactions for dynamically-rendered cards (no inline handlers).
+  function setupDelegatedHandlers() {
+    const grid = document.getElementById('eventsGrid');
+    if (grid) {
+      const activate = (target) => {
+        const card = target.closest('[data-game-id]');
+        if (card) window.openGameModalById(card.dataset.gameId);
+      };
+      grid.addEventListener('click', event => activate(event.target));
+      grid.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          const card = event.target.closest('[data-game-id]');
+          if (card) { event.preventDefault(); activate(event.target); }
+        }
+      });
+    }
+
+    const heroActions = document.getElementById('heroQuickActions');
+    if (heroActions) {
+      heroActions.addEventListener('click', event => {
+        const viewBtn = event.target.closest('[data-hero-game-id]');
+        if (viewBtn) { window.openGameModalById(viewBtn.dataset.heroGameId); return; }
+        const dirBtn = event.target.closest('[data-hero-venue]');
+        if (dirBtn) { GameDayMap.openVenueByName(dirBtn.dataset.heroVenue); return; }
+      });
+    }
+
+    const modalBody = document.getElementById('gameModalBody');
+    if (modalBody) {
+      modalBody.addEventListener('click', event => {
+        const mapBtn = event.target.closest('[data-modal-venue]');
+        if (mapBtn) {
+          GameDayMap.openVenueByName(mapBtn.dataset.modalVenue);
+          const gameModal = document.getElementById('gameModal');
+          if (gameModal) gameModal.style.display = 'none';
+        }
+      });
+    }
   }
 
   // --- Modals Setup ---
@@ -768,55 +798,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!modalBody || !gameModal) return;
 
     const hasScores = game.ourScore !== null && game.oppScore !== null;
-    const encodedAddr = encodeURIComponent(`${game.venueName}, ${game.venueAddress}`);
 
-    modalBody.innerHTML = `
-      <section class="game-detail">
-        <div class="game-detail-topline">
-          <span class="event-sport-tag"><i class="fa-solid ${getSportIcon(game.sport)}"></i>${game.sport}</span>
-          <span class="event-status-badge status-${game.status.toLowerCase()}">${game.status}</span>
-        </div>
-        <p class="game-detail-kicker">${getTeamLabel(game)}</p>
-        <h2>${getCurrentSchoolName()} <span>vs.</span> ${game.opponent}</h2>
-
-        ${hasScores ? `
-          <div class="game-detail-score">
-            <span>Final score</span>
-            <strong>${game.ourScore} <em>&ndash;</em> ${game.oppScore}</strong>
-          </div>
-        ` : ''}
-
-        <div class="game-detail-facts">
-          <div class="game-detail-fact">
-            <i class="fa-regular fa-calendar"></i>
-            <span>Date & time</span>
-            <strong>${formatFriendlyDate(game.date)}<small>${game.time}</small></strong>
-          </div>
-          <div class="game-detail-fact">
-            <i class="fa-solid fa-location-dot"></i>
-            <span>${game.locationType} venue</span>
-            <strong>${game.venueName}<small>${game.venueAddress || 'Address not listed'}</small></strong>
-          </div>
-        </div>
-
-        <div class="game-detail-notes">
-          <p><i class="fa-solid fa-square-parking"></i><span><strong>Parking & arrival</strong>${game.parkingInfo || 'Venue details will be posted before the event.'}</span></p>
-          <p><i class="fa-solid fa-bullhorn"></i><span><strong>Event notes</strong>${game.highlights || 'Join the student section and wear school colors!'}</span></p>
-        </div>
-
-        <div class="directions-links-row game-detail-actions">
-        <a href="https://www.google.com/maps/dir/?api=1&destination=${encodedAddr}" target="_blank" rel="noopener" class="btn-nav-app">
-          <i class="fa-brands fa-google"></i> Google Maps
-        </a>
-        <a href="https://maps.apple.com/?daddr=${encodedAddr}" target="_blank" rel="noopener" class="btn-nav-app">
-          <i class="fa-brands fa-apple"></i> Apple Maps
-        </a>
-        <button class="btn-primary" onclick="GameDayMap.openVenueByName('${escapeQuotes(game.venueName)}'); document.getElementById('gameModal').style.display='none';">
-          <i class="fa-solid fa-map-location-dot"></i> View on App Map
-        </button>
-        </div>
-      </section>
-    `;
+    modalBody.innerHTML = GameDayRender.gameModal({
+      hasScores,
+      sportIcon: getSportIcon(game.sport),
+      sport: game.sport,
+      status: game.status,
+      teamLabel: getTeamLabel(game),
+      schoolName: getCurrentSchoolName(),
+      opponent: game.opponent,
+      ourScore: game.ourScore,
+      oppScore: game.oppScore,
+      friendlyDate: formatFriendlyDate(game.date),
+      time: game.time,
+      locationType: game.locationType,
+      venueName: game.venueName,
+      venueAddress: game.venueAddress,
+      parkingInfo: game.parkingInfo,
+      highlights: game.highlights
+    });
 
     gameModal.style.display = 'flex';
   };
@@ -829,7 +829,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-info';
-    toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+    toast.innerHTML = GameDayRender.toast(icon, message);
 
     container.appendChild(toast);
     setTimeout(() => {
@@ -924,7 +924,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       pill.className = 'sport-pill';
       pill.dataset.sport = filterValue;
       pill.title = sport;
-      pill.innerHTML = `<i class="fa-solid ${getSportIcon(sport)}"></i><span>${sport}</span>`;
+      pill.innerHTML = GameDayRender.sportPill({ icon: getSportIcon(sport), sport });
       filterBar.appendChild(pill);
     });
 
@@ -962,9 +962,5 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
-  }
-
-  function escapeQuotes(str) {
-    return (str || '').replace(/'/g, "\\'");
   }
 });

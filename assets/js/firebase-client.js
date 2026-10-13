@@ -1,7 +1,11 @@
 const GameDayFirebase = (() => {
   const config = window.GAMEDAY_FIREBASE_CONFIG || {};
   const configured = Boolean(config.apiKey && config.projectId && window.firebase);
-  const schoolId = new URLSearchParams(window.location.search).get('school') || 'sugar-salem';
+  const utils = window.GameDayUtils || {};
+  const requestedSchool = new URLSearchParams(window.location.search).get('school');
+  const schoolId = (typeof utils.normalizeSchoolId === 'function'
+    ? utils.normalizeSchoolId(requestedSchool, 'sugar-salem')
+    : (requestedSchool || 'sugar-salem'));
   let db;
 
   const SCHOOL_META = {
@@ -229,110 +233,151 @@ const GameDayFirebase = (() => {
   function signInWithEmail(email, password) {
     return firebase.auth().signInWithEmailAndPassword(email, password);
   }
-  function createAccount(email, password) {
-    return firebase.auth().createUserWithEmailAndPassword(email, password);
-  }
+  // Account creation is intentionally not exposed to the client. Admin accounts are
+  // provisioned out-of-band (Firebase console / services/set-claims.js).
   function signInWithGoogle() {
     return firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider());
   }
   function signOut() { return firebase.auth().signOut(); }
   function onAuthStateChanged(callback) { return firebase.auth().onAuthStateChanged(callback); }
 
-  async function isAdminUser(user) {
-    const current = user || (firebase && firebase.auth ? firebase.auth().currentUser : null);
-    if (!current) return false;
+  function readClaims(user) {
+    if (!user || typeof user.getIdTokenResult !== 'function') return Promise.resolve(null);
+    return user.getIdTokenResult(true).then(result => (result && result.claims) || {}).catch(() => null);
+  }
 
-    const email = (current.email || '').toLowerCase().trim();
-    // 1. Logan Cook is the super administrator
-    if (email === 'cook.logan@sugarsalem.com') {
-      return true;
-    }
-
-    // 2. Custom claims
-    try {
-      const tokenResult = await current.getIdTokenResult(true);
-      const claims = tokenResult.claims || {};
-      if (claims.admin === true) return true;
-    } catch (_) {}
-
-    // 3. Firestore admins collection
-    if (configured && db && email) {
-      try {
-        const doc = await db.collection('admins').doc(email).get();
-        if (doc.exists && doc.data() && doc.data().approved === true) {
-          return true;
-        }
-      } catch (err) {
-        console.warn('Firestore admin check warning:', err);
-      }
-    }
-
-    // 4. Local storage approved cache
-    try {
-      const approvedList = JSON.parse(localStorage.getItem('gameday_approved_admins') || '[]');
-      if (approvedList.includes(email)) return true;
-    } catch (_) {}
-
+  // Authorization sources, in order of authority:
+  //   1. server-issued custom claims (admin / schools)
+  //   2. the private `admins` roster (accounts approved by a global admin)
+  // There is no email allow-list and no client-side cache: either one would let
+  // any browser grant itself admin rights. See firestore.rules and services/set-claims.js.
+  function isClaimForSchool(claims, schoolIdToCheck) {
+    if (!claims) return false;
+    if (claims.admin === true) return true;
+    const schools = claims.schools;
+    if (Array.isArray(schools) && schools.indexOf(schoolIdToCheck) !== -1) return true;
+    if (typeof claims.school === 'string' && claims.school === schoolIdToCheck) return true;
     return false;
   }
 
+  // Reads the caller's own roster entry. The rules allow a signed-in account to
+  // read only its own document, so this cannot be used to enumerate admins.
+  async function readAdminRecord(user) {
+    const current = user || (firebase && firebase.auth ? firebase.auth().currentUser : null);
+    if (!current || !configured || !db) return null;
+    const email = (current.email || '').toLowerCase().trim();
+    if (!email) return null;
+    try {
+      const doc = await db.collection('admins').doc(email).get();
+      if (!doc.exists) return null;
+      const data = doc.data() || {};
+      if (data.approved !== true) return null;
+      return { email, role: data.role || 'admin', schoolId: data.schoolId || '' };
+    } catch (err) {
+      console.warn('Firestore admin record check warning:', err);
+      return null;
+    }
+  }
+
+  // Resolved authorization context for the signed-in account.
+  async function getAdminContext(user) {
+    const current = user || (firebase && firebase.auth ? firebase.auth().currentUser : null);
+    if (!current) {
+      return { isAdmin: false, isGlobal: false, role: '', schoolId: '', email: '' };
+    }
+    const claims = (await readClaims(current)) || {};
+    const record = await readAdminRecord(current);
+    const isGlobal = claims.admin === true || !!(record && record.role === 'super_admin');
+    const isAdmin = isGlobal || !!record || isClaimForSchool(claims, schoolId);
+    return {
+      isAdmin,
+      isGlobal,
+      role: record ? record.role : '',
+      schoolId: record ? record.schoolId : '',
+      email: (current.email || '').toLowerCase().trim(),
+      claims
+    };
+  }
+
+  async function isAdminUser(user) {
+    const context = await getAdminContext(user);
+    return context.isAdmin;
+  }
+
+  // Per-school authorization: a global super-admin (admin:true, or a roster entry
+  // with role super_admin) OR an account whose `schools` claim array (or single
+  // `school` string claim) includes the school, OR a roster entry scoped to it.
+  async function isSchoolAdmin(schoolIdToCheck, user) {
+    const current = user || (firebase && firebase.auth ? firebase.auth().currentUser : null);
+    if (!current) return false;
+    const claims = (await readClaims(current)) || {};
+    if (isClaimForSchool(claims, schoolIdToCheck)) return true;
+    const record = await readAdminRecord(current);
+    if (!record) return false;
+    if (record.role === 'super_admin') return true;
+    return record.schoolId === schoolIdToCheck;
+  }
+
+  // Approves an account by writing its roster entry. Only a global admin may do
+  // this (enforced again by the Firestore rules).
   async function approveAdminUser(emailToApprove, schoolToAssign = schoolId) {
     const cleanEmail = (emailToApprove || '').toLowerCase().trim();
     if (!cleanEmail) throw new Error('Valid email address is required.');
 
-    // 1. Local cache update
-    try {
-      const approvedList = JSON.parse(localStorage.getItem('gameday_approved_admins') || '[]');
-      if (!approvedList.includes(cleanEmail)) {
-        approvedList.push(cleanEmail);
-        localStorage.setItem('gameday_approved_admins', JSON.stringify(approvedList));
-      }
-    } catch (_) {}
+    const context = await getAdminContext();
+    if (!context.isGlobal) {
+      throw new Error('Only a global administrator can approve accounts.');
+    }
 
-    // 2. Firestore admins collection
     if (configured && db) {
-      try {
-        await db.collection('admins').doc(cleanEmail).set({
-          email: cleanEmail,
-          approved: true,
-          approvedBy: 'cook.logan@sugarsalem.com',
-          approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
-          role: 'admin',
-          schoolId: schoolToAssign
-        }, { merge: true });
+      await db.collection('admins').doc(cleanEmail).set({
+        email: cleanEmail,
+        approved: true,
+        approvedBy: context.email || 'system',
+        approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        role: 'admin',
+        schoolId: schoolToAssign
+      }, { merge: true });
 
-        // Update admin_requests doc if exists
-        try {
-          await db.collection('admin_requests').doc(cleanEmail).set({
-            status: 'approved',
-            resolvedAt: firebase.firestore.FieldValue.serverTimestamp()
-          }, { merge: true });
-        } catch (_) {}
-      } catch (err) {
-        console.warn('Could not write to Firestore admins collection:', err);
-      }
+      try {
+        await db.collection('admin_requests').doc(cleanEmail).set({
+          status: 'approved',
+          resolvedBy: context.email || 'system',
+          resolvedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (_) {}
     }
 
     return { success: true, email: cleanEmail, schoolId: schoolToAssign };
   }
 
+  // Files an access request. Firestore only accepts a request for the signed-in
+  // account, so anonymous requests are emailed to the reviewer instead.
   async function recordAdminRequest(emailToRequest, schoolToAssign = schoolId, note = '') {
     const cleanEmail = (emailToRequest || '').toLowerCase().trim();
-    if (!cleanEmail) return;
+    if (!cleanEmail) return { recorded: false, email: cleanEmail };
 
+    let recorded = false;
     if (configured && db) {
-      try {
-        await db.collection('admin_requests').doc(cleanEmail).set({
-          email: cleanEmail,
-          schoolId: schoolToAssign,
-          note: note || 'Requested via GameDay+ Admin portal',
-          status: 'pending',
-          requestedAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      } catch (err) {
-        console.warn('Could not write to Firestore admin_requests collection:', err);
+      const current = firebase && firebase.auth ? firebase.auth().currentUser : null;
+      const signedInEmail = current && current.email ? current.email.toLowerCase().trim() : '';
+      if (signedInEmail && signedInEmail === cleanEmail) {
+        try {
+          await db.collection('admin_requests').doc(cleanEmail).set({
+            email: cleanEmail,
+            schoolId: schoolToAssign,
+            note: note || 'Requested via GameDay+ Admin portal',
+            status: 'pending',
+            requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+          recorded = true;
+        } catch (err) {
+          console.warn('Could not write to Firestore admin_requests collection:', err);
+        }
       }
     }
+
+    return { recorded, email: cleanEmail };
   }
 
   async function getApprovedAdmins() {
@@ -341,7 +386,9 @@ const GameDayFirebase = (() => {
       try {
         const snap = await db.collection('admins').get();
         snap.forEach(d => results.push({ id: d.id, ...d.data() }));
-      } catch (_) {}
+      } catch (err) {
+        console.warn('Could not list the admin roster:', err);
+      }
     }
     return results;
   }
@@ -352,7 +399,9 @@ const GameDayFirebase = (() => {
       try {
         const snap = await db.collection('admin_requests').get();
         snap.forEach(d => results.push({ id: d.id, ...d.data() }));
-      } catch (_) {}
+      } catch (err) {
+        console.warn('Could not list admin requests:', err);
+      }
     }
     return results;
   }
@@ -371,22 +420,17 @@ const GameDayFirebase = (() => {
     }
   }
 
-  // Seed super admin email into Firestore if not already present
-  if (configured) {
-    // Ignore errors; ensure idempotent seeding
-    approveAdminUser('cook.logan@sugarsalem.com').catch(() => {});
-  }
-
   return {
     schoolId,
     isConfigured,
     auth,
     signInWithEmail,
-    createAccount,
     signInWithGoogle,
     signOut,
     onAuthStateChanged,
     isAdminUser,
+    getAdminContext,
+    isSchoolAdmin,
     approveAdminUser,
     recordAdminRequest,
     getApprovedAdmins,

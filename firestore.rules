@@ -1,39 +1,127 @@
 rules_version = '2';
+
+// GameDay+ Firestore security rules
+// ---------------------------------------------------------------------------
+// Data lives under schools/{schoolId}/{collection}/{document}:
+//
+//   schools/{schoolId}/events/{eventId}          : public read, admin write
+//   schools/{schoolId}/settings/school            : public read, admin write
+//   schools/{schoolId}/{sports,clubs,teams,...}/  : admin read + write
+//   schools/{schoolId}                            : admin read + write
+//
+// Authorization model (roster + claim hybrid)
+//   * Custom claim `admin == true`   -> global super-admin (all schools).
+//   * Custom claim `schools == [...]` -> admin for the listed schools.
+//   * Roster document admins/{email}  -> approval record. A document whose
+//     `role` is "super_admin" grants global access; any other approved
+//     roster entry grants access to the `schoolId` stored on that document.
+//
+// The roster exists so that admins can be approved from the admin console
+// before (or without) a service account being available to mint custom
+// claims. Claims remain the stronger authority when present.
+//
+// IMPORTANT: the roster documents and admin_requests are NOT world-readable.
+// Only a signed-in account may read its own roster entry; listing the roster
+// or reading pending requests requires global admin access.
+//
+// Deploy (after reviewing) with:  firebase deploy --only firestore:rules
+// ---------------------------------------------------------------------------
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isSuperAdmin() {
-      return request.auth != null && (
-        request.auth.token.email == 'cook.logan@sugarsalem.com' ||
-        request.auth.token.admin == true
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function tokenEmail() {
+      return request.auth.token.email;
+    }
+
+    function adminDoc(email) {
+      return get(/databases/$(database)/documents/admins/$(email));
+    }
+
+    function hasAdminRecord() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(tokenEmail()));
+    }
+
+    // Strongest authority: a server-issued custom claim.
+    function hasAdminClaim() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function hasSchoolClaim(schoolId) {
+      return isSignedIn() && (
+        (request.auth.token.schools is list && schoolId in request.auth.token.schools) ||
+        (request.auth.token.school is string && request.auth.token.school == schoolId)
       );
     }
 
-    function isApprovedAdmin() {
-      return isSuperAdmin() || (
-        request.auth != null &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
-      );
+    // Roster record for the signed-in account, if any.
+    function rosterSchool() {
+      return hasAdminRecord() ? adminDoc(tokenEmail()).data.schoolId : '';
+    }
+
+    function rosterRole() {
+      return hasAdminRecord() ? adminDoc(tokenEmail()).data.role : '';
+    }
+
+    // Global admin: admin claim, or a roster entry whose role is super_admin.
+    function isGlobalAdmin() {
+      return hasAdminClaim() || (hasAdminRecord() && rosterRole() == 'super_admin');
+    }
+
+    // Admin for a specific school. Passed explicitly because rules functions
+    // cannot read match-path wildcards from an outer scope.
+    function isSchoolAdmin(schoolId) {
+      return isGlobalAdmin()
+        || hasSchoolClaim(schoolId)
+        || (hasAdminRecord() && rosterSchool() == schoolId);
     }
 
     match /admins/{adminEmail} {
-      allow read: if true;
-      allow write: if isSuperAdmin();
+      // The roster is private: an admin may read the whole roster, any signed-in
+      // account may read only its own entry (used for the approval check).
+      allow get: if isGlobalAdmin() || (isSignedIn() && tokenEmail() == adminEmail);
+      allow list: if isGlobalAdmin();
+      allow create, update: if isGlobalAdmin();
+      allow delete: if hasAdminClaim();
     }
 
     match /admin_requests/{requestEmail} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if isSuperAdmin();
+      // A signed-in account may file (and update) only its own request.
+      allow get: if isGlobalAdmin() || (isSignedIn() && tokenEmail() == requestEmail);
+      allow list: if isGlobalAdmin();
+      allow create, update: if isSignedIn() && tokenEmail() == requestEmail;
+      allow delete: if isGlobalAdmin();
     }
 
-    match /schools/{schoolId}/settings/{document=**} {
-      allow read: if true;
-      allow write: if isApprovedAdmin();
+    match /schools/{schoolId} {
+      // The school document itself is not read by the public app; keep it admin-only.
+      allow read, write: if isSchoolAdmin(schoolId);
+
+      // Public schedule data.
+      match /events/{eventId} {
+        allow read: if true;
+        allow write: if isSchoolAdmin(schoolId);
+      }
+
+      // Public school settings document.
+      match /settings/{settingsDoc} {
+        allow read: if settingsDoc == 'school';
+        allow write: if isSchoolAdmin(schoolId);
+      }
+
+      // Everything else under a school (sports, clubs, teams, statistics, ...)
+      // is restricted to that school's admins.
+      match /{collection}/{documentId} {
+        allow read, write: if isSchoolAdmin(schoolId);
+      }
     }
 
-    match /schools/{schoolId}/{collection}/{documentId} {
-      allow read: if true;
-      allow create, update, delete: if isApprovedAdmin();
+    // Fail closed: anything not explicitly allowed above is denied.
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

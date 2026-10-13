@@ -33,7 +33,6 @@
 
         <div class="auth-mode-toggle" id="authModeToggle">
           <button type="button" class="auth-mode-btn active" data-mode="signin">Sign In</button>
-          <button type="button" class="auth-mode-btn" data-mode="create">Create Account</button>
         </div>
 
         <form class="signin-form" id="authForm" novalidate>
@@ -59,7 +58,7 @@
           <div class="signin-options">
             <label class="remember-label" for="rememberMeCheckbox">
               <input type="checkbox" id="rememberMeCheckbox" checked>
-              <span>Remember email and password</span>
+              <span>Remember my email</span>
             </label>
           </div>
           <p class="error-msg" id="authError" role="alert"></p>
@@ -83,7 +82,7 @@
           Admin Sign In
         </button>
 
-        <p class="signin-note">Signing in doesn't change what you see. An account just lets you come back and stay signed in.</p>
+        <p class="signin-note">Viewing schedules never requires an account. Sign in only if your school has given you admin access &mdash; accounts are created by your school's organizer.</p>
       </div>
 
       <!-- Signed In View -->
@@ -107,6 +106,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="assets/js/utils.js"></script>
+  <script src="assets/js/credentials.js"></script>
   <script src="assets/js/firebase-config.js"></script>
   <script src="assets/js/firebase-client.js"></script>
   <script src="assets/js/signin.js"></script>

@@ -26,7 +26,7 @@
         </label>
         <div style="display:flex;align-items:center;gap:8px;margin:-8px 0 16px;">
           <input type="checkbox" id="adminRememberMe" style="width:16px;height:16px;accent-color:#1769aa;margin:0;cursor:pointer;" checked>
-          <label for="adminRememberMe" style="margin:0;font-size:0.85rem;font-weight:600;cursor:pointer;">Remember email and password</label>
+          <label for="adminRememberMe" style="margin:0;font-size:0.85rem;font-weight:600;cursor:pointer;">Remember email</label>
         </div>
         <button class="primary" type="submit">Sign in</button>
         <p id="loginError" class="error" role="alert"></p>
@@ -44,7 +44,7 @@
     <section id="requestAccessView" class="panel auth-panel" hidden>
       <p class="eyebrow">GameDay+ Access</p>
       <h1>Request Admin Access</h1>
-      <p class="muted">Requests are sent directly to Logan Cook (<strong>cook.logan@sugarsalem.com</strong>) with a 1-click button to approve your access.</p>
+      <p class="muted">Requests are sent directly to the district administrator (<strong id="requestReviewerName">the reviewer</strong> at <strong id="requestReviewerEmail">the reviewer email</strong>) with a 1-click button to approve your access.</p>
       <form id="requestAccessForm">
         <label>Your Email Address
           <input id="reqEmailInput" name="email" type="email" required placeholder="you@sugarsalem.com">
@@ -62,7 +62,7 @@
         <label>Role / Position
           <input id="reqRoleInput" name="role" type="text" placeholder="e.g. Athletic Director, Coach, Activity Advisor">
         </label>
-        <button class="primary" type="submit">Send Request Email to Logan Cook</button>
+        <button class="primary" type="submit" id="requestSubmitBtn">Send Request Email to the Administrator</button>
         <p id="requestStatus" class="muted" style="margin-top:12px;font-size:0.9rem;"></p>
       </form>
       <button id="cancelRequestBtn" class="secondary" type="button" style="margin-top:12px;width:100%;">Back to Sign in</button>
@@ -73,24 +73,24 @@
       <p class="eyebrow">GameDay+ Admin</p>
       <h1>Admin access not approved</h1>
       <p class="muted">Signed in as <strong id="deniedAccountEmail"></strong>. This account is awaiting administrator approval.</p>
-      <p class="muted">Press the button below to email Logan Cook at <strong>cook.logan@sugarsalem.com</strong>. The email includes a 1-click button for Logan to approve your admin access.</p>
+      <p class="muted">Press the button below to email the district administrator at <strong id="deniedReviewerEmail">the reviewer email</strong>. The email includes a 1-click button for the administrator to approve your admin access.</p>
       <div class="form-actions" style="flex-direction:column;gap:10px;">
-        <a id="requestAdminAccessBtn" class="primary" href="mailto:cook.logan@sugarsalem.com" style="text-align:center;text-decoration:none;display:block;">Email Logan Cook to Request Access</a>
+        <a id="requestAdminAccessBtn" class="primary" href="mailto:" style="text-align:center;text-decoration:none;display:block;">Email the Administrator to Request Access</a>
         <a id="deniedPublicAppLink" class="secondary" href="index.html" style="text-align:center;text-decoration:none;display:block;">Go to public app</a>
       </div>
       <button id="deniedSignOutBtn" class="secondary" type="button" style="margin-top:12px;width:100%;">Sign out</button>
     </section>
 
-    <!-- Logan Cook One-Click Approval View -->
+    <!-- One-Click Approval View -->
     <section id="approvalView" class="panel auth-panel" hidden>
       <p class="eyebrow">GameDay+ Authorization</p>
       <h1>Approve Admin Access</h1>
-      <p class="muted">Administrator authorization review for <strong>cook.logan@sugarsalem.com</strong>.</p>
+      <p class="muted">Administrator authorization review for <strong id="approvalReviewerEmail">the reviewer email</strong>.</p>
       
       <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:18px 0;">
         <div style="margin-bottom:8px;"><span class="muted" style="font-size:0.85rem;display:block;">Applicant Account</span><strong id="approvalAccountEmail" style="font-size:1.05rem;"></strong></div>
         <div style="margin-bottom:8px;"><span class="muted" style="font-size:0.85rem;display:block;">School Assignment</span><strong id="approvalSchoolName"></strong></div>
-        <div><span class="muted" style="font-size:0.85rem;display:block;">Reviewer</span><span>Logan Cook (Super Admin)</span></div>
+        <div><span class="muted" style="font-size:0.85rem;display:block;">Reviewer</span><span id="approvalReviewerLabel">Global Administrator</span></div>
       </div>
 
       <div id="approvalActions">
@@ -112,6 +112,6 @@
       <div id="adminContent" class="admin-content"></div>
     </section>
   </main>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script src="assets/js/firebase-config.js"></script><script src="assets/js/firebase-client.js"></script><script src="assets/js/admin.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script src="assets/js/utils.js"></script><script src="assets/js/credentials.js"></script><script src="assets/js/firebase-config.js"></script><script src="assets/js/firebase-client.js"></script><script src="assets/js/admin.js"></script>
 </body>
 </html>

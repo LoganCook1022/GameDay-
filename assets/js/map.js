@@ -130,7 +130,7 @@ const GameDayMap = (function() {
         showVenueDetail(venue);
       });
 
-      marker.bindTooltip(`<b>${venue.name}</b><br>${venue.isHome ? '🏠 Home Venue' : '🚌 Away Venue'}`, {
+      marker.bindTooltip(`<b>${GameDayUtils.escapeHtml(venue.name)}</b><br>${venue.isHome ? '🏠 Home Venue' : '🚌 Away Venue'}`, {
         direction: 'top',
         offset: [0, -10]
       });
@@ -154,15 +154,13 @@ const GameDayMap = (function() {
     listEl.innerHTML = currentVenues.map(venue => {
       const distance = calculateDistance(HOME_COORDS.lat, HOME_COORDS.lng, venue.lat, venue.lng);
       const distLabel = venue.isHome ? 'Campus Home Field' : `${distance.toFixed(1)} miles away`;
-      return `
-        <div class="venue-item-card" data-venue-id="${venue.id}">
-          <h4>${venue.name}</h4>
-          <p><i class="fa-solid fa-location-dot"></i> ${venue.address}</p>
-          <span class="venue-tag ${venue.isHome ? 'badge-home' : 'badge-away'}">
-            ${venue.isHome ? '🏠 HOME' : '🚌 AWAY'} &bull; ${distLabel}
-          </span>
-        </div>
-      `;
+      return GameDayRender.venueListItem({
+        id: venue.id,
+        name: venue.name,
+        address: venue.address,
+        isHome: venue.isHome,
+        distanceLabel: distLabel
+      });
     }).join('');
 
     // Attach click listeners
@@ -179,7 +177,7 @@ const GameDayMap = (function() {
     if (!select) return;
 
     select.innerHTML = '<option value="all">📍 Show All Stadiums & Arenas</option>' +
-      currentVenues.map(v => `<option value="${v.id}">${v.isHome ? '🏠' : '🚌'} ${v.name}</option>`).join('');
+      currentVenues.map(v => GameDayRender.venueOption({ id: v.id, name: v.name, isHome: v.isHome })).join('');
   }
 
   function selectVenueById(venueId) {
@@ -200,42 +198,7 @@ const GameDayMap = (function() {
     const content = document.getElementById('mapOverlayContent');
     if (!overlay || !content) return;
 
-    const encodedAddr = encodeURIComponent(`${venue.name}, ${venue.address}`);
-    const gmapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddr}`;
-    const appleMapsUrl = `https://maps.apple.com/?daddr=${encodedAddr}`;
-    const wazeUrl = `https://waze.com/ul?q=${encodedAddr}&navigate=yes`;
-
-    const upcomingMatch = venue.games[0];
-    const matchInfo = upcomingMatch ? `<strong>Next Event:</strong> ${upcomingMatch.sport} vs ${upcomingMatch.opponent} (${upcomingMatch.date} @ ${upcomingMatch.time})` : '';
-
-    content.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 0.5rem;">
-        <div>
-          <h3 style="font-size: 1.25rem; font-weight: 800;">${venue.name}</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-location-pin"></i> ${venue.address}</p>
-        </div>
-        <span class="location-badge ${venue.isHome ? 'badge-home' : 'badge-away'}">
-          ${venue.isHome ? 'Home Venue' : 'Away Venue'}
-        </span>
-      </div>
-
-      <div style="font-size: 0.82rem; margin: 0.5rem 0; color: var(--text-main); background: var(--bg-input); padding: 0.6rem; border-radius: var(--radius-sm);">
-        <p><i class="fa-solid fa-square-parking" style="color: var(--primary);"></i> <strong>Parking & Entry:</strong> ${venue.parking}</p>
-        ${matchInfo ? `<p style="margin-top: 0.35rem;"><i class="fa-solid fa-trophy" style="color: var(--primary);"></i> ${matchInfo}</p>` : ''}
-      </div>
-
-      <div class="directions-links-row">
-        <a href="${gmapsUrl}" target="_blank" rel="noopener" class="btn-nav-app">
-          <i class="fa-brands fa-google"></i> Google Maps
-        </a>
-        <a href="${appleMapsUrl}" target="_blank" rel="noopener" class="btn-nav-app">
-          <i class="fa-brands fa-apple"></i> Apple Maps
-        </a>
-        <a href="${wazeUrl}" target="_blank" rel="noopener" class="btn-nav-app">
-          <i class="fa-brands fa-waze"></i> Waze Navigation
-        </a>
-      </div>
-    `;
+    content.innerHTML = GameDayRender.venueDetail(venue);
 
     overlay.style.display = 'block';
   }

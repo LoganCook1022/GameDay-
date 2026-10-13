@@ -21,7 +21,6 @@
   const authError = document.getElementById('authError');
   const authSubmitBtn = document.getElementById('authSubmitBtn');
   const googleBtn = document.getElementById('googleBtn');
-  const modeButtons = document.querySelectorAll('.auth-mode-btn');
   const signedInEmail = document.getElementById('signedInEmail');
   const signedInRole = document.getElementById('signedInRole');
   const userAvatar = document.getElementById('userAvatar');
@@ -37,103 +36,31 @@
   const savedAccountsList = document.getElementById('savedAccountsList');
   const savedEmailsList = document.getElementById('savedEmailsList');
 
-  const STORAGE_KEY = 'gameday_saved_credentials';
-  const LEGACY_EMAIL_KEY = 'gameday_remember_email';
-  const LEGACY_PASS_KEY = 'gameday_remember_password';
-  const LEGACY_REMEMBER_KEY = 'gameday_remember_me';
+  const credentials = window.GameDayCredentials;
 
-  let mode = 'signin';
   let routing = false;
 
-  function getSavedStore() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === 'object') {
-          if (!parsed.accounts) parsed.accounts = {};
-          return parsed;
-        }
-      }
-    } catch (_) {}
-
-    const legacyEmail = localStorage.getItem(LEGACY_EMAIL_KEY);
-    const legacyPass = localStorage.getItem(LEGACY_PASS_KEY);
-    const legacyRemember = localStorage.getItem(LEGACY_REMEMBER_KEY) !== 'false';
-    const store = {
-      remember: legacyRemember,
-      lastUsed: legacyEmail ? legacyEmail.toLowerCase() : '',
-      accounts: {}
-    };
-    if (legacyEmail && legacyPass) {
-      store.accounts[legacyEmail.toLowerCase()] = {
-        email: legacyEmail,
-        password: legacyPass,
-        savedAt: Date.now()
-      };
-    }
-    return store;
-  }
-
-  function saveStore(store) {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-      localStorage.setItem(LEGACY_REMEMBER_KEY, store.remember ? 'true' : 'false');
-      if (store.remember && store.lastUsed && store.accounts[store.lastUsed]) {
-        localStorage.setItem(LEGACY_EMAIL_KEY, store.accounts[store.lastUsed].email);
-        localStorage.setItem(LEGACY_PASS_KEY, store.accounts[store.lastUsed].password);
-      } else if (!store.remember) {
-        localStorage.removeItem(LEGACY_EMAIL_KEY);
-        localStorage.removeItem(LEGACY_PASS_KEY);
-      }
-    } catch (_) {}
-  }
-
-  function rememberAccount(email, password) {
+  function rememberAccount(email) {
     if (!email) return;
-    const key = email.trim().toLowerCase();
-    const store = getSavedStore();
-    if (rememberMeCheckbox ? rememberMeCheckbox.checked : true) {
-      store.remember = true;
-      store.lastUsed = key;
-      store.accounts[key] = {
-        email: email.trim(),
-        password: password || '',
-        savedAt: Date.now()
-      };
-    } else {
-      store.remember = false;
-      delete store.accounts[key];
-      if (store.lastUsed === key) {
-        const remaining = Object.keys(store.accounts);
-        store.lastUsed = remaining.length ? remaining[0] : '';
-      }
-    }
-    saveStore(store);
+    const shouldRemember = rememberMeCheckbox ? rememberMeCheckbox.checked : true;
+    credentials.rememberEmail(email, shouldRemember);
   }
 
   function forgetAccount(email) {
     if (!email) return;
-    const key = email.trim().toLowerCase();
-    const store = getSavedStore();
-    delete store.accounts[key];
-    if (store.lastUsed === key) {
-      const remaining = Object.keys(store.accounts);
-      store.lastUsed = remaining.length ? remaining[0] : '';
-    }
-    saveStore(store);
+    credentials.forget(email);
     populateSavedCredentials();
   }
 
   function populateSavedCredentials() {
-    const store = getSavedStore();
+    const store = credentials.getStore();
     if (rememberMeCheckbox) {
       rememberMeCheckbox.checked = store.remember !== false;
     }
 
     const accountKeys = Object.keys(store.accounts || {});
 
-    // Update datalist for autofill
+    // Update datalist for autofill (email only)
     if (savedEmailsList) {
       savedEmailsList.innerHTML = '';
       accountKeys.forEach(k => {
@@ -147,23 +74,17 @@
     // Render chips
     renderSavedAccountsChips(store);
 
-    // Pre-fill active account if in signin mode and inputs are blank
-    if (mode === 'signin' && store.remember !== false && accountKeys.length > 0) {
-      const activeKey = (store.lastUsed && store.accounts[store.lastUsed])
-        ? store.lastUsed
-        : accountKeys[0];
-      const activeAcc = store.accounts[activeKey];
-      if (activeAcc) {
-        if (!emailInput.value) emailInput.value = activeAcc.email;
-        if (!passwordInput.value) passwordInput.value = activeAcc.password;
-      }
+    // Pre-fill the remembered email only. Passwords are never stored.
+    if (store.remember !== false && accountKeys.length > 0) {
+      const active = credentials.getActiveAccount(store);
+      if (active && !emailInput.value) emailInput.value = active.email;
     }
   }
 
   function renderSavedAccountsChips(store) {
     if (!savedAccountsBar || !savedAccountsList) return;
     const accountKeys = Object.keys(store.accounts || {});
-    if (accountKeys.length === 0 || mode === 'create') {
+    if (accountKeys.length === 0) {
       savedAccountsBar.hidden = true;
       savedAccountsList.innerHTML = '';
       return;
@@ -200,10 +121,10 @@
 
       chip.addEventListener('click', () => {
         emailInput.value = acc.email;
-        passwordInput.value = acc.password;
-        store.lastUsed = key;
-        saveStore(store);
-        renderSavedAccountsChips(store);
+        passwordInput.value = '';
+        passwordInput.focus();
+        credentials.rememberEmail(acc.email, true);
+        renderSavedAccountsChips(credentials.getStore());
       });
 
       savedAccountsList.appendChild(chip);
@@ -213,21 +134,6 @@
   function applyTheme() {
     const saved = localStorage.getItem('gameday_theme');
     if (saved) document.documentElement.setAttribute('data-theme', saved);
-  }
-
-  function setMode(nextMode) {
-    mode = nextMode;
-    modeButtons.forEach(button => button.classList.toggle('active', button.dataset.mode === mode));
-    authSubmitBtn.textContent = mode === 'signin' ? 'Sign In' : 'Create Account';
-    passwordInput.autocomplete = mode === 'signin' ? 'current-password' : 'new-password';
-    authError.textContent = '';
-
-    if (mode === 'create') {
-      passwordInput.value = '';
-      if (savedAccountsBar) savedAccountsBar.hidden = true;
-    } else {
-      populateSavedCredentials();
-    }
   }
 
   function setBusy(busy) {
@@ -283,13 +189,13 @@
     window.location.href = homeUrl;
   }
 
-  async function handleAuth(actionPromise, emailToRemember, passwordToRemember) {
+  async function handleAuth(actionPromise, emailToRemember) {
     setBusy(true);
     showError('');
     try {
       await actionPromise;
       if (emailToRemember) {
-        rememberAccount(emailToRemember, passwordToRemember);
+        rememberAccount(emailToRemember);
       }
       routeAfterAuth();
     } catch (error) {
@@ -300,9 +206,7 @@
 
   function friendlyAuthError(error) {
     const code = error.code || '';
-    if (code === 'auth/email-already-in-use') return 'An account already exists for this email. Try signing in instead.';
     if (code === 'auth/invalid-email') return 'Please enter a valid email address.';
-    if (code === 'auth/weak-password') return 'Password should be at least 6 characters.';
     if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') return 'Incorrect email or password.';
     if (code === 'auth/too-many-requests') return 'Too many attempts. Please wait a moment and try again.';
     return error.message || 'Something went wrong. Please try again.';
@@ -316,16 +220,12 @@
 
   applyTheme();
 
-  // Populate remembered email/password on load
+  // Populate remembered email on load
   populateSavedCredentials();
 
-  // Sync password when email input matches a saved account
+  // Refresh saved-account chips as the user types
   emailInput.addEventListener('input', () => {
-    const key = emailInput.value.trim().toLowerCase();
-    const store = getSavedStore();
-    if (store.accounts && store.accounts[key]) {
-      passwordInput.value = store.accounts[key].password;
-    }
+    const store = credentials.getStore();
     renderSavedAccountsChips(store);
   });
 
@@ -339,42 +239,24 @@
     });
   }
 
-  // Handle remember me toggle
+  // Handle remember email toggle (email only — passwords are never stored)
   if (rememberMeCheckbox) {
     rememberMeCheckbox.addEventListener('change', () => {
-      const store = getSavedStore();
-      store.remember = rememberMeCheckbox.checked;
-      if (!store.remember) {
-        const key = emailInput.value.trim().toLowerCase();
-        if (key && store.accounts[key]) {
-          delete store.accounts[key];
-        }
-      } else if (emailInput.value.trim() && passwordInput.value) {
-        const key = emailInput.value.trim().toLowerCase();
-        store.lastUsed = key;
-        store.accounts[key] = {
-          email: emailInput.value.trim(),
-          password: passwordInput.value,
-          savedAt: Date.now()
-        };
+      if (rememberMeCheckbox.checked) {
+        const email = emailInput.value.trim();
+        if (email) credentials.rememberEmail(email, true);
+      } else {
+        credentials.setRemember(false);
       }
-      saveStore(store);
+      populateSavedCredentials();
     });
   }
-
-  modeButtons.forEach(button => {
-    button.addEventListener('click', () => setMode(button.dataset.mode));
-  });
 
   authForm.addEventListener('submit', event => {
     event.preventDefault();
     const emailVal = emailInput.value.trim();
     const passVal = passwordInput.value;
-    if (mode === 'signin') {
-      handleAuth(GameDayFirebase.signInWithEmail(emailVal, passVal), emailVal, passVal);
-    } else {
-      handleAuth(GameDayFirebase.createAccount(emailVal, passVal), emailVal, passVal);
-    }
+    handleAuth(GameDayFirebase.signInWithEmail(emailVal, passVal), emailVal);
   });
 
   googleBtn.addEventListener('click', () => {

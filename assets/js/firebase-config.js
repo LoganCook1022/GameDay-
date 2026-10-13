@@ -6,3 +6,8 @@ window.GAMEDAY_FIREBASE_CONFIG = window.GAMEDAY_FIREBASE_CONFIG || {
   messagingSenderId: '1063355019441',
   appId: '1:1063355019441:web:bd1c06d722202e7d033290'
 };
+
+// Where administrator access requests are sent for review. This is only a
+// contact address, never an authorization source: the Firestore rules and the
+// `admins` roster decide who is allowed to approve an account.
+window.GAMEDAY_ADMIN_REVIEWER_EMAIL = window.GAMEDAY_ADMIN_REVIEWER_EMAIL || 'cook.logan@sugarsalem.com';
