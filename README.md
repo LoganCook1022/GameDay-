@@ -56,7 +56,7 @@ Simply double-click `index.html` in your file explorer to launch the app directl
 ## 🔐 Firebase setup
 
 1. Create a Firebase project and enable Email/Password Authentication and Cloud Firestore.
-2. Copy the web app configuration into `firebase-config.js`. These values identify the Firebase project and are expected to be public in browser applications.
+2. Copy the web app configuration into `assets/js/firebase-config.js`. These values identify the Firebase project and are expected to be public in browser applications.
 3. Deploy `firestore.rules`. Administrator accounts must have the Firebase Authentication custom claim `admin: true`; the rules reject all writes without it.
 4. Open `admin.html` to sign in and manage the school identified by the `school` query parameter, such as `admin.html?school=sugar-salem`.
 
@@ -70,7 +70,7 @@ npx firebase-tools use --add
 npx firebase-tools deploy --only hosting,firestore:rules
 ```
 
-After selecting the project, copy its web app configuration into `firebase-config.js` before opening the deployed site. The deployed admin page is available at `/admin.html?school=sugar-salem`.
+After selecting the project, copy its web app configuration into `assets/js/firebase-config.js` before opening the deployed site. The deployed admin page is available at `/admin.html?school=sugar-salem`.
 
 The Firestore layout is `schools/{schoolId}/events`, `sports`, `clubs`, `teams`, `statistics`, and `settings/school`. Public reads are allowed; writes require the administrator claim.
 
