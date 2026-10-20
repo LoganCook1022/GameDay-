@@ -8,8 +8,8 @@ const GameDayMap = (function() {
   let markersLayer = null;
   let currentVenues = [];
 
-  // Home School base coordinates (Sugar-Salem High School, Sugar City, ID)
-  const HOME_COORDS = { lat: 43.8744, lng: -111.7483, name: 'Sugar-Salem High School' };
+  // Home School base coordinates (defaults to Sugar-Salem, updated dynamically per school)
+  let HOME_COORDS = { lat: 43.8744, lng: -111.7483, name: 'Home School' };
 
   function initMap() {
     if (mapInstance) return;
@@ -17,7 +17,7 @@ const GameDayMap = (function() {
     const mapElement = document.getElementById('leafletMap');
     if (!mapElement) return;
 
-    // Center near North Jersey / New York metro area default
+    // Center near school coordinates
     mapInstance = L.map('leafletMap', {
       zoomControl: true,
       scrollWheelZoom: true
@@ -54,6 +54,11 @@ const GameDayMap = (function() {
 
   // Extract unique venues from events list
   function updateVenues(events) {
+    const homeEvt = events.find(e => e.locationType === 'Home' && e.lat && e.lng);
+    if (homeEvt) {
+      HOME_COORDS = { lat: homeEvt.lat, lng: homeEvt.lng, name: homeEvt.venueName || 'Home School' };
+    }
+
     initMap();
     if (!mapInstance || !markersLayer) return;
 

@@ -4,6 +4,63 @@ const GameDayFirebase = (() => {
   const schoolId = new URLSearchParams(window.location.search).get('school') || 'sugar-salem';
   let db;
 
+  const SCHOOL_META = {
+    'sugar-salem': {
+      name: 'Sugar-Salem High School',
+      mascot: 'Diggers',
+      venueName: 'Sugar-Salem High School Stadium',
+      venueAddress: '#1 Digger Dr, Sugar City, ID 83448',
+      lat: 43.8744,
+      lng: -111.7483,
+      ticketUrl: 'https://sugarsalemhighschool.arbiterwebsites.com/'
+    },
+    'south-fremont': {
+      name: 'South Fremont High School',
+      mascot: 'Cougars',
+      venueName: 'South Fremont High School Stadium',
+      venueAddress: '850 N Bridge St, St Anthony, ID 83445',
+      lat: 43.9749,
+      lng: -111.6847,
+      ticketUrl: 'https://gofan.co/'
+    },
+    'teton': {
+      name: 'Teton High School',
+      mascot: 'Timberwolves',
+      venueName: 'Teton High School Stadium',
+      venueAddress: '555 E Ross Ave, Driggs, ID 83422',
+      lat: 43.7225,
+      lng: -111.1033,
+      ticketUrl: 'https://gofan.co/'
+    },
+    'snake-river': {
+      name: 'Snake River High School',
+      mascot: 'Panthers',
+      venueName: 'Snake River High School Stadium',
+      venueAddress: '922 S 700 W, Blackfoot, ID 83221',
+      lat: 43.1672,
+      lng: -112.4045,
+      ticketUrl: 'https://gofan.co/'
+    },
+    'madison': {
+      name: 'Madison High School',
+      mascot: 'Bobcats',
+      venueName: 'Madison High School Stadium',
+      venueAddress: '2300 University Blvd, Rexburg, ID 83440',
+      lat: 43.8055,
+      lng: -111.7981,
+      ticketUrl: 'https://gofan.co/'
+    },
+    'rigby': {
+      name: 'Rigby High School',
+      mascot: 'Trojans',
+      venueName: 'Rigby High School Trojan Stadium',
+      venueAddress: '3850 E 300 N, Rigby, ID 83442',
+      lat: 43.6811,
+      lng: -111.8953,
+      ticketUrl: 'https://gofan.co/'
+    }
+  };
+
   if (configured && !firebase.apps.length) firebase.initializeApp(config);
   if (configured) db = firebase.firestore();
 
@@ -12,13 +69,15 @@ const GameDayFirebase = (() => {
   }
 
   function normalizeEvent(id, data = {}) {
+    const targetSchoolId = data.schoolId || schoolId;
+    const meta = SCHOOL_META[targetSchoolId] || SCHOOL_META['sugar-salem'];
     const homeScore = data.homeScore ?? data.ourScore ?? null;
     const awayScore = data.awayScore ?? data.oppScore ?? null;
     const sport = data.sport || '';
     const opponent = data.opponent || '';
     const locationType = data.locationType || data.homeAway || 'Home';
-    const venueName = data.venueName || data.location || (locationType === 'Home' ? 'Sugar-Salem High School' : (opponent ? `${opponent} High School` : ''));
-    const venueAddress = data.venueAddress || data.address || (locationType === 'Home' ? '#1 Digger Dr, Sugar City, ID 83448' : '');
+    const venueName = data.venueName || data.location || (locationType === 'Home' ? meta.venueName : (opponent ? `${opponent} High School` : ''));
+    const venueAddress = data.venueAddress || data.address || (locationType === 'Home' ? meta.venueAddress : '');
     const time = data.startTime || data.time || 'TBA';
     const eventName = data.eventName || data.name || (opponent ? `${sport ? sport + ' ' : ''}${data.level || 'Varsity'} vs ${opponent}` : (sport ? `${sport} Event` : 'Event'));
     const status = data.status || (homeScore !== null && awayScore !== null ? 'Final' : 'Scheduled');
@@ -43,10 +102,10 @@ const GameDayFirebase = (() => {
       location: venueName,
       venueAddress,
       address: venueAddress,
-      lat: typeof data.lat === 'number' ? data.lat : (data.lat ? Number(data.lat) : 43.8744),
-      lng: typeof data.lng === 'number' ? data.lng : (data.lng ? Number(data.lng) : -111.7483),
+      lat: typeof data.lat === 'number' ? data.lat : (data.lat ? Number(data.lat) : meta.lat),
+      lng: typeof data.lng === 'number' ? data.lng : (data.lng ? Number(data.lng) : meta.lng),
       parkingInfo: data.parkingInfo || 'Standard spectator parking available.',
-      ticketUrl: data.ticketUrl || 'https://sugarsalemhighschool.arbiterwebsites.com/',
+      ticketUrl: data.ticketUrl || meta.ticketUrl,
       description: data.description || '',
       ourScore: homeScore,
       oppScore: awayScore,
@@ -55,7 +114,7 @@ const GameDayFirebase = (() => {
       status,
       highlights: data.highlights || '',
       stats: data.stats || null,
-      schoolId: data.schoolId || schoolId
+      schoolId: targetSchoolId
     };
   }
 
