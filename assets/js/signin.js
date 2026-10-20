@@ -27,6 +27,7 @@
   const userAvatar = document.getElementById('userAvatar');
   const continueBtn = document.getElementById('continueBtn');
   const adminDashboardLink = document.getElementById('adminDashboardLink');
+  const requestAdminLink = document.getElementById('requestAdminLink');
   const signOutBtn = document.getElementById('signOutBtn');
 
   const rememberMeCheckbox = document.getElementById('rememberMeCheckbox');
@@ -259,8 +260,14 @@
         signedInRole.textContent = 'You have administrator access for your school.';
         adminDashboardLink.href = adminUrl;
         adminDashboardLink.hidden = false;
+        if (requestAdminLink) requestAdminLink.hidden = true;
       } else {
         signedInRole.textContent = 'Regular account • schedules are public for everyone.';
+        adminDashboardLink.hidden = true;
+        if (requestAdminLink) {
+          requestAdminLink.href = adminUrl;
+          requestAdminLink.hidden = false;
+        }
       }
     });
   }

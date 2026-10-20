@@ -145,11 +145,57 @@ const AdminApp = (() => {
       document.querySelector('#loginForm button').disabled = true;
       return;
     }
+
+    // Check if Logan opened an approval link from his email
+    handleApprovalFlow();
+
+    // Request Access Navigation
+    const openReqBtn = document.getElementById('openRequestAccessBtn');
+    const cancelReqBtn = document.getElementById('cancelRequestBtn');
+    const reqForm = document.getElementById('requestAccessForm');
+    const reqStatus = document.getElementById('requestStatus');
+
+    if (openReqBtn) {
+      openReqBtn.addEventListener('click', () => {
+        document.getElementById('loginView').hidden = true;
+        document.getElementById('requestAccessView').hidden = false;
+      });
+    }
+    if (cancelReqBtn) {
+      cancelReqBtn.addEventListener('click', () => {
+        document.getElementById('requestAccessView').hidden = true;
+        document.getElementById('loginView').hidden = false;
+      });
+    }
+    if (reqForm) {
+      reqForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('reqEmailInput').value.trim();
+        const school = document.getElementById('reqSchoolSelect').value;
+        const role = document.getElementById('reqRoleInput').value.trim();
+
+        if (!email) return;
+        reqStatus.textContent = 'Recording request and preparing email to cook.logan@sugarsalem.com...';
+
+        await firebaseClient.recordAdminRequest(email, school, role);
+        const mailtoUrl = buildAdminRequestMailto(email, school, role);
+        window.location.href = mailtoUrl;
+
+        reqStatus.innerHTML = 'Email client opened addressed to <strong>cook.logan@sugarsalem.com</strong> with a 1-click button for Logan to approve your access.';
+      });
+    }
+
     firebaseClient.auth().onAuthStateChanged(user => {
+      // If approval view is active, don't override it
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('action') === 'approve') return;
+
       if (!user) {
         document.getElementById('loginView').hidden = false;
         document.getElementById('accessDeniedView').hidden = true;
         document.getElementById('dashboardView').hidden = true;
+        if (document.getElementById('requestAccessView')) document.getElementById('requestAccessView').hidden = true;
+        if (document.getElementById('approvalView')) document.getElementById('approvalView').hidden = true;
         populateAdminCredentials();
         return;
       }
@@ -171,6 +217,105 @@ const AdminApp = (() => {
     }));
   });
 
+  function buildAdminRequestMailto(applicantEmail, school, role = '') {
+    const targetEmail = 'cook.logan@sugarsalem.com';
+    const host = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://school-project-6dd54.web.app';
+    const path = window.location.pathname ? window.location.pathname.replace(/\/[^/]*$/, '/admin.html') : '/admin.html';
+    const approveUrl = `${host}${path}?action=approve&email=${encodeURIComponent(applicantEmail)}&school=${encodeURIComponent(school)}`;
+
+    const subject = `[GameDay+ Admin Request] Approve access for ${applicantEmail}`;
+    const body = `GameDay+ Administrator Access Request
+==================================================
+
+Hello Logan,
+
+An administrator access request has been submitted for GameDay+:
+
+• Requesting Account: ${applicantEmail}
+• Requested School: ${school}
+${role ? '• Position / Role: ' + role + '\n' : ''}• Date & Time: ${new Date().toLocaleString()}
+
+==================================================
+ONE-CLICK APPROVAL FOR LOGAN COOK:
+Press the link below to approve administrator access:
+
+👉 APPROVE ADMIN ACCESS:
+${approveUrl}
+
+(Clicking this link opens GameDay+ and allows you to confirm approval with one click)
+==================================================
+
+Thank you,
+GameDay+ System`;
+
+    return `mailto:${targetEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+
+  function handleApprovalFlow() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    const approveEmail = (urlParams.get('email') || '').trim();
+    const approveSchool = urlParams.get('school') || firebaseClient.schoolId;
+
+    if (action === 'approve' && approveEmail) {
+      document.getElementById('loginView').hidden = true;
+      document.getElementById('accessDeniedView').hidden = true;
+      document.getElementById('dashboardView').hidden = true;
+      if (document.getElementById('requestAccessView')) document.getElementById('requestAccessView').hidden = true;
+
+      const approvalView = document.getElementById('approvalView');
+      if (approvalView) {
+        approvalView.hidden = false;
+        document.getElementById('approvalAccountEmail').textContent = approveEmail;
+        document.getElementById('approvalSchoolName').textContent = `${approveSchool.toUpperCase()} (${approveSchool})`;
+
+        const confirmBtn = document.getElementById('confirmApproveBtn');
+        const denyBtn = document.getElementById('denyApproveBtn');
+        const successBox = document.getElementById('approvalSuccessBox');
+        const actionsDiv = document.getElementById('approvalActions');
+        const notifyBtn = document.getElementById('sendApprovalNotificationBtn');
+
+        confirmBtn.onclick = async () => {
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Approving access...';
+          try {
+            await firebaseClient.approveAdminUser(approveEmail, approveSchool);
+            actionsDiv.hidden = true;
+            successBox.hidden = false;
+
+            const notifySubject = `GameDay+ Admin Access Approved for ${approveSchool}`;
+            const host = window.location.origin && window.location.origin !== 'null' ? window.location.origin : 'https://school-project-6dd54.web.app';
+            const notifyBody = `Hello,\n\nYour request for administrator access to GameDay+ for ${approveSchool} has been approved by Logan Cook.\n\nYou can now sign in at:\n${host}/admin.html\n\nWelcome to GameDay+!`;
+            notifyBtn.href = `mailto:${encodeURIComponent(approveEmail)}?subject=${encodeURIComponent(notifySubject)}&body=${encodeURIComponent(notifyBody)}`;
+          } catch (err) {
+            alert('Approval error: ' + err.message);
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Approve Admin Access';
+          }
+        };
+
+        denyBtn.onclick = () => {
+          if (confirm(`Deny admin access request for ${approveEmail}?`)) {
+            window.location.href = 'admin.html';
+          }
+        };
+
+        return true;
+      }
+    }
+    return false;
+  }
+
+  window.approveReqDirectly = async (email, school) => {
+    try {
+      await firebaseClient.approveAdminUser(email, school);
+      alert(`Admin access approved for ${email}!`);
+      renderSection('overview');
+    } catch (err) {
+      alert('Could not approve: ' + err.message);
+    }
+  };
+
   async function signIn(event) {
     event.preventDefault();
     const emailInput = document.getElementById('emailInput');
@@ -186,22 +331,33 @@ const AdminApp = (() => {
   }
 
   async function authorizeAndRender(user) {
+    if (handleApprovalFlow()) return;
+
     const isAdmin = await firebaseClient.isAdminUser(user);
     if (!isAdmin) {
       document.getElementById('deniedAccountEmail').textContent = user.email || 'Unknown account';
       const school = firebaseClient.schoolId;
       const appUrl = `index.html?school=${encodeURIComponent(school)}`;
-      const subject = `GameDay+ admin access request for ${school}`;
-      const body = `Please review this request for GameDay+ administrator access.\n\nAccount: ${user.email || 'Unknown'}\nSchool: ${school}\n\nPlease approve or deny this request.`;
-      document.getElementById('requestAdminAccessBtn').href = `mailto:cook.logan@sugarsalem.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const mailtoUrl = buildAdminRequestMailto(user.email || 'unknown', school);
+
+      const reqBtn = document.getElementById('requestAdminAccessBtn');
+      reqBtn.href = mailtoUrl;
+      reqBtn.onclick = () => {
+        firebaseClient.recordAdminRequest(user.email, school, 'Denied account screen');
+      };
+
       document.getElementById('deniedPublicAppLink').href = appUrl;
       document.getElementById('loginView').hidden = true;
       document.getElementById('accessDeniedView').hidden = false;
       document.getElementById('dashboardView').hidden = true;
+      if (document.getElementById('requestAccessView')) document.getElementById('requestAccessView').hidden = true;
+      if (document.getElementById('approvalView')) document.getElementById('approvalView').hidden = true;
       return;
     }
     document.getElementById('loginView').hidden = true;
     document.getElementById('accessDeniedView').hidden = true;
+    if (document.getElementById('requestAccessView')) document.getElementById('requestAccessView').hidden = true;
+    if (document.getElementById('approvalView')) document.getElementById('approvalView').hidden = true;
     document.getElementById('dashboardView').hidden = false;
     document.getElementById('publicAppLink').href = `index.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
     renderSection('overview');
@@ -217,8 +373,63 @@ const AdminApp = (() => {
 
   async function renderOverview() {
     try {
+      const currentUser = firebaseClient.auth().currentUser;
+      const userEmail = (currentUser && currentUser.email ? currentUser.email : '').toLowerCase();
+      const isSuper = userEmail === 'cook.logan@sugarsalem.com';
+
       const [events, sports, clubs, teams] = await Promise.all(['events', 'sports', 'clubs', 'teams'].map(loadCollection));
-      content.innerHTML = `<h2>Dashboard</h2><p class="muted">School: ${firebaseClient.schoolId}</p><div class="summary-grid">${summaryCard('Upcoming events', events.filter(event => event.date >= new Date().toISOString().slice(0, 10)).length)}${summaryCard('Sports', sports.length)}${summaryCard('Clubs', clubs.length)}${summaryCard('Teams', teams.length)}</div>`;
+
+      let superAdminHtml = '';
+      if (isSuper) {
+        const [approvedAdmins, pendingReqs] = await Promise.all([
+          firebaseClient.getApprovedAdmins(),
+          firebaseClient.getAdminRequests()
+        ]);
+        const pendingList = pendingReqs.filter(r => r.status === 'pending');
+
+        superAdminHtml = `
+          <div style="margin-top:28px;border-top:1px solid #d8e0ea;padding-top:20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+              <h3 style="margin:0;">Super Administrator Management</h3>
+              <span class="muted" style="font-size:0.85rem;font-weight:600;">cook.logan@sugarsalem.com</span>
+            </div>
+            <div class="summary-grid" style="margin-bottom:16px;">
+              <div class="summary-card"><span class="muted">Pending Requests</span><strong>${pendingList.length}</strong></div>
+              <div class="summary-card"><span class="muted">Approved Admins</span><strong>${approvedAdmins.length}</strong></div>
+            </div>
+            ${pendingList.length > 0 ? `
+              <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:16px;margin-bottom:16px;">
+                <h4 style="margin:0 0 10px;color:#92400e;">Pending Admin Access Requests (${pendingList.length})</h4>
+                <div style="display:grid;gap:8px;">
+                  ${pendingList.map(req => `
+                    <div style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #fef3c7;border-radius:6px;padding:10px 14px;flex-wrap:wrap;gap:8px;">
+                      <div>
+                        <strong>${req.email}</strong> &bull; <span class="muted">${req.schoolId || 'sugar-salem'}</span>
+                        ${req.note ? `<div class="muted" style="font-size:0.8rem;">${req.note}</div>` : ''}
+                      </div>
+                      <button class="primary" style="background:#16a34a;border-color:#16a34a;padding:6px 14px;font-size:0.85rem;width:auto;" onclick="window.approveReqDirectly('${req.email}', '${req.schoolId || firebaseClient.schoolId}')">
+                        Approve
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            ` : '<p class="muted" style="font-size:0.9rem;margin-bottom:16px;">No pending admin requests at this time.</p>'}
+          </div>
+        `;
+      }
+
+      content.innerHTML = `
+        <h2>Dashboard</h2>
+        <p class="muted">School: ${firebaseClient.schoolId}</p>
+        <div class="summary-grid">
+          ${summaryCard('Upcoming events', events.filter(event => event.date >= new Date().toISOString().slice(0, 10)).length)}
+          ${summaryCard('Sports', sports.length)}
+          ${summaryCard('Clubs', clubs.length)}
+          ${summaryCard('Teams', teams.length)}
+        </div>
+        ${superAdminHtml}
+      `;
     } catch (error) { showError(error); }
   }
 

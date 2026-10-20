@@ -241,13 +241,120 @@ const GameDayFirebase = (() => {
   async function isAdminUser(user) {
     const current = user || (firebase && firebase.auth ? firebase.auth().currentUser : null);
     if (!current) return false;
+
+    const email = (current.email || '').toLowerCase().trim();
+    // 1. Logan Cook is the super administrator
+    if (email === 'cook.logan@sugarsalem.com') {
+      return true;
+    }
+
+    // 2. Custom claims
     try {
       const tokenResult = await current.getIdTokenResult(true);
       const claims = tokenResult.claims || {};
-      return claims.admin === true;
-    } catch (error) {
-      return false;
+      if (claims.admin === true) return true;
+    } catch (_) {}
+
+    // 3. Firestore admins collection
+    if (configured && db && email) {
+      try {
+        const doc = await db.collection('admins').doc(email).get();
+        if (doc.exists && doc.data() && doc.data().approved === true) {
+          return true;
+        }
+      } catch (err) {
+        console.warn('Firestore admin check warning:', err);
+      }
     }
+
+    // 4. Local storage approved cache
+    try {
+      const approvedList = JSON.parse(localStorage.getItem('gameday_approved_admins') || '[]');
+      if (approvedList.includes(email)) return true;
+    } catch (_) {}
+
+    return false;
+  }
+
+  async function approveAdminUser(emailToApprove, schoolToAssign = schoolId) {
+    const cleanEmail = (emailToApprove || '').toLowerCase().trim();
+    if (!cleanEmail) throw new Error('Valid email address is required.');
+
+    // 1. Local cache update
+    try {
+      const approvedList = JSON.parse(localStorage.getItem('gameday_approved_admins') || '[]');
+      if (!approvedList.includes(cleanEmail)) {
+        approvedList.push(cleanEmail);
+        localStorage.setItem('gameday_approved_admins', JSON.stringify(approvedList));
+      }
+    } catch (_) {}
+
+    // 2. Firestore admins collection
+    if (configured && db) {
+      try {
+        await db.collection('admins').doc(cleanEmail).set({
+          email: cleanEmail,
+          approved: true,
+          approvedBy: 'cook.logan@sugarsalem.com',
+          approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          role: 'admin',
+          schoolId: schoolToAssign
+        }, { merge: true });
+
+        // Update admin_requests doc if exists
+        try {
+          await db.collection('admin_requests').doc(cleanEmail).set({
+            status: 'approved',
+            resolvedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }, { merge: true });
+        } catch (_) {}
+      } catch (err) {
+        console.warn('Could not write to Firestore admins collection:', err);
+      }
+    }
+
+    return { success: true, email: cleanEmail, schoolId: schoolToAssign };
+  }
+
+  async function recordAdminRequest(emailToRequest, schoolToAssign = schoolId, note = '') {
+    const cleanEmail = (emailToRequest || '').toLowerCase().trim();
+    if (!cleanEmail) return;
+
+    if (configured && db) {
+      try {
+        await db.collection('admin_requests').doc(cleanEmail).set({
+          email: cleanEmail,
+          schoolId: schoolToAssign,
+          note: note || 'Requested via GameDay+ Admin portal',
+          status: 'pending',
+          requestedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (err) {
+        console.warn('Could not write to Firestore admin_requests collection:', err);
+      }
+    }
+  }
+
+  async function getApprovedAdmins() {
+    const results = [];
+    if (configured && db) {
+      try {
+        const snap = await db.collection('admins').get();
+        snap.forEach(d => results.push({ id: d.id, ...d.data() }));
+      } catch (_) {}
+    }
+    return results;
+  }
+
+  async function getAdminRequests() {
+    const results = [];
+    if (configured && db) {
+      try {
+        const snap = await db.collection('admin_requests').get();
+        snap.forEach(d => results.push({ id: d.id, ...d.data() }));
+      } catch (_) {}
+    }
+    return results;
   }
 
   function events() { return collection('events'); }
@@ -274,6 +381,10 @@ const GameDayFirebase = (() => {
     signOut,
     onAuthStateChanged,
     isAdminUser,
+    approveAdminUser,
+    recordAdminRequest,
+    getApprovedAdmins,
+    getAdminRequests,
     events,
     resources,
     settings,

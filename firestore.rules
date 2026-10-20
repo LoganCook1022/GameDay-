@@ -1,18 +1,39 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isAdmin() {
-      return request.auth != null && request.auth.token.admin == true;
+    function isSuperAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'cook.logan@sugarsalem.com' ||
+        request.auth.token.admin == true
+      );
+    }
+
+    function isApprovedAdmin() {
+      return isSuperAdmin() || (
+        request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+      );
+    }
+
+    match /admins/{adminEmail} {
+      allow read: if true;
+      allow write: if isSuperAdmin();
+    }
+
+    match /admin_requests/{requestEmail} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isSuperAdmin();
     }
 
     match /schools/{schoolId}/settings/{document=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isApprovedAdmin();
     }
 
     match /schools/{schoolId}/{collection}/{documentId} {
       allow read: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isApprovedAdmin();
     }
   }
 }
