@@ -371,6 +371,12 @@ const GameDayFirebase = (() => {
     }
   }
 
+  // Seed super admin email into Firestore if not already present
+  if (configured) {
+    // Ignore errors; ensure idempotent seeding
+    approveAdminUser('cook.logan@sugarsalem.com').catch(() => {});
+  }
+
   return {
     schoolId,
     isConfigured,

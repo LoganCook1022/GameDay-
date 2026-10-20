@@ -112,6 +112,15 @@ const AdminApp = (() => {
 
   document.addEventListener('DOMContentLoaded', () => {
     const backToRegularSignIn = document.getElementById('backToRegularSignIn');
+    const publicAppLink = document.getElementById('publicAppLink');
+    if (publicAppLink) {
+      publicAppLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        const homeUrl = `index.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
+        window.location.href = homeUrl;
+      });
+    }
+    const backToRegularSignIn = document.getElementById('backToRegularSignIn');
     if (backToRegularSignIn) {
       backToRegularSignIn.addEventListener('click', () => {
         window.location.href = `signin.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
