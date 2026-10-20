@@ -113,7 +113,9 @@ const AdminApp = (() => {
   document.addEventListener('DOMContentLoaded', () => {
     const backToRegularSignIn = document.getElementById('backToRegularSignIn');
     if (backToRegularSignIn) {
-      backToRegularSignIn.href = `signin.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
+      backToRegularSignIn.addEventListener('click', () => {
+        window.location.href = `signin.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
+      });
     }
     populateAdminCredentials();
 
