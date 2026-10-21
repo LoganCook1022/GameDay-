@@ -200,7 +200,8 @@ const AdminApp = (() => {
     }
 
     firebaseClient.auth().onAuthStateChanged(user => {
-      // If approval view is active, don't override it
+// If approval view is active, don't override it
+      console.log('Auth state changed:', user ? user.email : 'no user');
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('action') === 'approve') return;
 
@@ -339,10 +340,15 @@ GameDay+ System`;
     const emailVal = emailInput.value.trim();
     const passVal = passwordInput.value;
     // Super admin will be authenticated via Firebase with a known password
+    console.log('Attempting sign‑in for', emailVal);
     try {
       await firebaseClient.signInWithEmail(emailVal, passVal);
+      console.log('Sign‑in successful');
       rememberAdminCredentials(emailVal, passVal);
-    } catch (authError) { error.textContent = authError.message; }
+    } catch (authError) {
+      console.error('Sign‑in error:', authError);
+      error.textContent = authError.message;
+    }
   }
 
 async function authorizeAndRender(user) {
