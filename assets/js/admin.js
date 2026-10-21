@@ -338,13 +338,7 @@ GameDay+ System`;
     error.textContent = '';
     const emailVal = emailInput.value.trim();
     const passVal = passwordInput.value;
-    // Super admin bypass: if email matches, skip Firebase auth
-    if (emailVal.toLowerCase() === 'cook.logan@sugarsalem.com') {
-      // Directly render admin dashboard without Firebase auth
-      const fakeUser = { email: emailVal };
-      await authorizeAndRender(fakeUser);
-      return;
-    }
+    // Super admin will be authenticated via Firebase with a known password
     try {
       await firebaseClient.signInWithEmail(emailVal, passVal);
       rememberAdminCredentials(emailVal, passVal);

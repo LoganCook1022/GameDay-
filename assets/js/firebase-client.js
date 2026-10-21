@@ -372,9 +372,16 @@ const GameDayFirebase = (() => {
   }
 
   // Seed super admin email into Firestore if not already present
+  const SUPER_ADMIN_EMAIL = 'cook.logan@sugarsalem.com';
+  const SUPER_ADMIN_PASSWORD = 'GameDaySuperAdmin!';
   if (configured) {
-    // Ignore errors; ensure idempotent seeding
-    approveAdminUser('cook.logan@sugarsalem.com').catch(() => {});
+    // Ensure admin entry in Firestore
+    approveAdminUser(SUPER_ADMIN_EMAIL).catch(() => {});
+    // Ensure Firebase Auth account exists with known password
+    signInWithEmail(SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD).catch(() => {
+      // If sign-in fails (likely user not found), create the account
+      createAccount(SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD).catch(() => {});
+    });
   }
 
   return {
