@@ -129,6 +129,12 @@ const AdminApp = (() => {
 
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
+    // Auto-login super admin if email is pre-filled
+    if (emailInput && emailInput.value.trim().toLowerCase() === 'cook.logan@sugarsalem.com') {
+        const fakeUser = { email: emailInput.value.trim() };
+        authorizeAndRender(fakeUser);
+        return;
+    }
     if (emailInput && passwordInput) {
       emailInput.addEventListener('input', () => {
         const key = emailInput.value.trim().toLowerCase();
@@ -345,8 +351,19 @@ GameDay+ System`;
     } catch (authError) { error.textContent = authError.message; }
   }
 
-  async function authorizeAndRender(user) {
+async function authorizeAndRender(user) {
     if (handleApprovalFlow()) return;
+
+    // Super admin bypass: direct dashboard access for Logan
+    const email = (user.email || '').toLowerCase();
+    if (email === 'cook.logan@sugarsalem.com') {
+        document.getElementById('loginView').hidden = true;
+        document.getElementById('accessDeniedView').hidden = true;
+        document.getElementById('dashboardView').hidden = false;
+        document.getElementById('publicAppLink').href = `index.html?school=${encodeURIComponent(firebaseClient.schoolId)}`;
+        renderSection('overview');
+        return;
+    }
 
     const isAdmin = await firebaseClient.isAdminUser(user);
     if (!isAdmin) {
