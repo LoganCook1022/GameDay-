@@ -7,6 +7,8 @@ const AdminApp = (() => {
   const utils = window.GameDayUtils || {};
 
   function populateAdminCredentials() {
+    // One-time cleanup of any plaintext password written by older builds.
+    credentials.sanitize();
     const emailInput = document.getElementById('emailInput');
     const passwordInput = document.getElementById('passwordInput');
     const rememberCheckbox = document.getElementById('adminRememberMe');

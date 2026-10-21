@@ -53,6 +53,8 @@
   }
 
   function populateSavedCredentials() {
+    // One-time cleanup of any plaintext password written by older builds.
+    credentials.sanitize();
     const store = credentials.getStore();
     if (rememberMeCheckbox) {
       rememberMeCheckbox.checked = store.remember !== false;
