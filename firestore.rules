@@ -46,29 +46,48 @@ service cloud.firestore {
     }
 
     // Strongest authority: a server-issued custom claim.
+    // Claim lookups go through keys().hasAny() / get(key, default) so that a
+    // missing claim is a clean `false` instead of a rules evaluation error.
     function hasAdminClaim() {
-      return isSignedIn() && request.auth.token.admin == true;
+      return isSignedIn()
+        && request.auth.token.keys().hasAny(['admin'])
+        && request.auth.token.admin == true;
     }
 
     function hasSchoolClaim(schoolId) {
       return isSignedIn() && (
-        (request.auth.token.schools is list && schoolId in request.auth.token.schools) ||
-        (request.auth.token.school is string && request.auth.token.school == schoolId)
+        (request.auth.token.keys().hasAny(['schools'])
+          && request.auth.token.schools is list
+          && schoolId in request.auth.token.schools) ||
+        (request.auth.token.keys().hasAny(['school'])
+          && request.auth.token.school is string
+          && request.auth.token.school == schoolId)
       );
+    }
+
+    // A roster entry only grants access while it is marked approved.
+    function isApprovedRoster() {
+      return hasAdminRecord()
+        && adminDoc(tokenEmail()).data.keys().hasAny(['approved'])
+        && adminDoc(tokenEmail()).data.approved == true;
     }
 
     // Roster record for the signed-in account, if any.
     function rosterSchool() {
-      return hasAdminRecord() ? adminDoc(tokenEmail()).data.schoolId : '';
+      return (isApprovedRoster() && adminDoc(tokenEmail()).data.keys().hasAny(['schoolId']))
+        ? adminDoc(tokenEmail()).data.schoolId
+        : '';
     }
 
     function rosterRole() {
-      return hasAdminRecord() ? adminDoc(tokenEmail()).data.role : '';
+      return (isApprovedRoster() && adminDoc(tokenEmail()).data.keys().hasAny(['role']))
+        ? adminDoc(tokenEmail()).data.role
+        : '';
     }
 
     // Global admin: admin claim, or a roster entry whose role is super_admin.
     function isGlobalAdmin() {
-      return hasAdminClaim() || (hasAdminRecord() && rosterRole() == 'super_admin');
+      return hasAdminClaim() || (isApprovedRoster() && rosterRole() == 'super_admin');
     }
 
     // Admin for a specific school. Passed explicitly because rules functions
