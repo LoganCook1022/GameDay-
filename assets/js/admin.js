@@ -450,7 +450,7 @@ GameDay+ System`;
       if (feedback) feedback.textContent = 'Uploading events to Firestore, please wait...';
       try {
         const count = await firebaseClient.seedEventsToFirestore();
-        if (feedback) feedback.textContent = `Successfully synced ${count} events to Firestore!`;
+        if (feedback) feedback.textContent = `Synced ${count.saved} events to Firestore (${count.unchanged} already up to date, ${count.skipped} locked by an admin).`;
         await renderEvents();
       } catch (err) {
         if (feedback) feedback.textContent = `Sync failed: ${err.message}`;

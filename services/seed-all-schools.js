@@ -1,46 +1,40 @@
 const fs = require('fs');
-const https = require('https');
 const path = require('path');
 
-const PROJECT_ID = 'school-project-6dd54';
+const schema = require('../assets/js/event-schema.js');
+const { createFirestoreClient } = require('./lib/firestore-client.js');
 
-function getAccessToken() {
-  const configPath = path.join(process.env.USERPROFILE, '.config', 'configstore', 'firebase-tools.json');
-  if (!fs.existsSync(configPath)) {
-    throw new Error('Firebase CLI configuration not found.');
+const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'school-project-6dd54';
+
+// The season is parameterised so the same generator can produce any season.
+// Defaults reproduce the schedule that is currently deployed.
+const SEASON = {
+  year: Number(process.env.GAMEDAY_SEASON_YEAR || 2026),
+  cutoff: process.env.GAMEDAY_SEASON_CUTOFF || `${Number(process.env.GAMEDAY_SEASON_YEAR || 2026)}-10-13`
+};
+
+/** Deterministic replacement for Math.random() so re-seeding never churns data. */
+function deterministicScore(seed, min, max) {
+  let hash = 5381;
+  const text = String(seed);
+  for (let i = 0; i < text.length; i += 1) {
+    hash = ((hash << 5) + hash + text.charCodeAt(i)) | 0;
   }
-  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  const tokens = config.tokens || {};
-  return tokens.access_token || (tokens.tokens && tokens.tokens.access_token);
+  const span = max - min + 1;
+  return min + (Math.abs(hash) % span);
 }
 
-// Convert a JS object into Firestore REST API value format
-function toFirestoreValue(val) {
-  if (val === null || val === undefined) return { nullValue: null };
-  if (typeof val === 'boolean') return { booleanValue: val };
-  if (typeof val === 'number') {
-    return Number.isInteger(val) ? { integerValue: String(val) } : { doubleValue: val };
-  }
-  if (typeof val === 'string') return { stringValue: val };
-  if (Array.isArray(val)) {
-    return { arrayValue: { values: val.map(toFirestoreValue) } };
-  }
-  if (typeof val === 'object') {
-    const fields = {};
-    for (const [k, v] of Object.entries(val)) {
-      if (v !== undefined) fields[k] = toFirestoreValue(v);
-    }
-    return { mapValue: { fields } };
-  }
-  return { stringValue: String(val) };
+function daysInMonth(year, month) {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
 }
 
-function toFirestoreFields(obj) {
-  const fields = {};
-  for (const [key, value] of Object.entries(obj)) {
-    if (value !== undefined) fields[key] = toFirestoreValue(value);
-  }
-  return fields;
+/** Clamps an overflowing day (e.g. September 32) to the last day of the month. */
+function clampDay(year, month, day) {
+  return Math.min(day, daysInMonth(year, month));
+}
+
+function shiftSeasonYear(date) {
+  return String(date || '').replace(/^(\d{4})-/, `${SEASON.year}-`);
 }
 
 // Comprehensive School Metadata
@@ -333,8 +327,8 @@ function generateEventsForSchool(school) {
   soccerOpponents.forEach((opp, i) => {
     // Boys soccer
     const bIsHome = i % 2 === 0;
-    const bDate = `2026-09-${String(5 + i * 5).padStart(2, '0')}`;
-    const bIsPast = bDate <= '2026-10-13';
+    const bDate = `${SEASON.year}-09-${String(clampDay(SEASON.year, 9, 5 + i * 5)).padStart(2, '0')}`;
+    const bIsPast = bDate <= SEASON.cutoff;
     events.push({
       id: `${school.id}-sc-b-${String(evtIndex++).padStart(3, '0')}`,
       schoolId: school.id,
@@ -354,8 +348,8 @@ function generateEventsForSchool(school) {
       venueAddress: bIsHome ? school.venueAddress : (opp.venueAddress || opp.addr),
       lat: bIsHome ? school.lat : (opp.lat || school.lat),
       lng: bIsHome ? school.lng : (opp.lng || school.lng),
-      homeScore: bIsPast ? Math.floor(1 + Math.random() * 4) : null,
-      awayScore: bIsPast ? Math.floor(Math.random() * 2) : null,
+      homeScore: bIsPast ? deterministicScore(`${school.id}-sc-b-${i}-home`, 1, 4) : null,
+      awayScore: bIsPast ? deterministicScore(`${school.id}-sc-b-${i}-away`, 0, 1) : null,
       ourScore: bIsPast ? 3 : null,
       oppScore: bIsPast ? 1 : null,
       status: bIsPast ? 'Final' : 'Scheduled',
@@ -367,8 +361,8 @@ function generateEventsForSchool(school) {
 
     // Girls soccer
     const gIsHome = i % 2 === 1;
-    const gDate = `2026-09-${String(7 + i * 5).padStart(2, '0')}`;
-    const gIsPast = gDate <= '2026-10-13';
+    const gDate = `${SEASON.year}-09-${String(clampDay(SEASON.year, 9, 7 + i * 5)).padStart(2, '0')}`;
+    const gIsPast = gDate <= SEASON.cutoff;
     events.push({
       id: `${school.id}-sc-g-${String(evtIndex++).padStart(3, '0')}`,
       schoolId: school.id,
@@ -388,8 +382,8 @@ function generateEventsForSchool(school) {
       venueAddress: gIsHome ? school.venueAddress : (opp.venueAddress || opp.addr),
       lat: gIsHome ? school.lat : (opp.lat || school.lat),
       lng: gIsHome ? school.lng : (opp.lng || school.lng),
-      homeScore: gIsPast ? Math.floor(2 + Math.random() * 3) : null,
-      awayScore: gIsPast ? Math.floor(Math.random() * 2) : null,
+      homeScore: gIsPast ? deterministicScore(`${school.id}-sc-g-${i}-home`, 2, 4) : null,
+      awayScore: gIsPast ? deterministicScore(`${school.id}-sc-g-${i}-away`, 0, 1) : null,
       ourScore: gIsPast ? 2 : null,
       oppScore: gIsPast ? 0 : null,
       status: gIsPast ? 'Final' : 'Scheduled',
@@ -870,53 +864,168 @@ function generateEventsForSchool(school) {
     });
   });
 
-  return events;
+  return events.map(applySeason);
 }
 
-async function sendBatchCommit(token, writes) {
-  return new Promise((resolve, reject) => {
-    const postData = JSON.stringify({ writes });
-    const req = https.request(`https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:commit`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
-      }
-    }, res => {
-      let body = '';
-      res.on('data', chunk => body += chunk);
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(JSON.parse(body || '{}'));
-        } else {
-          reject(new Error(`Batch commit failed (${res.statusCode}): ${body}`));
-        }
-      });
+/**
+ * Applies the configured season to a generated event: the date is moved into
+ * the season year and the result/status follow the season cutoff, so the same
+ * generator can produce any season.
+ */
+function applySeason(event) {
+  const date = shiftSeasonYear(event.date);
+  const isPast = date <= SEASON.cutoff;
+  const output = { ...event, date };
+
+  if (Object.prototype.hasOwnProperty.call(event, 'ourScore')) {
+    const played = isPast && event.ourScore !== null && event.ourScore !== undefined;
+    output.ourScore = played ? event.ourScore : null;
+    output.oppScore = played ? event.oppScore : null;
+    output.homeScore = played ? event.homeScore : null;
+    output.awayScore = played ? event.awayScore : null;
+    if (event.status === 'Final' || event.status === 'Scheduled') {
+      output.status = played ? 'Final' : 'Scheduled';
+    }
+  } else if (event.status === 'Completed' || event.status === 'Scheduled') {
+    output.status = isPast ? 'Completed' : 'Scheduled';
+  }
+
+  return output;
+}
+
+function parseArgs(argv) {
+  const flags = {
+    localOnly: false,
+    apply: false,
+    seasonYear: null,
+    cutoff: null,
+    schools: []
+  };
+
+  for (let i = 2; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === '--local-only') flags.localOnly = true;
+    else if (arg === '--apply') flags.apply = true;
+    else if (arg === '--season-year') flags.seasonYear = Number(argv[++i]);
+    else if (arg.startsWith('--season-year=')) flags.seasonYear = Number(arg.slice('--season-year='.length));
+    else if (arg === '--cutoff') flags.cutoff = argv[++i];
+    else if (arg.startsWith('--cutoff=')) flags.cutoff = arg.slice('--cutoff='.length);
+    else if (arg === '--school') flags.schools.push(argv[++i]);
+    else if (arg.startsWith('--school=')) flags.schools.push(arg.slice('--school='.length));
+  }
+
+  return flags;
+}
+
+/**
+ * Merges the generated events with what is already stored. Events are matched
+ * by canonical external key, then by their legacy id, then by content
+ * signature, so an existing document is updated instead of duplicated. Only
+ * fields the seed owns are written; scores and stats an admin entered are
+ * left alone, and locked (manualOverride) events are skipped entirely.
+ */
+function planEventWrites(school, generatedEvents, existingDocs, now) {
+  const entries = existingDocs.map(doc => ({ id: doc.id, data: doc.data || {} }));
+  const writes = [];
+  const summary = { created: 0, updated: 0, unchanged: 0, skipped: 0 };
+
+  generatedEvents.forEach(evt => {
+    const externalKey = schema.normalizeExternalKey(evt.externalKey, {
+      schoolId: school.id,
+      source: schema.SOURCE_SEED,
+      sourceId: evt.id
     });
-    req.on('error', reject);
-    req.write(postData);
-    req.end();
+
+    const payload = {
+      ...evt,
+      externalKey,
+      source: schema.SOURCE_SEED,
+      sourceId: evt.id,
+      schemaVersion: schema.SCHEMA_VERSION,
+      syncOwner: schema.SOURCE_SEED,
+      manualOverride: evt.manualOverride === true,
+      scoresVerified: evt.scoresVerified === true,
+      statsVerified: evt.statsVerified === true
+    };
+
+    const existing = schema.findMatchingEvent(entries, {
+      externalKey,
+      docId: evt.id,
+      sourceId: evt.id,
+      contentKey: schema.contentKey(payload)
+    });
+
+    if (!existing) {
+      writes.push({
+        path: `schools/${school.id}/events/${evt.id}`,
+        fields: { ...payload, createdAt: now, updatedAt: now }
+      });
+      summary.created += 1;
+      return;
+    }
+
+    const merge = schema.mergeEvent(existing.data, payload, { source: schema.SOURCE_SEED });
+    if (merge.skipped) {
+      summary.skipped += 1;
+      return;
+    }
+    if (!merge.changed) {
+      summary.unchanged += 1;
+      return;
+    }
+
+    const fields = {};
+    merge.changedFields.forEach(field => { fields[field] = merge.data[field]; });
+    fields.externalKey = externalKey;
+    fields.updatedAt = now;
+    writes.push({ path: `schools/${school.id}/events/${existing.id}`, fields });
+    summary.updated += 1;
   });
+
+  return { writes, summary };
 }
 
 async function main() {
-  console.log('=== GameDay+ Multi-School Firestore Comprehensive Seeder ===\n');
-  const token = getAccessToken();
-  console.log('Obtained Google OAuth token from Firebase CLI.\n');
+  const flags = parseArgs(process.argv);
 
+  if (flags.seasonYear) {
+    SEASON.year = flags.seasonYear;
+    SEASON.cutoff = flags.cutoff || `${SEASON.year}-10-13`;
+  } else if (flags.cutoff) {
+    SEASON.cutoff = flags.cutoff;
+  }
+
+  console.log('=== GameDay+ Multi-School Firestore Comprehensive Seeder ===\n');
+  console.log(`Season: ${SEASON.year} (cutoff ${SEASON.cutoff})`);
+  console.log(`Mode: ${flags.localOnly
+    ? 'LOCAL ONLY (regenerates data/events.json, no Firestore writes)'
+    : (flags.apply ? 'APPLY (writes to Firestore)' : 'DRY RUN (no Firestore writes)')}\n`);
+
+  const schools = flags.schools.length
+    ? SCHOOLS.filter(school => flags.schools.indexOf(school.id) !== -1)
+    : SCHOOLS;
+
+  const now = new Date().toISOString();
   const allEventsForJson = [];
   const writes = [];
+  const totals = { created: 0, updated: 0, unchanged: 0, skipped: 0, referenceKept: 0 };
+  const client = flags.localOnly ? null : await createFirestoreClient({ projectId: PROJECT_ID });
 
-  for (const school of SCHOOLS) {
+  for (const school of schools) {
     console.log(`Preparing data for: ${school.name} (${school.id})...`);
 
-    // 1. School settings
-    const settingsPath = `projects/${PROJECT_ID}/databases/(default)/documents/schools/${school.id}/settings/school`;
-    writes.push({
-      update: {
-        name: settingsPath,
-        fields: toFirestoreFields({
+    const existingEvents = client ? await client.listDocs(`schools/${school.id}/events`) : [];
+    const existingSettings = client
+      ? await client.getDoc(`schools/${school.id}/settings/school`)
+      : { exists: false, data: null };
+    const existingSports = client ? await client.listDocs(`schools/${school.id}/sports`) : [];
+    const existingClubs = client ? await client.listDocs(`schools/${school.id}/clubs`) : [];
+
+    // 1. School settings - only created when missing, so admin edits survive.
+    if (!existingSettings.exists) {
+      writes.push({
+        path: `schools/${school.id}/settings/school`,
+        fields: {
           schoolName: school.name,
           mascot: school.mascot,
           primaryColor: school.primaryColor,
@@ -926,69 +1035,97 @@ async function main() {
           lat: school.lat,
           lng: school.lng,
           description: school.description,
-          updatedAt: new Date().toISOString()
-        })
-      }
-    });
+          updatedAt: now
+        }
+      });
+    } else {
+      totals.referenceKept += 1;
+    }
 
     // 2. Sports
+    const knownSports = new Set(existingSports.map(doc => doc.id));
     COMMON_SPORTS.forEach(sportName => {
-      const sportDocPath = `projects/${PROJECT_ID}/databases/(default)/documents/schools/${school.id}/sports/${sportName.toLowerCase().replace(/\s+/g, '-')}`;
+      const docId = sportName.toLowerCase().replace(/\s+/g, '-');
+      if (knownSports.has(docId)) {
+        totals.referenceKept += 1;
+        return;
+      }
       writes.push({
-        update: {
-          name: sportDocPath,
-          fields: toFirestoreFields({
-            name: sportName,
-            enabled: true,
-            schoolId: school.id
-          })
-        }
+        path: `schools/${school.id}/sports/${docId}`,
+        fields: { name: sportName, enabled: true, schoolId: school.id, updatedAt: now }
       });
     });
 
     // 3. Clubs
+    const knownClubs = new Set(existingClubs.map(doc => doc.id));
     COMMON_CLUBS.forEach(club => {
-      const clubDocPath = `projects/${PROJECT_ID}/databases/(default)/documents/schools/${school.id}/clubs/${club.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+      const docId = club.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      if (knownClubs.has(docId)) {
+        totals.referenceKept += 1;
+        return;
+      }
       writes.push({
-        update: {
-          name: clubDocPath,
-          fields: toFirestoreFields({
-            name: club.name,
-            description: club.desc,
-            enabled: true,
-            schoolId: school.id
-          })
+        path: `schools/${school.id}/clubs/${docId}`,
+        fields: {
+          name: club.name,
+          description: club.desc,
+          enabled: true,
+          schoolId: school.id,
+          updatedAt: now
         }
       });
     });
 
-    // 4. Generate & store events
+    // 4. Events - conflict aware merge
     const schoolEvents = generateEventsForSchool(school);
     console.log(`  Generated ${schoolEvents.length} comprehensive games, tournaments, and school activities.`);
+
+    const plan = planEventWrites(school, schoolEvents, existingEvents, now);
+    writes.push(...plan.writes);
+    totals.created += plan.summary.created;
+    totals.updated += plan.summary.updated;
+    totals.unchanged += plan.summary.unchanged;
+    totals.skipped += plan.summary.skipped;
+
     schoolEvents.forEach(evt => {
-      allEventsForJson.push(evt);
-      const eventDocPath = `projects/${PROJECT_ID}/databases/(default)/documents/schools/${school.id}/events/${evt.id}`;
-      writes.push({
-        update: {
-          name: eventDocPath,
-          fields: toFirestoreFields(evt)
-        }
+      allEventsForJson.push({
+        ...evt,
+        externalKey: schema.normalizeExternalKey(evt.externalKey, {
+          schoolId: school.id,
+          source: schema.SOURCE_SEED,
+          sourceId: evt.id
+        }),
+        source: schema.SOURCE_SEED,
+        sourceId: evt.id,
+        schemaVersion: schema.SCHEMA_VERSION,
+        syncOwner: schema.SOURCE_SEED,
+        manualOverride: evt.manualOverride === true,
+        scoresVerified: evt.scoresVerified === true,
+        statsVerified: evt.statsVerified === true
       });
     });
+
+    console.log(`  Events: ${plan.summary.created} created, ${plan.summary.updated} updated, ${plan.summary.unchanged} unchanged, ${plan.summary.skipped} locked by an admin.`);
   }
 
   console.log(`\nTotal Firestore writes prepared: ${writes.length}`);
-  console.log('Sending batch commits to Firestore in chunks of 350 writes...');
+  console.log(`Events: ${totals.created} created, ${totals.updated} updated, ${totals.unchanged} unchanged, ${totals.skipped} locked, ${totals.referenceKept} reference records kept as-is.`);
 
-  const chunkSize = 350;
-  for (let i = 0; i < writes.length; i += chunkSize) {
-    const chunk = writes.slice(i, i + chunkSize);
-    process.stdout.write(`  Committing writes ${i + 1} to ${Math.min(i + chunkSize, writes.length)}... `);
-    await sendBatchCommit(token, chunk);
-    console.log('Done.');
+  if (flags.localOnly) {
+    console.log('\n--local-only: skipping all Firestore writes.');
+  } else if (!flags.apply) {
+    console.log('\nDRY RUN: no Firestore writes were sent. Re-run with --apply to write.');
+  } else if (client) {
+    console.log('Sending batch commits to Firestore in chunks of 350 writes...');
+    const chunkSize = 350;
+    for (let i = 0; i < writes.length; i += chunkSize) {
+      const chunk = writes.slice(i, i + chunkSize);
+      process.stdout.write(`  Committing writes ${i + 1} to ${Math.min(i + chunkSize, writes.length)}... `);
+      await client.commit(chunk);
+      console.log('Done.');
+    }
+    console.log('\nAll schools seeded to Firestore successfully!');
   }
-
-  console.log('\nAll schools seeded to Firestore successfully!');
 
   // Also update data/events.json so local fallback has all schools
   const eventsJsonPath = path.resolve(__dirname, '../data/events.json');
@@ -996,7 +1133,20 @@ async function main() {
   console.log(`Updated data/events.json with ${allEventsForJson.length} multi-school events.`);
 }
 
-main().catch(err => {
-  console.error('\nSeeder Error:', err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(err => {
+    console.error('\nSeeder Error:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  SCHOOLS,
+  SEASON,
+  generateEventsForSchool,
+  planEventWrites,
+  deterministicScore,
+  clampDay,
+  applySeason
+};
+

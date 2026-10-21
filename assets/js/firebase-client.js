@@ -2,6 +2,8 @@ const GameDayFirebase = (() => {
   const config = window.GAMEDAY_FIREBASE_CONFIG || {};
   const configured = Boolean(config.apiKey && config.projectId && window.firebase);
   const utils = window.GameDayUtils || {};
+  const schema = window.GameDayEventSchema || {};
+  const schemaReady = typeof schema.mergeEvent === 'function' && typeof schema.normalizeExternalKey === 'function';
   const requestedSchool = new URLSearchParams(window.location.search).get('school');
   const schoolId = (typeof utils.normalizeSchoolId === 'function'
     ? utils.normalizeSchoolId(requestedSchool, 'sugar-salem')
@@ -70,6 +72,10 @@ const GameDayFirebase = (() => {
 
   function collection(name) {
     return db.collection('schools').doc(schoolId).collection(name);
+  }
+
+  function collectionFor(targetSchoolId, name) {
+    return db.collection('schools').doc(targetSchoolId || schoolId).collection(name);
   }
 
   function normalizeEvent(id, data = {}) {
@@ -177,14 +183,60 @@ const GameDayFirebase = (() => {
 
   async function saveEvent(id, eventData) {
     if (!configured) throw new Error('Firebase is not configured.');
+    if (!schemaReady) throw new Error('GameDay+ event schema is not loaded.');
+
     const docRef = id ? collection('events').doc(id) : collection('events').doc();
     const docId = docRef.id;
-    const normalized = normalizeEvent(docId, { ...eventData, schoolId });
-    await docRef.set({
+    const snapshot = await docRef.get();
+    const existing = snapshot.exists ? (snapshot.data() || {}) : null;
+
+    // The admin form is authoritative for the fields it renders, but the stored
+    // document is the base for everything the form does not touch (stats,
+    // highlights, club, ...).
+    const values = eventData || {};
+    const mergedInput = { ...(existing || {}), ...values };
+    if (values.location !== undefined) mergedInput.venueName = values.location;
+    if (values.address !== undefined) mergedInput.venueAddress = values.address;
+    if (values.startTime !== undefined) mergedInput.time = values.startTime;
+
+    const normalized = normalizeEvent(docId, mergedInput);
+    const hasScore = normalized.ourScore !== null && normalized.ourScore !== undefined;
+    const hasStats = normalized.stats !== null && normalized.stats !== undefined;
+
+    const externalKey = (existing && existing.externalKey)
+      ? existing.externalKey
+      : schema.normalizeExternalKey(null, {
+        schoolId,
+        source: schema.SOURCE_LOCAL,
+        sourceId: docId
+      });
+
+    const payload = {
       ...normalized,
+      externalKey,
+      source: (existing && existing.source) || schema.SOURCE_LOCAL,
+      sourceId: (existing && existing.sourceId) || docId,
+      schemaVersion: schema.SCHEMA_VERSION,
+      manualOverride: true,
+      scoresVerified: hasScore ? true : Boolean(existing && existing.scoresVerified),
+      statsVerified: hasStats ? true : Boolean(existing && existing.statsVerified)
+    };
+
+    const merge = schema.mergeEvent(existing, payload, { source: schema.SOURCE_ADMIN });
+    const data = {
+      ...schema.stripUndefined(merge.data),
+      externalKey,
+      source: payload.source,
+      sourceId: payload.sourceId,
+      schemaVersion: schema.SCHEMA_VERSION,
+      manualOverride: payload.manualOverride,
+      scoresVerified: payload.scoresVerified,
+      statsVerified: payload.statsVerified,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
-    return normalized;
+    };
+
+    await docRef.set(data, { merge: true });
+    return normalizeEvent(docId, data);
   }
 
   async function deleteEvent(id) {
@@ -193,39 +245,121 @@ const GameDayFirebase = (() => {
     await collection('events').doc(id).delete();
   }
 
+  function buildSeedPayload(item, docId, targetSchoolId) {
+    const data = normalizeEvent(docId, { ...item, schoolId: item.schoolId || targetSchoolId });
+    const externalKey = schema.normalizeExternalKey(item.externalKey, {
+      schoolId: item.schoolId || targetSchoolId,
+      source: schema.SOURCE_LOCAL,
+      sourceId: item.id || docId
+    });
+
+    return {
+      ...data,
+      externalKey,
+      source: schema.SOURCE_LOCAL,
+      sourceId: item.id || docId,
+      schemaVersion: schema.SCHEMA_VERSION,
+      syncOwner: schema.SOURCE_SEED,
+      manualOverride: item.manualOverride === true,
+      scoresVerified: item.scoresVerified === true,
+      statsVerified: item.statsVerified === true
+    };
+  }
+
+  /**
+   * Uploads the local schedule to Firestore without destroying anything that is
+   * already there: events are matched by canonical externalKey (or by their
+   * existing id for legacy documents), unchanged events are skipped, and
+   * admin-owned scores/stats are never overwritten by the seed.
+   */
   async function seedEventsToFirestore(eventsList) {
     if (!configured) throw new Error('Firebase is not configured.');
+    if (!schemaReady) throw new Error('GameDay+ event schema is not loaded.');
     const items = eventsList && eventsList.length ? eventsList : await loadLocalEvents();
     if (!items.length) throw new Error('No events found to upload.');
 
+    const groups = new Map();
+    items.forEach(item => {
+      const target = item.schoolId || schoolId;
+      if (!groups.has(target)) groups.set(target, []);
+      groups.get(target).push(item);
+    });
+
     const batchLimit = 400;
     let batch = db.batch();
-    let currentBatchSize = 0;
+    let batchSize = 0;
     let totalSaved = 0;
+    let totalUnchanged = 0;
+    let totalSkipped = 0;
 
-    for (const item of items) {
-      const docId = String(item.id || `evt-${Date.now()}-${totalSaved}`);
-      const ref = collection('events').doc(docId);
-      const data = normalizeEvent(docId, item);
-      batch.set(ref, {
-        ...data,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }, { merge: true });
-      currentBatchSize++;
-      totalSaved++;
+    for (const [target, group] of groups.entries()) {
+      const targetCollection = collectionFor(target, 'events');
+      const snapshot = await targetCollection.get();
+      const entries = snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() || {} }));
+      const byExternalKey = new Map();
+      const byId = new Map();
+      const byContent = new Map();
 
-      if (currentBatchSize >= batchLimit) {
-        await batch.commit();
-        batch = db.batch();
-        currentBatchSize = 0;
+      entries.forEach(entry => {
+        const data = entry.data;
+        if (data.externalKey) byExternalKey.set(data.externalKey, entry);
+        byId.set(entry.id, entry);
+        if (data.id) byId.set(data.id, entry);
+        byContent.set(schema.contentKey(data), entry);
+      });
+
+      for (const item of group) {
+        const sourceId = item.id ? String(item.id) : `evt-${Date.now()}-${totalSaved}`;
+        const docId = item.id
+          ? String(item.id)
+          : schema.docIdForExternalKey(schema.buildExternalKey(target, schema.SOURCE_LOCAL, sourceId));
+        const payload = buildSeedPayload(item, docId, target);
+        const existing = byExternalKey.get(payload.externalKey)
+          || byId.get(docId)
+          || byId.get(sourceId)
+          || byContent.get(schema.contentKey(payload))
+          || null;
+
+        let writeData = null;
+        if (existing) {
+          const merge = schema.mergeEvent(existing.data, payload, { source: schema.SOURCE_SEED });
+          if (merge.skipped) {
+            totalSkipped += 1;
+            continue;
+          }
+          if (!merge.changed) {
+            totalUnchanged += 1;
+            continue;
+          }
+          writeData = {
+            ...schema.stripUndefined(merge.data),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+        } else {
+          writeData = {
+            ...schema.stripUndefined(payload),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          };
+        }
+
+        batch.set(existing ? existing.ref || collectionFor(target, 'events').doc(existing.id) : targetCollection.doc(docId), writeData, { merge: true });
+        batchSize += 1;
+        totalSaved += 1;
+
+        if (batchSize >= batchLimit) {
+          await batch.commit();
+          batch = db.batch();
+          batchSize = 0;
+        }
       }
     }
 
-    if (currentBatchSize > 0) {
+    if (batchSize > 0) {
       await batch.commit();
     }
 
-    return totalSaved;
+    return { saved: totalSaved, unchanged: totalUnchanged, skipped: totalSkipped };
   }
 
   function isConfigured() { return configured; }
