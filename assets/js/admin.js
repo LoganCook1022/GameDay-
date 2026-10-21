@@ -111,7 +111,6 @@ const AdminApp = (() => {
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const backToRegularSignIn = document.getElementById('backToRegularSignIn');
     const publicAppLink = document.getElementById('publicAppLink');
     if (publicAppLink) {
       publicAppLink.addEventListener('click', (e) => {
