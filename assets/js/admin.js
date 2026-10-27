@@ -2,6 +2,7 @@ const AdminApp = (() => {
   const firebaseClient = window.GameDayFirebase;
   const content = document.getElementById('adminContent');
   let collections = {};
+window.canEdit = false;
 
   const STORAGE_KEY = 'gameday_saved_credentials';
   const LEGACY_EMAIL_KEY = 'gameday_remember_email';
@@ -366,6 +367,8 @@ async function authorizeAndRender(user) {
     }
 
     const isAdmin = await firebaseClient.isAdminUser(user);
+    const tokenResult = await user.getIdTokenResult();
+    window.canEdit = tokenResult.claims.admin === true || (user.email && user.email.toLowerCase() === 'cook.logan@sugarsalem.com');
     if (!isAdmin) {
       document.getElementById('deniedAccountEmail').textContent = user.email || 'Unknown account';
       const school = firebaseClient.schoolId;
@@ -483,7 +486,7 @@ async function authorizeAndRender(user) {
           <h2 style="margin:0;">Events &amp; Games (${events.length})</h2>
           <p class="muted" style="margin:4px 0 0;font-size:0.85rem;">Live Firestore collection for school: <strong>${firebaseClient.schoolId}</strong></p>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;">
+        ${window.canEdit ? '<div style="display:flex;gap:10px;align-items:center;">' : ''}
           <button class="secondary" id="syncEventsBtn" title="Sync / Upload built-in schedule into Firestore">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
             Sync to Firestore
@@ -541,6 +544,25 @@ async function authorizeAndRender(user) {
   }
 
   function resourceRow(id, title, detail) { return `<div class="resource-row"><div><strong>${escapeHtml(title)}</strong><div class="muted">${escapeHtml(detail)}</div></div><div class="resource-actions"><button class="secondary" data-edit="${id}">Edit</button><button class="danger" data-delete="${id}">Delete</button></div></div>`; }
+
+function eventRow(event) {
+  const title = event.eventName || (event.sport ? `${event.sport} vs ${event.opponent || 'Opponent'}` : event.opponent);
+  const detail = `${event.sport || 'Event'} · ${event.date || 'No date'} ${event.time ? 'at ' + event.time : ''} · ${event.locationType || 'Home'} · ${event.status || 'Scheduled'}`;
+  const adminMenu = (window.isAdminUser) ? `
+    <div class="resource-actions">
+      <button class="secondary ellipsis-btn" data-event-id="${event.id}">⋮</button>
+    </div>
+    <div class="event-menu hidden" id="menu-${event.id}">
+      <button class="primary add-event-btn" data-event-id="${event.id}">Add event</button>
+    </div>` : '';
+  return `<div class="resource-row">
+    <div>
+      <strong>${escapeHtml(title)}</strong>
+      <div class="muted">${escapeHtml(detail)}</div>
+    </div>
+    ${adminMenu}
+  </div>`;
+}
 
   function renderEventForm(id = '') {
     const existing = (collections.events || []).find(event => event.id === id) || {};

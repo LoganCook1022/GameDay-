@@ -3,115 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>GameDay+ Admin</title>
-  <link rel="stylesheet" href="assets/css/admin.css">
+  <title>GameDay+ Sign In</title>
+  <link rel="stylesheet" href="assets/css/auth.css">
 </head>
 <body>
-  <main class="admin-shell">
-    <section id="loginView" class="panel auth-panel">
-      <p class="eyebrow">GameDay+</p><h1>Administrator sign in</h1>
+  <main class="auth-shell">
+    <section class="panel auth-panel">
+      <p class="eyebrow">GameDay+</p>
+      <h1>Sign in</h1>
       <p class="muted">Manage the public schedule for your school.</p>
       <form id="loginForm">
         <label>Email
-          <input id="emailInput" name="email" type="email" required autocomplete="username" list="adminSavedEmailsList">
-          <datalist id="adminSavedEmailsList"></datalist>
+          <input id="emailInput" name="email" type="email" required autocomplete="username" />
         </label>
         <label>Password
-          <div style="position:relative;display:flex;align-items:center;">
-            <input id="passwordInput" name="password" type="password" required autocomplete="current-password" style="padding-right:42px;">
-            <button type="button" id="adminTogglePasswordBtn" style="position:absolute;right:8px;background:none;border:none;cursor:pointer;color:#68768a;padding:4px;display:flex;align-items:center;" aria-label="Show password" title="Show/Hide Password">
-              <svg id="adminTogglePasswordSvg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-            </button>
-          </div>
+          <input id="passwordInput" name="password" type="password" required autocomplete="current-password" />
         </label>
-        <div style="display:flex;align-items:center;gap:8px;margin:-8px 0 16px;">
-          <input type="checkbox" id="adminRememberMe" style="width:16px;height:16px;accent-color:#1769aa;margin:0;cursor:pointer;" checked>
-          <label for="adminRememberMe" style="margin:0;font-size:0.85rem;font-weight:600;cursor:pointer;">Remember email and password</label>
-        </div>
         <button class="primary" type="submit">Sign in</button>
         <p id="loginError" class="error" role="alert"></p>
       </form>
       <div class="auth-divider"><span>or continue with</span></div>
-      <button id="googleSignInBtn" class="secondary google-btn" type="button">
-        <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        <span>Sign in with Google</span>
-      </button>
-      <button id="openRequestAccessBtn" class="secondary" type="button" style="margin-top:10px;width:100%;">Request Admin Access</button>
-      <button id="backToRegularSignIn" class="secondary back-to-signin" type="button">Back to regular sign in</button>
-    </section>
-
-    <!-- Request Admin Access View -->
-    <section id="requestAccessView" class="panel auth-panel" hidden>
-      <p class="eyebrow">GameDay+ Access</p>
-      <h1>Request Admin Access</h1>
-      <p class="muted">Requests are sent directly to Logan Cook (<strong>cook.logan@sugarsalem.com</strong>) with a 1-click button to approve your access.</p>
-      <form id="requestAccessForm">
-        <label>Your Email Address
-          <input id="reqEmailInput" name="email" type="email" required placeholder="you@sugarsalem.com">
-        </label>
-        <label>School
-          <select id="reqSchoolSelect" name="school">
-            <option value="sugar-salem">Sugar-Salem High School</option>
-            <option value="south-fremont">South Fremont High School</option>
-            <option value="teton">Teton High School</option>
-            <option value="snake-river">Snake River High School</option>
-            <option value="madison">Madison High School</option>
-            <option value="rigby">Rigby High School</option>
-          </select>
-        </label>
-        <label>Role / Position
-          <input id="reqRoleInput" name="role" type="text" placeholder="e.g. Athletic Director, Coach, Activity Advisor">
-        </label>
-        <button class="primary" type="submit">Send Request Email to Logan Cook</button>
-        <p id="requestStatus" class="muted" style="margin-top:12px;font-size:0.9rem;"></p>
-      </form>
-      <button id="cancelRequestBtn" class="secondary" type="button" style="margin-top:12px;width:100%;">Back to Sign in</button>
-    </section>
-
-    <!-- Access Denied View -->
-    <section id="accessDeniedView" class="panel auth-panel" hidden>
-      <p class="eyebrow">GameDay+ Admin</p>
-      <h1>Admin access not approved</h1>
-      <p class="muted">Signed in as <strong id="deniedAccountEmail"></strong>. This account is awaiting administrator approval.</p>
-      <p class="muted">Press the button below to email Logan Cook at <strong>cook.logan@sugarsalem.com</strong>. The email includes a 1-click button for Logan to approve your admin access.</p>
-      <div class="form-actions" style="flex-direction:column;gap:10px;">
-        <a id="requestAdminAccessBtn" class="primary" href="mailto:cook.logan@sugarsalem.com" style="text-align:center;text-decoration:none;display:block;">Email Logan Cook to Request Access</a>
-        <a id="deniedPublicAppLink" class="secondary" href="index.html" style="text-align:center;text-decoration:none;display:block;">Go to public app</a>
-      </div>
-      <button id="deniedSignOutBtn" class="secondary" type="button" style="margin-top:12px;width:100%;">Sign out</button>
-    </section>
-
-    <!-- Logan Cook One-Click Approval View -->
-    <section id="approvalView" class="panel auth-panel" hidden>
-      <p class="eyebrow">GameDay+ Authorization</p>
-      <h1>Approve Admin Access</h1>
-      <p class="muted">Administrator authorization review for <strong>cook.logan@sugarsalem.com</strong>.</p>
-      
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:18px 0;">
-        <div style="margin-bottom:8px;"><span class="muted" style="font-size:0.85rem;display:block;">Applicant Account</span><strong id="approvalAccountEmail" style="font-size:1.05rem;"></strong></div>
-        <div style="margin-bottom:8px;"><span class="muted" style="font-size:0.85rem;display:block;">School Assignment</span><strong id="approvalSchoolName"></strong></div>
-        <div><span class="muted" style="font-size:0.85rem;display:block;">Reviewer</span><span>Logan Cook (Super Admin)</span></div>
-      </div>
-
-      <div id="approvalActions">
-        <button id="confirmApproveBtn" class="primary" style="background:#16a34a;border-color:#16a34a;width:100%;">Approve Admin Access</button>
-        <button id="denyApproveBtn" class="secondary danger" style="margin-top:10px;width:100%;">Deny Request</button>
-      </div>
-
-      <div id="approvalSuccessBox" hidden style="margin-top:16px;text-align:center;">
-        <div style="background:#ecfdf5;border:1px solid #6ee7b7;color:#065f46;border-radius:8px;padding:14px;margin-bottom:14px;font-weight:600;">
-          Administrator access approved! The user can now sign in to manage school data.
-        </div>
-        <a id="sendApprovalNotificationBtn" class="primary" href="#" style="display:block;text-decoration:none;text-align:center;margin-bottom:8px;">Send Confirmation Email to Applicant</a>
-        <a href="admin.html" class="secondary" style="display:block;text-decoration:none;text-align:center;padding:11px 15px;border-radius:7px;">Go to Admin Dashboard</a>
-      </div>
-    </section>
-    <section id="dashboardView" hidden>
-      <header class="admin-header"><div><p class="eyebrow">GameDay+ Admin</p><h1>School operations</h1></div><div class="form-actions"><a id="publicAppLink" class="secondary" href="index.html">View Public App</a><button id="signOutBtn" class="secondary">Sign out</button></div></header>
-      <nav class="tabs" aria-label="Admin sections"><button class="tab active" data-section="overview">Dashboard</button><button class="tab" data-section="events">Events</button><button class="tab" data-section="sports">Sports</button><button class="tab" data-section="clubs">Clubs</button><button class="tab" data-section="teams">Teams</button><button class="tab" data-section="statistics">Statistics</button><button class="tab" data-section="settings">School Settings</button></nav>
-      <div id="adminContent" class="admin-content"></div>
+      <button id="googleSignInBtn" class="secondary google-btn" type="button">Sign in with Google</button>
     </section>
   </main>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script src="assets/js/firebase-config.js"></script><script src="assets/js/firebase-client.js"></script><script src="assets/js/admin.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="assets/js/firebase-config.js"></script>
+  <script src="assets/js/firebase-client.js"></script>
+  <script src="assets/js/admin.js"></script>
 </body>
 </html>
