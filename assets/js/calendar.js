@@ -111,11 +111,14 @@ const GameDayCalendar = (function() {
     const legendBtn = document.getElementById('legendToggleBtn');
     const legendEl = document.getElementById('calLegend');
     if (legendBtn && legendEl) {
+      legendBtn.setAttribute('aria-expanded', 'false');
+      legendBtn.setAttribute('aria-controls', 'calLegend');
       legendBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         const isVisible = legendEl.style.display !== 'none';
         legendEl.style.display = isVisible ? 'none' : 'flex';
         legendBtn.classList.toggle('active', !isVisible);
+        legendBtn.setAttribute('aria-expanded', String(!isVisible));
       });
     }
 

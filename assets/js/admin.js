@@ -2,6 +2,7 @@ const AdminApp = (() => {
   const firebaseClient = window.GameDayFirebase;
   const content = document.getElementById('adminContent');
   let collections = {};
+  let eventsExpanded = false;
 
   const credentials = window.GameDayCredentials;
   const utils = window.GameDayUtils || {};
@@ -327,6 +328,7 @@ GameDay+ System`;
     content.innerHTML = '<p class="muted">Loading...</p>';
     if (section === 'overview') return renderOverview();
     if (section === 'events') return renderEvents();
+    if (section === 'notifications') return renderNotifications();
     if (section === 'settings') return renderSettings();
     return renderResources(section);
   }
@@ -423,6 +425,7 @@ GameDay+ System`;
         </div>
       </div>
       <p id="eventFeedback" class="muted" style="margin:0 0 14px;"></p>
+      <div id="eventFormSlot"></div>
       ${!hasEvents ? `
         <div class="panel" style="padding:24px;border:1px dashed #cbd5e1;text-align:center;margin-top:10px;">
           <h3 style="margin-top:0;">No events currently stored in Firestore</h3>
@@ -430,15 +433,17 @@ GameDay+ System`;
           <button class="primary" id="emptySeedEventsBtn" style="width:auto;display:inline-block;padding:10px 24px;">Upload Schedule to Firestore</button>
         </div>
       ` : `
-        <div class="resource-list">
-          ${events.map(event => resourceRow(
+        <div class="resource-list" id="eventsResourceList">
+          ${events.slice(0, eventsExpanded ? events.length : 8).map(event => resourceRow(
             event.id,
             event.eventName || (event.sport ? `${event.sport} vs ${event.opponent || 'Opponent'}` : event.opponent),
             `${event.sport || 'Event'} · ${event.date || 'No date'} ${event.time ? 'at ' + event.time : ''} · ${event.locationType || 'Home'} · ${event.status || 'Scheduled'}`
           )).join('')}
         </div>
+        <button type="button" class="secondary list-expand-btn" id="eventsToggle" ${events.length <= 8 ? 'hidden' : ''} aria-expanded="${eventsExpanded}">
+          ${eventsExpanded ? 'Show fewer events' : `Show all ${events.length} events`}
+        </button>
       `}
-      <div id="eventFormSlot"></div>
     `;
 
     document.getElementById('newEventBtn').addEventListener('click', () => renderEventForm());
@@ -467,8 +472,27 @@ GameDay+ System`;
     const emptySeedBtn = document.getElementById('emptySeedEventsBtn');
     if (emptySeedBtn) emptySeedBtn.addEventListener('click', () => triggerSync(emptySeedBtn));
 
-    content.querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => renderEventForm(button.dataset.edit)));
-    content.querySelectorAll('[data-delete]').forEach(button => button.addEventListener('click', () => deleteDocument('events', button.dataset.delete, 'event')));
+    function bindEventActions() {
+      content.querySelectorAll('[data-edit]').forEach(button => button.addEventListener('click', () => renderEventForm(button.dataset.edit)));
+      content.querySelectorAll('[data-delete]').forEach(button => button.addEventListener('click', () => deleteDocument('events', button.dataset.delete, 'event')));
+    }
+
+    bindEventActions();
+    const eventsToggle = document.getElementById('eventsToggle');
+    if (eventsToggle) {
+      eventsToggle.addEventListener('click', () => {
+        eventsExpanded = !eventsExpanded;
+        const rows = document.getElementById('eventsResourceList');
+        rows.innerHTML = events.slice(0, eventsExpanded ? events.length : 8).map(event => resourceRow(
+          event.id,
+          event.eventName || (event.sport ? `${event.sport} vs ${event.opponent || 'Opponent'}` : event.opponent),
+          `${event.sport || 'Event'} · ${event.date || 'No date'} ${event.time ? 'at ' + event.time : ''} · ${event.locationType || 'Home'} · ${event.status || 'Scheduled'}`
+        )).join('');
+        eventsToggle.textContent = eventsExpanded ? 'Show fewer events' : `Show all ${events.length} events`;
+        eventsToggle.setAttribute('aria-expanded', String(eventsExpanded));
+        bindEventActions();
+      });
+    }
   }
 
   function resourceRow(id, title, detail) { return `<div class="resource-row"><div><strong>${escapeHtml(title)}</strong><div class="muted">${escapeHtml(detail)}</div></div><div class="resource-actions"><button class="secondary" data-edit="${id}">Edit</button><button class="danger" data-delete="${id}">Delete</button></div></div>`; }
@@ -495,6 +519,10 @@ GameDay+ System`;
           <label>Home / Our score<input name="homeScore" type="number" min="0" value="${escapeAttr(existing.homeScore ?? existing.ourScore ?? '')}"></label>
           <label>Away / Opponent score<input name="awayScore" type="number" min="0" value="${escapeAttr(existing.awayScore ?? existing.oppScore ?? '')}"></label>
           <label class="wide">Description<textarea name="description">${escapeHtml(existing.description || '')}</textarea></label>
+          <div class="wide" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button type="button" class="secondary" id="aiDescribeBtn"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate with AI</button>
+            <span id="aiDescribeHint" class="muted" style="font-size:0.85em"></span>
+          </div>
         </div>
         <div class="form-actions">
           <button class="primary" type="submit">Save event to Firestore</button>
@@ -508,6 +536,7 @@ GameDay+ System`;
     document.querySelector('[name=locationType]').value = existing.locationType || 'Home';
     if (existing.level) document.querySelector('[name=level]').value = existing.level;
     document.getElementById('cancelForm').addEventListener('click', () => document.getElementById('eventFormSlot').replaceChildren());
+    document.getElementById('aiDescribeBtn').addEventListener('click', () => generateEventDescription());
     document.getElementById('eventForm').addEventListener('submit', async event => {
       event.preventDefault();
       const values = Object.fromEntries(new FormData(event.target));
@@ -520,6 +549,36 @@ GameDay+ System`;
         document.getElementById('formError').textContent = error.message;
       }
     });
+  }
+
+  async function generateEventDescription() {
+    const btn = document.getElementById('aiDescribeBtn');
+    const hint = document.getElementById('aiDescribeHint');
+    const textarea = document.querySelector('#eventForm [name=description]');
+    if (!btn || !textarea) return;
+
+    const form = new FormData(document.getElementById('eventForm'));
+    const event = Object.fromEntries(form.entries());
+
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+    if (hint) hint.textContent = '';
+
+    const ai = window.GameDayAI;
+    const result = ai
+      ? await ai.generateDescription(event)
+      : { ok: false, reason: 'unreachable' };
+
+    btn.disabled = false;
+    btn.innerHTML = original;
+
+    if (result.ok) {
+      textarea.value = result.description;
+      if (hint) hint.textContent = 'AI draft added - review before saving.';
+    } else {
+      if (hint) hint.textContent = (ai && ai.friendlyError) ? ai.friendlyError(result) : 'AI service unavailable.';
+    }
   }
 
   async function renderResources(section) {
@@ -535,6 +594,94 @@ GameDay+ System`;
     document.getElementById('resourceFormSlot').innerHTML = `<form id="resourceForm" class="panel" style="padding:20px;margin-top:20px"><h3>${id ? 'Edit' : 'Add'} ${section.slice(0, -1)}</h3><label>Name<input name="name" required value="${escapeAttr(existing.name)}"></label><label><input name="enabled" type="checkbox" ${existing.enabled !== false ? 'checked' : ''}> Enabled</label><div class="form-actions"><button class="primary">Save</button><button type="button" class="secondary" id="cancelResource">Cancel</button></div></form>`;
     document.getElementById('cancelResource').addEventListener('click', () => document.getElementById('resourceFormSlot').replaceChildren());
     document.getElementById('resourceForm').addEventListener('submit', async event => { event.preventDefault(); const form = new FormData(event.target); await saveDocument(section, id, { name: form.get('name'), enabled: form.get('enabled') === 'on' }); await renderResources(section); });
+  }
+
+  async function renderNotifications() {
+    let queued = [];
+    try {
+      const snapshot = await firebaseClient.resources('notification_queue').get();
+      queued = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (err) {
+      console.warn('Could not load notification queue:', err);
+    }
+    const pending = queued.filter(n => n.status !== 'sent');
+    const sent = queued.filter(n => n.status === 'sent');
+
+    content.innerHTML = `
+      <h2>Game Alerts &amp; Push Notifications</h2>
+      <p class="muted" style="margin-top:4px;">Compose an alert for students. It is queued to Firestore and delivered by the
+        push sender. Run <code>node services/notify-watcher.js --school ${escapeHtml(firebaseClient.schoolId)}</code> once to auto-send
+        every alert you queue, or <code>node services/send-notifications.js --drain --school ${escapeHtml(firebaseClient.schoolId)}</code> for a one-time send.</p>
+
+      <form id="notifyForm" class="panel" style="padding:24px;margin-top:18px;">
+        <div class="form-grid">
+          <label class="wide">Title<input name="title" required maxlength="80" placeholder="e.g. Game moved"></label>
+          <label class="wide">Message<textarea name="body" required maxlength="240" placeholder="e.g. Varsity Football vs Teton moved to 6:00 PM"></textarea></label>
+          <label>Related event (optional)<input name="eventId" placeholder="e.g. sugar-salem-fb-002"></label>
+          <label>Link URL (optional)<input name="url" placeholder="defaults to the school schedule"></label>
+        </div>
+        <div class="form-actions">
+          <button class="primary" type="submit">Queue alert</button>
+        </div>
+        <p id="notifyFeedback" class="muted" style="margin:10px 0 0;"></p>
+      </form>
+
+      <div class="section-heading" style="margin:26px 0 12px;">
+        <h3 style="margin:0;">Queued alerts (${pending.length})</h3>
+      </div>
+      ${pending.length === 0 ? '<p class="muted">No alerts waiting. Queued alerts show here until they are sent.</p>' : `
+        <div class="resource-list">
+          ${pending.map(n => `<div class="resource-row"><div><strong>${escapeHtml(n.title || '')}</strong><div class="muted">${escapeHtml(n.body || '')}${n.eventId ? ' · ' + escapeHtml(n.eventId) : ''}</div></div><div class="resource-actions"><button class="danger" data-cancel-note="${escapeAttr(n.id)}">Cancel</button></div></div>`).join('')}
+        </div>
+      `}
+
+      <div class="section-heading" style="margin:26px 0 12px;">
+        <h3 style="margin:0;">Recently sent (${sent.length})</h3>
+      </div>
+      ${sent.length === 0 ? '<p class="muted">No alerts sent yet.</p>' : `
+        <div class="resource-list">
+          ${sent.slice(0, 20).map(n => `<div class="resource-row"><div><strong>${escapeHtml(n.title || '')}</strong><div class="muted">${escapeHtml(n.body || '')} · sent ${escapeHtml(n.sentAt && n.sentAt.seconds ? new Date(n.sentAt.seconds * 1000).toLocaleString() : '')} · ${n.sentCount || 0} device(s)</div></div></div>`).join('')}
+        </div>
+      `}
+    `;
+
+    document.getElementById('notifyForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = new FormData(event.target);
+      const feedback = document.getElementById('notifyFeedback');
+      const title = (form.get('title') || '').trim();
+      const body = (form.get('body') || '').trim();
+      if (!title || !body) return;
+      try {
+        const docRef = firebaseClient.resources('notification_queue').doc();
+        await docRef.set({
+          title,
+          body,
+          eventId: (form.get('eventId') || '').trim(),
+          url: (form.get('url') || '').trim(),
+          schoolId: firebaseClient.schoolId,
+          status: 'pending',
+          createdBy: (firebaseClient.auth().currentUser || {}).email || '',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        feedback.textContent = 'Alert queued. Run the sender to deliver it.';
+        await renderNotifications();
+      } catch (err) {
+        feedback.textContent = `Could not queue alert: ${err.message}`;
+      }
+    });
+
+    content.querySelectorAll('[data-cancel-note]').forEach(button => {
+      button.addEventListener('click', async () => {
+        if (!confirm('Cancel this queued alert?')) return;
+        try {
+          await firebaseClient.resources('notification_queue').doc(button.dataset.cancelNote).delete();
+          await renderNotifications();
+        } catch (err) {
+          alert(`Could not cancel alert: ${err.message}`);
+        }
+      });
+    });
   }
 
   async function renderSettings() {

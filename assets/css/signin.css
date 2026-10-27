@@ -138,7 +138,7 @@ input {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .signin-brand .brand-badge {
@@ -203,6 +203,13 @@ input {
 .signin-form {
   display: grid;
   gap: 14px;
+}
+
+.signin-heading {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .signin-field {
@@ -438,23 +445,22 @@ input {
   align-items: center;
   justify-content: center;
   gap: 9px;
-  min-height: 44px;
-  margin-top: 12px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background: var(--bg-input);
-  color: var(--text-main);
-  font-size: 0.88rem;
-  font-weight: 700;
+  min-height: 36px;
+  margin: 12px auto 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
   font-family: inherit;
   cursor: pointer;
   text-decoration: none;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .admin-entry-btn:hover {
-  background: var(--bg-card);
-  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .btn-google svg {

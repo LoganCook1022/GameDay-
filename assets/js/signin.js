@@ -87,12 +87,12 @@
     if (!savedAccountsBar || !savedAccountsList) return;
     const accountKeys = Object.keys(store.accounts || {});
     if (accountKeys.length === 0) {
-      savedAccountsBar.hidden = true;
+      savedAccountsBar.style.display = 'none';
       savedAccountsList.innerHTML = '';
       return;
     }
 
-    savedAccountsBar.hidden = false;
+    savedAccountsBar.style.display = 'flex';
     savedAccountsList.innerHTML = '';
     const currentKey = emailInput.value.trim().toLowerCase();
 

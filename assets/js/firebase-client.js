@@ -78,6 +78,12 @@ const GameDayFirebase = (() => {
     return db.collection('schools').doc(targetSchoolId || schoolId).collection(name);
   }
 
+  function parseCoordinate(value, fallback, min, max) {
+    if (value === null || value === undefined || value === '') return fallback;
+    const coordinate = Number(value);
+    return Number.isFinite(coordinate) && coordinate >= min && coordinate <= max ? coordinate : fallback;
+  }
+
   function normalizeEvent(id, data = {}) {
     const targetSchoolId = data.schoolId || schoolId;
     const meta = SCHOOL_META[targetSchoolId] || SCHOOL_META['sugar-salem'];
@@ -112,8 +118,8 @@ const GameDayFirebase = (() => {
       location: venueName,
       venueAddress,
       address: venueAddress,
-      lat: typeof data.lat === 'number' ? data.lat : (data.lat ? Number(data.lat) : meta.lat),
-      lng: typeof data.lng === 'number' ? data.lng : (data.lng ? Number(data.lng) : meta.lng),
+      lat: parseCoordinate(data.lat, locationType === 'Home' ? meta.lat : null, -90, 90),
+      lng: parseCoordinate(data.lng, locationType === 'Home' ? meta.lng : null, -180, 180),
       parkingInfo: data.parkingInfo || 'Standard spectator parking available.',
       ticketUrl: data.ticketUrl || meta.ticketUrl,
       description: data.description || '',
@@ -363,6 +369,7 @@ const GameDayFirebase = (() => {
   }
 
   function isConfigured() { return configured; }
+  function getSchoolMeta() { return { ...(SCHOOL_META[schoolId] || SCHOOL_META['sugar-salem']) }; }
   function auth() { return firebase.auth(); }
   function signInWithEmail(email, password) {
     return firebase.auth().signInWithEmailAndPassword(email, password);
@@ -556,6 +563,7 @@ const GameDayFirebase = (() => {
 
   return {
     schoolId,
+    getSchoolMeta,
     isConfigured,
     auth,
     signInWithEmail,

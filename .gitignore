@@ -19,6 +19,12 @@ out/
 .env.test.local
 .env.production.local
 
+# Firebase service account keys (can write to the whole project)
+*firebase-adminsdk*.json
+serviceAccount*.json
+service-account*.json
+*-service-account.json
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

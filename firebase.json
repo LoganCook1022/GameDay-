@@ -9,7 +9,11 @@
       "firestore.rules",
       "**/.*",
       "**/node_modules/**",
-      "services/**"
+      "services/**",
+      "tests/**",
+      "build-docx.js",
+      "DELIVERABLE-WEEK*.docx",
+      "DELIVERABLE-WEEK*.md"
     ],
     "cleanUrls": true
   },

@@ -177,3 +177,36 @@ test('unknown/denied top-level paths fail closed', { skip }, async () => {
   const db = contextFor('super-2@sugarsalem.com', { admin: true }).firestore();
   await testing.assertFails(fs.getDoc(fs.doc(db, 'randomTopLevel/xyz')));
 });
+
+const SUB_TOKEN = 'fcm-token-abcdefghijklmnopqrstuvwxyz-123';
+
+test('anonymous can create a push subscriber for the school in the path', { skip }, async () => {
+  const db = testEnv.unauthenticatedContext().firestore();
+  await testing.assertSucceeds(fs.setDoc(
+    fs.doc(db, `schools/sugar-salem/subscribers/${SUB_TOKEN}`),
+    { token: SUB_TOKEN, schoolId: 'sugar-salem', active: true }
+  ));
+});
+
+test('a subscriber document cannot be created for a different school', { skip }, async () => {
+  const db = testEnv.unauthenticatedContext().firestore();
+  await testing.assertFails(fs.setDoc(
+    fs.doc(db, 'schools/teton/subscribers/another-token-abcdefghijklmnopqrstuvwxyz'),
+    { token: 'another-token-abcdefghijklmnopqrstuvwxyz', schoolId: 'sugar-salem', active: true }
+  ));
+});
+
+test('anonymous cannot read the subscriber roster', { skip }, async () => {
+  await testEnv.withSecurityRulesDisabled(async ctx => {
+    const db = ctx.firestore();
+    await fs.setDoc(fs.doc(db, `schools/sugar-salem/subscribers/${SUB_TOKEN}`), { token: SUB_TOKEN, schoolId: 'sugar-salem', active: true });
+  });
+  const db = testEnv.unauthenticatedContext().firestore();
+  await testing.assertFails(fs.getDoc(fs.doc(db, `schools/sugar-salem/subscribers/${SUB_TOKEN}`)));
+  await testing.assertFails(fs.getDocs(fs.collection(db, 'schools/sugar-salem/subscribers')));
+});
+
+test('a school admin can read the subscriber roster', { skip }, async () => {
+  const db = contextFor('school-admin@sugarsalem.com', { schools: ['sugar-salem'] }).firestore();
+  await testing.assertSucceeds(fs.getDocs(fs.collection(db, 'schools/sugar-salem/subscribers')));
+});

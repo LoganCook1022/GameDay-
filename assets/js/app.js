@@ -48,6 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupModals();
   setupDelegatedHandlers();
   initAuthButton();
+  initPushButton();
   startCountdownTimer();
 
   // --- School Picker ---
@@ -72,7 +73,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (closeButton) {
         closeButton.hidden = !state.schoolId;
       }
-      setTimeout(() => searchInput.focus(), 50);
     }
 
     function closePicker() {
@@ -104,14 +104,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }
 
-    if (schoolNameTag) {
-      schoolNameTag.style.cursor = 'pointer';
-      schoolNameTag.title = 'Click to change school';
-      schoolNameTag.addEventListener('click', () => {
-        openPicker();
-      });
-    }
-
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !overlay.hidden && state.schoolId) {
         closePicker();
@@ -130,14 +122,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderSchoolList(list, schools) {
-      list.innerHTML = schools.map(school => GameDayRender.schoolListItem(school)).join('');
+      // Avoid duplicates - deduplicate by school id
+      const uniqueSchools = [];
+      const seenIds = new Set();
+      schools.forEach(school => {
+        if (school && school.id && !seenIds.has(school.id)) {
+          seenIds.add(school.id);
+          uniqueSchools.push(school);
+        }
+      });
+      list.innerHTML = uniqueSchools.map(school => GameDayRender.schoolListItem(school)).join('');
     }
 
     function renderLists(query = '') {
       const normalizedQuery = query.toLowerCase().trim();
       const matches = school => `${school.name} ${school.mascot}`.toLowerCase().includes(normalizedQuery);
       const recentSchools = getRecentSchools().filter(matches);
-      const allSchools = schoolsByName.filter(matches);
+      const recentIds = new Set(recentSchools.map(school => school.id));
+      const allSchools = schoolsByName.filter(school => matches(school) && !recentIds.has(school.id));
 
       recentSchoolsSection.hidden = recentSchools.length === 0;
       renderSchoolList(recentSchoolsList, recentSchools);
@@ -165,21 +167,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updateSchoolNameTag(school) {
     const schoolNameTag = document.getElementById('schoolNameTag');
     const schoolSubtitle = document.querySelector('.brand-subtitle');
-    const schoolPickerButton = document.getElementById('backToSchoolPickerBtn');
     if (!school) {
       document.documentElement.removeAttribute('data-school');
       if (schoolNameTag) schoolNameTag.textContent = 'Select School';
       if (schoolSubtitle) schoolSubtitle.textContent = 'High School Athletics & Events Hub';
-      if (schoolPickerButton) schoolPickerButton.hidden = true;
       return;
     }
     document.documentElement.setAttribute('data-school', school.id);
-    if (schoolNameTag) schoolNameTag.textContent = `${school.name.replace(' High School', '')} ${school.mascot}`;
-    if (schoolSubtitle) schoolSubtitle.textContent = `${school.name} Athletics & Events Hub`;
-    if (schoolPickerButton) {
-      schoolPickerButton.hidden = false;
-      schoolPickerButton.innerHTML = `<i class="fa-solid fa-school"></i><span class="btn-text">${GameDayUtils.escapeHtml(school.name.replace(' High School', ''))}</span><i class="fa-solid fa-chevron-down school-picker-chevron"></i>`;
+    if (schoolNameTag) {
+      schoolNameTag.textContent = `${school.name.replace(' High School', '')} ${school.mascot}`;
     }
+    if (schoolSubtitle) schoolSubtitle.textContent = `${school.name} Athletics & Events Hub`;
+    const schoolPickerButton = document.getElementById('backToSchoolPickerBtn');
+    if (schoolPickerButton) schoolPickerButton.hidden = false;
   }
 
   function getCurrentSchoolName() {
@@ -189,7 +189,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Theme Management ---
   function initThemes() {
-    const savedTheme = localStorage.getItem('gameday_theme') || 'spirit';
+    const savedTheme = ['spirit', 'dark', 'light'].includes(localStorage.getItem('gameday_theme'))
+      ? localStorage.getItem('gameday_theme')
+      : 'spirit';
     setTheme(savedTheme);
 
     // Initialize More Menu (3-dots)
@@ -214,7 +216,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const chosenTheme = option.dataset.theme;
         setTheme(chosenTheme);
         if (moreMenu) moreMenu.classList.remove('open');
-        showToast(`Switched to ${option.textContent.trim()} mode!`, 'info');
+        showToast(`Switched to ${option.textContent.trim()}.`, 'info');
       });
     });
   }
@@ -223,6 +225,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     state.currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('gameday_theme', theme);
+    document.querySelectorAll('.theme-option').forEach(opt => {
+      const selected = opt.dataset.theme === theme;
+      opt.classList.toggle('active', selected);
+      opt.setAttribute('aria-pressed', String(selected));
+    });
   }
 
   // --- Account Sign In / Sign Out ---
@@ -233,25 +240,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     const schoolQS = state.schoolId ? `?school=${encodeURIComponent(state.schoolId)}` : '';
 
     function renderSignedOut() {
-      signInBtn.title = 'Sign in';
-      signInBtn.setAttribute('aria-label', 'Sign in');
-      signInBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span class="btn-text">Sign In</span>';
+      signInBtn.title = 'Account';
+      signInBtn.setAttribute('aria-label', 'Account');
+      signInBtn.innerHTML = '<i class="fa-solid fa-user"></i><span class="btn-text">Account</span>';
     }
 
     function renderSignedIn(user) {
-      const name = (user.displayName || user.email || 'Signed In').split(' ')[0];
-      signInBtn.title = 'Sign out';
-      signInBtn.setAttribute('aria-label', 'Sign out');
-      signInBtn.innerHTML = '<i class="fa-solid fa-user-check"></i><span class="btn-text">Sign Out</span><span class="sign-in-name">' + GameDayUtils.escapeHtml(name) + '</span>';
+      const name = (user.displayName || user.email || 'Account').split(' ')[0];
+      signInBtn.title = 'Account';
+      signInBtn.setAttribute('aria-label', 'Account');
+      signInBtn.innerHTML = '<i class="fa-solid fa-user"></i><span class="btn-text">Account</span><span class="sign-in-name">' + GameDayUtils.escapeHtml(name) + '</span>';
     }
 
     signInBtn.addEventListener('click', () => {
-      const user = GameDayFirebase.auth().currentUser;
-      if (user) {
-        GameDayFirebase.signOut();
-      } else {
-        window.location.href = `signin.html${schoolQS}`;
-      }
+      window.location.href = `signin.html${schoolQS}`;
     });
 
     GameDayFirebase.onAuthStateChanged(user => {
@@ -263,6 +265,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // --- Push Notifications (Firebase Cloud Messaging) ---
+  function initPushButton() {
+    const pushBtn = document.getElementById('pushToggleBtn');
+    if (!pushBtn || !window.GameDayNotifications) return;
+
+    if (typeof GameDayNotifications.init === 'function') {
+      GameDayNotifications.init();
+    }
+
+    if (!GameDayNotifications.messagingSupported() || !GameDayNotifications.isConfigured()) {
+      pushBtn.hidden = true;
+      return;
+    }
+
+    function renderState() {
+      const on = GameDayNotifications.hasOptedIn();
+      const denied = GameDayNotifications.permissionState() === 'denied';
+      const label = GameDayNotifications.statusLabel();
+      pushBtn.title = label;
+      pushBtn.setAttribute('aria-label', label);
+      const icon = on ? 'fa-solid fa-bell' : (denied ? 'fa-solid fa-bell-slash' : 'fa-regular fa-bell');
+      pushBtn.innerHTML = `<i class="${icon}"></i>`;
+      pushBtn.classList.toggle('active', on);
+    }
+
+    pushBtn.addEventListener('click', async () => {
+      if (GameDayNotifications.permissionState() === 'denied') {
+        showToast('Notifications are blocked in your browser settings.', 'info');
+        return;
+      }
+      const wasOn = GameDayNotifications.hasOptedIn();
+      const result = await GameDayNotifications.toggle();
+      renderState();
+      if (result.ok && !wasOn) {
+        showToast('Game alerts on. You will be notified when games change.', 'success');
+      } else if (result.ok && wasOn) {
+        showToast('Game alerts turned off.', 'info');
+      } else if (result.reason === 'denied') {
+        showToast('Notification permission was not granted.', 'info');
+      } else if (!result.ok) {
+        showToast('Could not enable game alerts on this device.', 'info');
+      }
+    });
+
+    renderState();
+  }
+
   // --- Data Loading & Distribution ---
   async function loadAndDistributeData() {
     if (GameDayFirebase.isConfigured()) {
@@ -272,8 +321,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           document.title = `GameDay+ | ${settings.schoolName}`;
           document.querySelector('.brand-subtitle').textContent = `${settings.schoolName} Athletics & Events Hub`;
         }
-        if (settings.primaryColor) document.documentElement.style.setProperty('--primary', settings.primaryColor);
-        if (settings.accentColor) document.documentElement.style.setProperty('--accent', settings.accentColor);
+        if (settings.primaryColor) document.documentElement.style.setProperty('--school-primary-config', settings.primaryColor);
+        if (settings.accentColor) document.documentElement.style.setProperty('--school-accent-config', settings.accentColor);
       } catch (error) {
         console.warn('Could not load school settings.', error);
       }
@@ -295,8 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Update Status Indicator
     const dot = document.getElementById('sheetStatusDot');
     if (dot) {
-      dot.style.background = isLiveFirestore ? '#10b981' : (hasSchoolData ? '#3b82f6' : '#f59e0b');
-      dot.title = isLiveFirestore ? 'Connected to Firestore' : (hasSchoolData ? 'Using Built-in Schedule' : 'No school data available yet');
+      dot.style.display = 'none';
     }
 
     // Refresh all modules
@@ -332,8 +380,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         GameDayStats.updateEvents(state.events, schoolName);
         const dot = document.getElementById('sheetStatusDot');
         if (dot) {
-          dot.style.background = '#10b981';
-          dot.title = 'Connected to Firestore (Live)';
+          dot.style.display = 'none';
         }
         const timestampLabel = document.getElementById('lastUpdatedLabel');
         if (timestampLabel) {
@@ -372,12 +419,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const opponentLabel = nextGame.opponent.replace(/\s+(High School|HS)$/i, '');
     const sportIcon = getSportIcon(nextGame.sport);
 
+    const isNonSport = ['drama', 'theater', 'theatre', 'music', 'band', 'choir', 'orchestra', 'debate', 'forensics', 'speech', 'art', 'club'].includes((nextGame.sport || '').toLowerCase()) || (!nextGame.opponent && nextGame.eventName);
     heroMatchupEl.innerHTML = GameDayRender.heroMatchup({
       teamLabel,
       schoolName,
-      opponentLabel,
+      opponentLabel: isNonSport ? '' : opponentLabel,
       sportIcon,
-      isHome,
+      isHome: isNonSport ? false : isHome,
       schoolInitials: getSchoolInitials(schoolName),
       opponentInitials: getOpponentInitials(opponentLabel),
       friendlyDate: formatFriendlyDate(nextGame.date),
@@ -488,6 +536,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Sports Filter, Search & Time Windows ---
   function setupFiltersAndSearch() {
+    const feedEventsToggle = document.getElementById('feedEventsToggle');
+    if (feedEventsToggle) {
+      feedEventsToggle.addEventListener('click', () => {
+        const expanded = feedEventsToggle.getAttribute('aria-expanded') === 'true';
+        feedEventsToggle.setAttribute('aria-expanded', String(!expanded));
+        renderFeed();
+      });
+    }
+
     // Sports Filter Pills
     const filterBar = document.getElementById('sportsFilterBar');
     if (filterBar) {
@@ -580,6 +637,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const resetBtn = document.getElementById('resetFiltersBtn');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
+        if (feedEventsToggle) feedEventsToggle.setAttribute('aria-expanded', 'false');
         state.selectedSport = 'all';
         state.timeFilter = 'all';
         state.awayOnly = false;
@@ -603,6 +661,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('eventsGrid');
     const emptyState = document.getElementById('emptyState');
     const countBadge = document.getElementById('eventCountBadge');
+    const expandButton = document.getElementById('feedEventsToggle');
     if (!grid || !emptyState) return;
 
     const todayStr = getTodayISO();
@@ -634,6 +693,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (filtered.length === 0) {
       grid.innerHTML = '';
+      if (expandButton) expandButton.hidden = true;
       if (state.events.length === 0) {
         const emptyHeading = emptyState.querySelector('h3');
         const emptyMessage = emptyState.querySelector('p');
@@ -653,7 +713,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       return (a.date || '').localeCompare(b.date || '');
     });
 
-    grid.innerHTML = orderedEvents.map(evt => {
+    const expanded = expandButton && expandButton.getAttribute('aria-expanded') === 'true';
+    const visibleEvents = expanded ? orderedEvents : orderedEvents.slice(0, 6);
+    grid.innerHTML = visibleEvents.map(evt => {
       const isHome = evt.locationType === 'Home';
       const sport = evt.sport || '';
       const sportColor = getSportColor(sport.toLowerCase());
@@ -681,6 +743,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         venueName: evt.venueName
       });
     }).join('');
+    if (expandButton) {
+      expandButton.hidden = orderedEvents.length <= 6;
+      expandButton.textContent = expanded ? 'Show fewer events' : `Show all ${orderedEvents.length} events`;
+      expandButton.setAttribute('aria-expanded', String(Boolean(expanded)));
+    }
   }
 
   // Delegate interactions for dynamically-rendered cards (no inline handlers).
@@ -840,6 +907,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 3200);
   }
   window.showToast = showToast;
+  window.GameDayApp = window.GameDayApp || {};
+  window.GameDayApp.showToast = showToast;
 
   // --- Utility Functions ---
   function getTodayISO() {
@@ -889,6 +958,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getTeamLabel(event) {
+    if (!event) return '';
+    // Non-sport/club events should use their actual event or club name
+    if (event.eventName && !event.opponent) {
+      return event.eventName;
+    }
+    const sport = (event.sport || '').toLowerCase();
+    if (['drama', 'theater', 'theatre', 'music', 'band', 'choir', 'orchestra', 'debate', 'forensics', 'speech', 'art', 'club', 'clubs'].includes(sport)) {
+      if (event.eventName) return event.eventName;
+    }
+    if (!event.sport && event.eventName) {
+      return event.eventName;
+    }
     const level = (event.level || 'Varsity')
       .replace(/\b(Boys|Girls)\b/gi, '')
       .replace(/\s+/g, ' ')

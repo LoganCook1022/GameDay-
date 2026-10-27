@@ -31,16 +31,8 @@
           </div>
         </div>
 
-        <div class="auth-mode-toggle" id="authModeToggle">
-          <button type="button" class="auth-mode-btn active" data-mode="signin">Sign In</button>
-        </div>
-
         <form class="signin-form" id="authForm" novalidate>
-          <div class="saved-accounts-bar" id="savedAccountsBar" hidden>
-            <span class="saved-accounts-title"><i class="fa-solid fa-clock-rotate-left"></i> Saved accounts</span>
-            <div class="saved-accounts-list" id="savedAccountsList"></div>
-          </div>
-
+          <h2 class="signin-heading">Sign in to your account</h2>
           <label class="signin-field">
             Email
             <input type="email" id="emailInput" name="email" required autocomplete="username" list="savedEmailsList" placeholder="you@example.com">
@@ -82,7 +74,6 @@
           Admin Sign In
         </button>
 
-        <p class="signin-note">Viewing schedules never requires an account. Sign in only if your school has given you admin access &mdash; accounts are created by your school's organizer.</p>
       </div>
 
       <!-- Signed In View -->
@@ -100,7 +91,7 @@
       </div>
     </section>
 
-    <footer class="signin-footer">GameDay+ &bull; No login needed to view schedules</footer>
+    <footer class="signin-footer">Schedules are public. Sign in only if you have an administrator account.</footer>
   </main>
 
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>

@@ -7,6 +7,7 @@ const GameDayStats = (function() {
   let allEvents = [];
   let currentSport = 'football';
   let currentSchoolName = 'Sugar-Salem';
+  let boxScoresExpanded = false;
 
   const SPORT_STANDINGS_FALLBACK = {
     football: { record: '6 - 1', conference: '4 - 0', rank: '#2 in District 6 (4A)', ppg: '31.4', oppPpg: '14.2', streak: 'W4', diff: '+17.2' },
@@ -30,6 +31,15 @@ const GameDayStats = (function() {
         renderStats();
       });
     });
+
+    const boxScoresToggle = document.getElementById('boxScoresToggle');
+    if (boxScoresToggle) {
+      boxScoresToggle.addEventListener('click', () => {
+        boxScoresExpanded = !boxScoresExpanded;
+        boxScoresToggle.setAttribute('aria-expanded', String(boxScoresExpanded));
+        renderBoxScores();
+      });
+    }
   }
 
   function updateEvents(events, schoolName = 'Sugar-Salem') {
@@ -172,7 +182,7 @@ const GameDayStats = (function() {
           Ranking & Conference
         </div>
         <div class="stat-val" style="font-size: 1.5rem; padding-top: 0.35rem;">${displayRank}</div>
-        <div class="stat-subtext">Sugar-Salem High Diggers</div>
+        <div class="stat-subtext">${currentSchoolName} High School</div>
       </div>
       <div class="stat-metric-card">
         <div class="stat-label">
@@ -209,16 +219,26 @@ const GameDayStats = (function() {
     if (sportGames.length === 0) {
       if (emptyContainer) emptyContainer.style.display = 'flex';
       grid.style.display = 'none';
+      const boxScoresToggle = document.getElementById('boxScoresToggle');
+      if (boxScoresToggle) boxScoresToggle.hidden = true;
       return;
     }
 
     if (emptyContainer) emptyContainer.style.display = 'none';
     grid.style.display = 'grid';
 
-    grid.innerHTML = sportGames.map(game => {
+    const orderedGames = [...sportGames].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const visibleGames = boxScoresExpanded ? orderedGames : orderedGames.slice(0, 4);
+    grid.innerHTML = visibleGames.map(game => {
       const stats = game.stats || generateSportTailoredStats(game);
       return GameDayRender.boxScoreCard(game, stats, currentSchoolName);
     }).join('');
+    const boxScoresToggle = document.getElementById('boxScoresToggle');
+    if (boxScoresToggle) {
+      boxScoresToggle.hidden = orderedGames.length <= 4;
+      boxScoresToggle.textContent = boxScoresExpanded ? 'Show fewer games' : `Show all ${orderedGames.length} games`;
+      boxScoresToggle.setAttribute('aria-expanded', String(boxScoresExpanded));
+    }
   }
 
   function generateSportTailoredStats(game) {

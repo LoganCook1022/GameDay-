@@ -10,6 +10,11 @@
     "seed:firestore": "node services/seed-firestore.js",
     "seed:all": "node services/seed-all-schools.js",
     "set-admin": "node services/set-claims.js",
+    "notify": "node services/send-notifications.js",
+    "notify:drain": "node services/send-notifications.js --drain",
+    "notify:watch": "node services/notify-watcher.js",
+    "ai:describe": "node services/generate-description.js",
+    "ai:describe:openrouter": "node services/generate-description.js --provider openrouter",
     "test": "node --test \"tests/unit/**/*.test.js\"",
     "test:rules": "node --test \"tests/rules/**/*.test.js\""
   },

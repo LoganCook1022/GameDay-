@@ -37,7 +37,7 @@
 
       <div class="school-picker-search">
         <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-        <input type="search" id="schoolPickerSearch" placeholder="Search schools..." aria-label="Search schools">
+        <input type="search" id="schoolPickerSearch" placeholder="Search schools..." aria-label="Search schools" autocomplete="off">
       </div>
 
       <section class="recent-schools-section" id="recentSchoolsSection" hidden>
@@ -86,7 +86,7 @@
 
       <div class="header-actions">
         <button id="backToSchoolPickerBtn" class="action-btn" type="button" title="Change school" aria-label="Change school" hidden>
-          <i class="fa-solid fa-arrow-left"></i>
+          <i class="fa-solid fa-school"></i>
           <span class="btn-text">Change School</span>
         </button>
 
@@ -95,10 +95,15 @@
           <i class="fa-solid fa-magnifying-glass"></i>
         </button>
 
+        <!-- Game Alerts (push notifications) -->
+        <button id="pushToggleBtn" class="search-toggle-btn" title="Get game alerts" aria-label="Get game alerts">
+          <i class="fa-regular fa-bell"></i>
+        </button>
+
         <!-- Sign In / Sign Out Button -->
-        <button id="signInBtn" class="sign-in-btn" title="Sign in" aria-label="Sign in">
-          <i class="fa-solid fa-right-to-bracket"></i>
-          <span class="btn-text">Sign In</span>
+        <button id="signInBtn" class="sign-in-btn" title="Sign in" aria-label="Account">
+          <i class="fa-solid fa-user"></i>
+          <span class="btn-text">Account</span>
         </button>
 
         <!-- More Menu (3-dots) -->
@@ -107,13 +112,6 @@
             <i class="fa-solid fa-ellipsis-vertical"></i>
           </button>
           <div class="more-menu-dropdown" id="moreMenuDropdown">
-            <!-- Google Sheet Sync Status -->
-            <button id="btnOpenSheetModal" class="menu-item sheet-btn" title="Sync / Connect Google Sheet">
-              <i class="fa-solid fa-table-cells"></i>
-              <span>Sheet Sync</span>
-              <span class="live-dot" id="sheetStatusDot"></span>
-            </button>
-            <div class="menu-divider"></div>
             <!-- Theme Toggle -->
             <div class="theme-switcher-menu">
               <div class="theme-label">
@@ -242,19 +240,6 @@
         </div>
       </div>
 
-      <!-- Events Grid -->
-      <div class="events-grid" id="eventsGrid">
-        <!-- Event Cards will be dynamically inserted here -->
-      </div>
-
-      <!-- Empty State -->
-      <div class="empty-state" id="emptyState" style="display: none;">
-        <div class="empty-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
-        <h3>No Events Found</h3>
-        <p>Try adjusting your search query, sport category, or time filter.</p>
-        <button class="btn-primary" id="resetFiltersBtn"><i class="fa-solid fa-rotate-left"></i> Reset All Filters</button>
-      </div>
-
       <section class="quick-access" aria-labelledby="quickAccessTitle">
         <div class="section-heading-row">
           <div>
@@ -269,6 +254,18 @@
           <button class="quick-access-card" data-action="search"><i class="fa-solid fa-magnifying-glass"></i><span>Search</span><i class="fa-solid fa-chevron-right arrow"></i></button>
         </div>
       </section>
+
+      <div class="events-grid" id="eventsGrid">
+        <!-- Event Cards will be dynamically inserted here -->
+      </div>
+      <button type="button" class="list-expand-btn" id="feedEventsToggle" hidden aria-expanded="false">Show all events</button>
+
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+        <h3>No Events Found</h3>
+        <p>Try adjusting your search query, sport category, or time filter.</p>
+        <button class="btn-primary" id="resetFiltersBtn"><i class="fa-solid fa-rotate-left"></i> Reset All Filters</button>
+      </div>
     </section>
 
     <!-- TAB 2: INTERACTIVE CALENDAR VIEW -->
@@ -279,12 +276,12 @@
           <div class="calendar-card">
             <div class="calendar-header">
               <div class="calendar-title-group">
-                <h2 id="calMonthYearLabel">Month Year</h2>
                 <div class="cal-nav-buttons">
-                  <button id="calPrevBtn" class="cal-nav-btn" aria-label="Previous"><i class="fa-solid fa-chevron-left"></i></button>
-                  <button id="calTodayBtn" class="cal-today-btn">Today</button>
-                  <button id="calNextBtn" class="cal-nav-btn" aria-label="Next"><i class="fa-solid fa-chevron-right"></i></button>
+                  <button id="calPrevBtn" class="cal-nav-btn" aria-label="Previous month"><i class="fa-solid fa-chevron-left"></i></button>
+                  <h2 id="calMonthYearLabel" class="cal-month-label">Month Year</h2>
+                  <button id="calNextBtn" class="cal-nav-btn" aria-label="Next month"><i class="fa-solid fa-chevron-right"></i></button>
                 </div>
+                <button id="calTodayBtn" class="cal-today-btn">Today</button>
               </div>
               <div class="calendar-header-actions">
                 <div class="cal-view-toggle" id="calViewToggle">
@@ -304,7 +301,7 @@
                     </button>
                   </div>
                 </div>
-                <button id="legendToggleBtn" class="legend-toggle-btn" title="Show/hide legend">
+                <button id="legendToggleBtn" class="legend-toggle-btn" title="Show sport legend" aria-label="Show sport legend">
                   <i class="fa-solid fa-info-circle"></i>
                 </button>
               </div>
@@ -372,6 +369,7 @@
           <div class="venues-list" id="venuesList">
             <!-- Populated by map.js -->
           </div>
+          <button type="button" class="list-expand-btn" id="venuesToggle" hidden aria-expanded="false">Show all venues</button>
         </div>
 
         <div class="map-view-container">
@@ -429,6 +427,7 @@
           <div class="box-scores-grid" id="boxScoresGrid">
             <!-- Populated by stats.js -->
           </div>
+          <button type="button" class="list-expand-btn" id="boxScoresToggle" hidden aria-expanded="false">Show all games</button>
           <div class="empty-state-container" id="boxScoresEmpty" style="display: none;">
             <div class="empty-state-icon"><i class="fa-solid fa-clipboard"></i></div>
             <p>No box scores yet. Completed games will appear here with detailed stats and top performers.</p>
@@ -544,12 +543,14 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js"></script>
   <script src="assets/js/utils.js"></script>
   <script src="assets/js/event-schema.js"></script>
   <script src="assets/js/credentials.js"></script>
   <script src="assets/js/render.js"></script>
   <script src="assets/js/firebase-config.js"></script>
   <script src="assets/js/firebase-client.js"></script>
+  <script src="assets/js/notifications.js"></script>
   <script src="assets/js/sheets-sync.js"></script>
   <script src="assets/js/map.js"></script>
   <script src="assets/js/calendar.js"></script>

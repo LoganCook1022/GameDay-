@@ -7,9 +7,13 @@ const GameDayMap = (function() {
   let mapInstance = null;
   let markersLayer = null;
   let currentVenues = [];
+  let venuesExpanded = false;
 
-  // Home School base coordinates (defaults to Sugar-Salem, updated dynamically per school)
-  let HOME_COORDS = { lat: 43.8744, lng: -111.7483, name: 'Home School' };
+  let HOME_COORDS = window.GameDayFirebase?.getSchoolMeta?.() || {
+    lat: 43.8744,
+    lng: -111.7483,
+    venueName: 'Home School'
+  };
 
   function initMap() {
     if (mapInstance) return;
@@ -43,19 +47,37 @@ const GameDayMap = (function() {
       venueSelect.addEventListener('change', (e) => {
         const val = e.target.value;
         if (val === 'all') {
-          fitAllMarkers();
+          showSchoolArea();
           hideOverlay();
         } else {
           selectVenueById(val);
         }
       });
     }
+
+    const venuesToggle = document.getElementById('venuesToggle');
+    if (venuesToggle) {
+      venuesToggle.addEventListener('click', () => {
+        venuesExpanded = !venuesExpanded;
+        venuesToggle.setAttribute('aria-expanded', String(venuesExpanded));
+        renderSidebarList();
+      });
+    }
+  }
+
+  function hasCoordinates(venue) {
+    return Number.isFinite(venue.lat) && venue.lat >= -90 && venue.lat <= 90
+      && Number.isFinite(venue.lng) && venue.lng >= -180 && venue.lng <= 180;
   }
 
   // Extract unique venues from events list
   function updateVenues(events) {
-    const homeEvt = events.find(e => e.locationType === 'Home' && e.lat && e.lng);
-    if (homeEvt) {
+    const schoolMeta = window.GameDayFirebase?.getSchoolMeta?.();
+    if (schoolMeta && Number.isFinite(schoolMeta.lat) && Number.isFinite(schoolMeta.lng)) {
+      HOME_COORDS = { lat: schoolMeta.lat, lng: schoolMeta.lng, name: schoolMeta.venueName || 'Home School' };
+    }
+    const homeEvt = events.find(e => e.locationType === 'Home' && Number.isFinite(e.lat) && Number.isFinite(e.lng));
+    if (homeEvt && hasCoordinates(homeEvt)) {
       HOME_COORDS = { lat: homeEvt.lat, lng: homeEvt.lng, name: homeEvt.venueName || 'Home School' };
     }
 
@@ -70,17 +92,22 @@ const GameDayMap = (function() {
       const key = evt.venueName.toLowerCase();
       if (!venueMap.has(key)) {
         venueMap.set(key, {
-          id: 'ven-' + Math.random().toString(36).substring(2, 7),
+          id: `ven-${String(evt.id || key).replace(/[^a-z0-9-]+/gi, '-')}`,
           name: evt.venueName,
           address: evt.venueAddress || 'Address not listed',
           isHome: evt.locationType === 'Home',
-          lat: evt.lat || HOME_COORDS.lat,
-          lng: evt.lng || HOME_COORDS.lng,
+          lat: Number.isFinite(evt.lat) ? evt.lat : (evt.locationType === 'Home' ? HOME_COORDS.lat : null),
+          lng: Number.isFinite(evt.lng) ? evt.lng : (evt.locationType === 'Home' ? HOME_COORDS.lng : null),
           parking: evt.parkingInfo || 'Standard spectator parking.',
           games: []
         });
       }
-      venueMap.get(key).games.push(evt);
+      const venue = venueMap.get(key);
+      if (!hasCoordinates(venue) && Number.isFinite(evt.lat) && Number.isFinite(evt.lng)) {
+        venue.lat = evt.lat;
+        venue.lng = evt.lng;
+      }
+      venue.games.push(evt);
     });
 
     currentVenues = Array.from(venueMap.values());
@@ -121,7 +148,7 @@ const GameDayMap = (function() {
   function renderMarkers() {
     if (!mapInstance || !markersLayer) return;
 
-    currentVenues.forEach(venue => {
+    currentVenues.filter(hasCoordinates).forEach(venue => {
       const marker = L.marker([venue.lat, venue.lng], {
         icon: createCustomIcon(venue.isHome)
       });
@@ -138,22 +165,25 @@ const GameDayMap = (function() {
       markersLayer.addLayer(marker);
     });
 
-    fitAllMarkers();
+    showSchoolArea();
   }
 
-  function fitAllMarkers() {
-    if (!markersLayer || currentVenues.length === 0) return;
-    const group = L.featureGroup(markersLayer.getLayers());
-    mapInstance.fitBounds(group.getBounds().pad(0.15));
+  function showSchoolArea() {
+    if (!mapInstance) return;
+    mapInstance.setView([HOME_COORDS.lat, HOME_COORDS.lng], 10);
   }
 
   function renderSidebarList() {
     const listEl = document.getElementById('venuesList');
     if (!listEl) return;
 
-    listEl.innerHTML = currentVenues.map(venue => {
-      const distance = calculateDistance(HOME_COORDS.lat, HOME_COORDS.lng, venue.lat, venue.lng);
-      const distLabel = venue.isHome ? 'Campus Home Field' : `${distance.toFixed(1)} miles away`;
+    const venuesToggle = document.getElementById('venuesToggle');
+    const visibleVenues = venuesExpanded ? currentVenues : currentVenues.slice(0, 6);
+    listEl.innerHTML = visibleVenues.map(venue => {
+      const distance = hasCoordinates(venue) ? calculateDistance(HOME_COORDS.lat, HOME_COORDS.lng, venue.lat, venue.lng) : null;
+      const distLabel = venue.isHome ? 'Campus Home Field'
+        : distance === null ? 'Map location unavailable'
+          : `${distance.toFixed(1)} miles away`;
       return GameDayRender.venueListItem({
         id: venue.id,
         name: venue.name,
@@ -162,6 +192,11 @@ const GameDayMap = (function() {
         distanceLabel: distLabel
       });
     }).join('');
+    if (venuesToggle) {
+      venuesToggle.hidden = currentVenues.length <= 6;
+      venuesToggle.textContent = venuesExpanded ? 'Show fewer venues' : `Show all ${currentVenues.length} venues`;
+      venuesToggle.setAttribute('aria-expanded', String(venuesExpanded));
+    }
 
     // Attach click listeners
     listEl.querySelectorAll('.venue-item-card').forEach(card => {
@@ -184,7 +219,9 @@ const GameDayMap = (function() {
     const venue = currentVenues.find(v => v.id === venueId);
     if (!venue || !mapInstance) return;
 
-    mapInstance.flyTo([venue.lat, venue.lng], 14, { duration: 1.2 });
+    if (hasCoordinates(venue)) {
+      mapInstance.flyTo([venue.lat, venue.lng], 14, { duration: 1.2 });
+    }
     showVenueDetail(venue);
 
     // Highlight active card in sidebar

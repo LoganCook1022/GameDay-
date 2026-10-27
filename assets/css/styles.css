@@ -237,6 +237,12 @@ body {
   border-radius: var(--radius-md);
   padding: 0 1rem;
   margin-bottom: 2rem;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.school-picker-search:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.12);
 }
 
 .school-picker-search i {
@@ -252,6 +258,11 @@ body {
   color: var(--text-main);
   font: inherit;
   font-size: 0.95rem;
+}
+
+.school-picker-search input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }
 
 .school-picker-search input::placeholder {
@@ -1805,7 +1816,6 @@ button {
   transition: all var(--transition-fast);
 }
 
-.legend-toggle-btn:hover {
 .legend-toggle-btn:hover, .legend-toggle-btn.active {
   background: var(--bg-card-hover);
   color: var(--text-main);
@@ -3130,13 +3140,29 @@ button {
   .event-card .match-meta { border-top: 1px solid var(--border-subtle); padding-top: 8px; }
 }
 
-/* School palettes are applied only to spirit mode; researched Idaho school brand colors. */
-[data-theme="spirit"][data-school="sugar-salem"] { --primary: #1557b0; --primary-rgb: 21,87,176; --primary-hover: #0e438c; --accent-gradient: linear-gradient(135deg,#1557b0,#2c79d5); }
-[data-theme="spirit"][data-school="south-fremont"] { --primary: #c8102e; --primary-rgb: 200,16,46; --primary-hover: #9e0c24; --accent-gradient: linear-gradient(135deg,#c8102e,#1e1e24); }
-[data-theme="spirit"][data-school="teton"] { --primary: #c4512d; --primary-rgb: 196,81,45; --primary-hover: #993b23; --accent-gradient: linear-gradient(135deg,#c4512d,#7d2735); }
-[data-theme="spirit"][data-school="snake-river"] { --primary: #68449a; --primary-rgb: 104,68,154; --primary-hover: #4c2e73; --accent-gradient: linear-gradient(135deg,#68449a,#28202f); }
-[data-theme="spirit"][data-school="madison"] { --primary: #b3202a; --primary-rgb: 179,32,42; --primary-hover: #8e1820; --accent-gradient: linear-gradient(135deg,#b3202a,#1e2b52); }
-[data-theme="spirit"][data-school="rigby"] { --primary: #c8102e; --primary-rgb: 200,16,46; --primary-hover: #9e0c24; --accent-gradient: linear-gradient(135deg,#c8102e,#172b4d); }
+/* Keep each school's identity visible in every theme. */
+[data-school="sugar-salem"] { --school-primary: #1557b0; --school-primary-rgb: 21,87,176; --school-primary-hover: #0e438c; --school-secondary: #2c79d5; }
+[data-school="south-fremont"] { --school-primary: #c8102e; --school-primary-rgb: 200,16,46; --school-primary-hover: #9e0c24; --school-secondary: #1e1e24; }
+[data-school="teton"] { --school-primary: #c4512d; --school-primary-rgb: 196,81,45; --school-primary-hover: #993b23; --school-secondary: #7d2735; }
+[data-school="snake-river"] { --school-primary: #68449a; --school-primary-rgb: 104,68,154; --school-primary-hover: #4c2e73; --school-secondary: #28202f; }
+[data-school="madison"] { --school-primary: #b3202a; --school-primary-rgb: 179,32,42; --school-primary-hover: #8e1820; --school-secondary: #1e2b52; }
+[data-school="rigby"] { --school-primary: #c8102e; --school-primary-rgb: 200,16,46; --school-primary-hover: #9e0c24; --school-secondary: #172b4d; }
+[data-school] {
+  --primary: var(--school-primary-config, var(--school-primary));
+  --primary-rgb: var(--school-primary-rgb);
+  --primary-hover: var(--school-primary-hover);
+  --accent: var(--school-accent-config, var(--primary));
+  --accent-light: color-mix(in srgb, var(--primary) 12%, var(--bg-secondary));
+  --accent-gradient: linear-gradient(135deg, var(--primary), var(--school-secondary));
+}
+[data-theme="dark"][data-school] {
+  --primary: color-mix(in srgb, var(--school-primary-config, var(--school-primary)) 55%, white);
+  --primary-hover: color-mix(in srgb, var(--primary) 75%, white);
+  --primary-text: #08111f;
+  --accent: color-mix(in srgb, var(--school-accent-config, var(--school-primary)) 55%, white);
+  --accent-light: color-mix(in srgb, var(--accent) 18%, var(--bg-secondary));
+  --accent-gradient: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 68%, var(--school-secondary)));
+}
 @media (max-width: 680px) {
   .app-header { background: #082d56; border-bottom-color: rgba(255,255,255,.16); color: #fff; }
   .brand-title, .brand-subtitle { color: #fff; }

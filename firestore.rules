@@ -6,6 +6,8 @@ rules_version = '2';
 //
 //   schools/{schoolId}/events/{eventId}          : public read, admin write
 //   schools/{schoolId}/settings/school            : public read, admin write
+//   schools/{schoolId}/subscribers/{token}        : public create/update (push opt-in), admin read
+//   schools/{schoolId}/notification_queue/{id}    : admin read/write (queued pushes)
 //   schools/{schoolId}/{sports,clubs,teams,...}/  : admin read + write
 //   schools/{schoolId}                            : admin read + write
 //
@@ -129,6 +131,29 @@ service cloud.firestore {
       match /settings/{settingsDoc} {
         allow read: if settingsDoc == 'school';
         allow write: if isSchoolAdmin(schoolId);
+      }
+
+      // Push-notification subscribers. Visitors opt in without an account, so
+      // creating/updating their own device token is public — but the roster is
+      // write-only: no one can read tokens back out except a school admin.
+      match /subscribers/{token} {
+        allow read: if isSchoolAdmin(schoolId);
+        allow create, update: if request.resource.data.schoolId == schoolId
+          && request.resource.data.token == token
+          && request.resource.data.token is string
+          && request.resource.data.token.size() > 20;
+        allow delete: if isSchoolAdmin(schoolId);
+      }
+
+      // Queued push notifications. Admins compose these from the dashboard; the
+      // sender service (services/send-notifications.js --drain) delivers them and
+      // marks them sent. Never readable by the public.
+      match /notification_queue/{noteId} {
+        allow read: if isSchoolAdmin(schoolId);
+        allow create: if isSchoolAdmin(schoolId)
+          && request.resource.data.title is string
+          && request.resource.data.body is string;
+        allow update, delete: if isSchoolAdmin(schoolId);
       }
 
       // Everything else under a school (sports, clubs, teams, statistics, ...)

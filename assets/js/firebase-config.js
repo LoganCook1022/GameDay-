@@ -7,6 +7,11 @@ window.GAMEDAY_FIREBASE_CONFIG = window.GAMEDAY_FIREBASE_CONFIG || {
   appId: '1:1063355019441:web:bd1c06d722202e7d033290'
 };
 
+// Web Push public key (VAPID) used by the FCM client. Generate a key pair in
+// Firebase Console > Project settings > Cloud Messaging > Web Push certificates,
+// then paste the public key here. Push is disabled while this is empty.
+window.GAMEDAY_FCM_VAPID_KEY = window.GAMEDAY_FCM_VAPID_KEY || 'BDAaSieMFDkoBvFGxESqlErBwBWVQOftWhfB-r7WxSljb6UcAv_2kTmBazi2w9qoAjFP81Lq7qX0k-2kYQKNvg8';
+
 // Where administrator access requests are sent for review. This is only a
 // contact address, never an authorization source: the Firestore rules and the
 // `admins` roster decide who is allowed to approve an account.
