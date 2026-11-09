@@ -1,0 +1,402 @@
+/* =========================================================
+   GameDay+ Inline Admin Event Form
+   Samsung Calendar-inspired full-screen add/edit form
+   ========================================================= */
+
+/* --- Full-screen overlay --- */
+.event-form-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--app-canvas, #f4f8fc);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.event-form-overlay.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* --- Top bar --- */
+.event-form-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--app-blue, #0b315d);
+  color: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+}
+.event-form-topbar .ef-back-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+}
+.event-form-topbar .ef-back-btn:hover {
+  background: rgba(255,255,255,0.12);
+}
+.event-form-topbar .ef-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+.event-form-topbar .ef-save-btn {
+  background: #ffd12a;
+  color: #0b315d;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 8px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.event-form-topbar .ef-save-btn:hover {
+  background: #ffe066;
+  transform: scale(1.03);
+}
+.event-form-topbar .ef-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* --- Form body --- */
+.event-form-body {
+  flex: 1;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 16px 100px;
+}
+
+/* --- Title input (Samsung-style large top field) --- */
+.ef-title-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--app-line, #dbe5ef);
+  background: transparent;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--app-ink, #102849);
+  padding: 14px 0 10px;
+  margin-bottom: 8px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.ef-title-input::placeholder {
+  color: var(--app-muted, #657b96);
+  font-weight: 500;
+}
+.ef-title-input:focus {
+  border-color: var(--app-blue, #0b315d);
+}
+
+/* --- Form rows (Samsung Calendar style) --- */
+.ef-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--app-line, #dbe5ef);
+}
+.ef-row:last-child {
+  border-bottom: none;
+}
+.ef-row-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(11, 49, 93, 0.07);
+  color: var(--app-blue, #0b315d);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .ef-row-icon {
+  background: rgba(255, 255, 255, 0.08);
+  color: #9aabc0;
+}
+.ef-row-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.ef-row-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-muted, #657b96);
+}
+.ef-row-content input,
+.ef-row-content select,
+.ef-row-content textarea {
+  width: 100%;
+  border: 1px solid var(--app-line, #dbe5ef);
+  background: var(--app-surface, #fff);
+  color: var(--app-ink, #102849);
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  border-radius: 10px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+.ef-row-content input:focus,
+.ef-row-content select:focus,
+.ef-row-content textarea:focus {
+  border-color: var(--app-blue, #0b315d);
+}
+.ef-row-content textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* Side-by-side date/time fields */
+.ef-row-pair {
+  display: flex;
+  gap: 10px;
+}
+.ef-row-pair > * {
+  flex: 1;
+  min-width: 0;
+}
+.ef-row-pair label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ef-row-pair .ef-row-label {
+  font-size: 0.7rem;
+}
+
+/* Toggle row (Home/Away) */
+.ef-toggle-group {
+  display: flex;
+  gap: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--app-line, #dbe5ef);
+}
+.ef-toggle-group button {
+  flex: 1;
+  border: none;
+  background: var(--app-surface, #fff);
+  color: var(--app-muted, #657b96);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.ef-toggle-group button.active {
+  background: var(--app-blue, #0b315d);
+  color: #fff;
+}
+
+/* Score inputs */
+.ef-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ef-score-row input {
+  width: 70px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.ef-score-divider {
+  font-weight: 700;
+  color: var(--app-muted, #657b96);
+  font-size: 1.1rem;
+}
+
+/* Section divider in form */
+.ef-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--app-muted, #657b96);
+  padding: 20px 0 6px;
+  margin: 0;
+}
+
+/* --- Delete button at bottom --- */
+.ef-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 24px;
+  padding: 12px;
+  border: 1px solid #ef4444;
+  background: transparent;
+  color: #ef4444;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.ef-delete-btn:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* --- Admin controls on event cards (edit/delete icons) --- */
+.event-card .admin-card-actions {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  gap: 4px;
+  z-index: 5;
+}
+body.is-admin .event-card .admin-card-actions {
+  display: flex;
+}
+.admin-card-actions button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.admin-card-actions .admin-edit-btn {
+  background: rgba(11, 49, 93, 0.08);
+  color: var(--app-blue, #0b315d);
+}
+.admin-card-actions .admin-edit-btn:hover {
+  background: var(--app-blue, #0b315d);
+  color: #fff;
+  transform: scale(1.1);
+}
+.admin-card-actions .admin-delete-btn {
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+.admin-card-actions .admin-delete-btn:hover {
+  background: #ef4444;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* --- Admin menu items in ⋮ dropdown --- */
+.admin-menu-item {
+  display: none !important;
+}
+body.is-admin .admin-menu-item {
+  display: flex !important;
+}
+
+/* --- Confirm delete modal --- */
+.ef-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.ef-confirm-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+.ef-confirm-card {
+  background: var(--app-surface, #fff);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+.ef-confirm-card h3 {
+  margin: 0 0 8px;
+  font-size: 1.1rem;
+  color: var(--app-ink, #102849);
+}
+.ef-confirm-card p {
+  margin: 0 0 20px;
+  font-size: 0.9rem;
+  color: var(--app-muted, #657b96);
+}
+.ef-confirm-actions {
+  display: flex;
+  gap: 10px;
+}
+.ef-confirm-actions button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s;
+}
+.ef-confirm-cancel {
+  background: var(--app-line, #dbe5ef);
+  color: var(--app-ink, #102849);
+}
+.ef-confirm-delete {
+  background: #ef4444;
+  color: #fff;
+}
+.ef-confirm-delete:hover {
+  background: #dc2626;
+}
+
+/* --- Event card needs relative for admin buttons --- */
+.event-card {
+  position: relative;
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+  .event-form-body {
+    padding: 16px 12px 100px;
+  }
+  .ef-title-input {
+    font-size: 1.2rem;
+  }
+}
+

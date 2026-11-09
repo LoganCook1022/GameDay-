@@ -74,19 +74,6 @@ After selecting the project, copy its web app configuration into `assets/js/fire
 
 The Firestore layout is `schools/{schoolId}/events`, `sports`, `clubs`, `teams`, `statistics`, and `settings/school`. Public reads are allowed; writes require the administrator claim.
 
-## 📊 Legacy Google Sheet import
-
-To connect your school's live schedule:
-
-1. Create a Google Sheet with the following header row:
-   ```csv
-   Sport,Opponent,Date,Time,Location,Venue Name,Venue Address,Our Score,Opp Score,Status,Highlights,Latitude,Longitude
-   ```
-2. In Google Sheets, click **File &rarr; Share &rarr; Publish to web**.
-3. Select **Entire Document** and choose **Comma-separated values (.csv)**.
-4. Click **Publish** and copy the published URL.
-5. Open the GameDay+ app, click **Sheet Sync** in the top navigation, paste your URL, and click **Sync Live Sheet Now**.
-
 ---
 
 ## 📱 Mobile Friendly & Offline Ready

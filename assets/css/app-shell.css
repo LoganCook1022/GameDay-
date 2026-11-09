@@ -10,7 +10,7 @@
   --app-radius: 18px;
   --app-shadow: 0 4px 14px rgba(16, 40, 73, 0.08);
 }
-[data-theme="dark"] {
+:root[data-theme="dark"] {
   --app-blue: #091c35;
   --app-blue-2: #123d70;
   --app-ink: #eef5ff;
@@ -20,7 +20,7 @@
   --app-line: rgba(255, 255, 255, 0.12);
   --app-shadow: none;
 }
-[data-theme="light"] {
+:root[data-theme="light"] {
   --app-blue: #1557b0;
   --app-blue-2: #2c79d5;
   --app-ink: #102849;
@@ -395,7 +395,7 @@ select:focus-visible {
   --card-shadow: 0 5px 18px rgba(24, 48, 78, 0.07);
 }
 
-[data-theme="spirit"] {
+:root[data-theme="spirit"] {
   --app-canvas: #edf4fa;
   --app-ink: var(--ink-strong);
   --app-muted: var(--ink-muted);
@@ -403,7 +403,7 @@ select:focus-visible {
   --app-line: rgba(20, 62, 105, 0.12);
 }
 
-[data-theme="light"] {
+:root[data-theme="light"] {
   --app-canvas: #f5f7fb;
   --app-ink: #16233a;
   --app-muted: #65738a;
@@ -411,7 +411,7 @@ select:focus-visible {
   --app-line: rgba(38, 63, 102, 0.11);
 }
 
-[data-theme="dark"] {
+:root[data-theme="dark"] {
   --app-canvas: #091321;
   --app-ink: #f2f7ff;
   --app-muted: #a5b5c8;
@@ -498,6 +498,7 @@ button:active,
 
 [data-theme="light"] .brand-title,
 [data-theme="light"] .brand-subtitle,
+[data-theme="light"] .school-tag,
 [data-theme="light"] .search-toggle-btn,
 [data-theme="light"] .more-menu-btn,
 [data-theme="light"] .action-btn,
@@ -514,8 +515,17 @@ button:active,
   border-color: rgba(35, 69, 110, 0.13);
 }
 
+[data-theme="light"] .brand-badge {
+  background: rgba(21, 87, 176, 0.12);
+  border: 1px solid rgba(35, 69, 110, 0.13);
+}
+
+[data-theme="light"] .brand-icon {
+  color: var(--app-ink);
+}
+
 .more-menu-dropdown {
-  background: var(--surface-strong);
+  background: var(--bg-secondary);
   border: 1px solid var(--glass-border);
   box-shadow: var(--floating-shadow);
   backdrop-filter: var(--glass-blur);

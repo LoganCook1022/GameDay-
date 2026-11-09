@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setupFiltersAndSearch();
   setupModals();
   initAuthButton();
+  setupEventForm();
   startCountdownTimer();
 
   // --- School Picker ---
@@ -261,6 +262,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         window.location.href = `signin.html${schoolQS}`;
       }
     });
+    async function updateAdminStatus(user) {
+      if (user && GameDayFirebase.isAdminUser) {
+        try {
+          const isAdmin = await GameDayFirebase.isAdminUser(user);
+          if (isAdmin) {
+            document.body.classList.add('is-admin');
+            state.isAdmin = true;
+          } else {
+            document.body.classList.remove('is-admin');
+            state.isAdmin = false;
+          }
+        } catch (_) {
+          document.body.classList.remove('is-admin');
+          state.isAdmin = false;
+        }
+      } else {
+        document.body.classList.remove('is-admin');
+        state.isAdmin = false;
+      }
+      renderFeed();
+    }
 
     GameDayFirebase.onAuthStateChanged(user => {
       if (user) {
@@ -268,6 +290,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         renderSignedOut();
       }
+      updateAdminStatus(user);
     });
   }
 
@@ -293,19 +316,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       events = result.events || [];
       isLiveFirestore = Boolean(result.isLiveFirestore);
     } catch (error) {
-      console.error('Firestore event load failed; using fallback data source.', error);
-      const fallback = await SheetsSync.loadEvents();
-      events = fallback.events || [];
+      console.error('Event load failed.', error);
     }
     const hasSchoolData = events.length > 0;
     state.events = hasSchoolData ? events : [];
-
-    // Update Status Indicator
-    const dot = document.getElementById('sheetStatusDot');
-    if (dot) {
-      dot.style.background = isLiveFirestore ? '#10b981' : (hasSchoolData ? '#3b82f6' : '#f59e0b');
-      dot.title = isLiveFirestore ? 'Connected to Firestore' : (hasSchoolData ? 'Using Built-in Schedule' : 'No school data available yet');
-    }
 
     // Refresh all modules
     syncSportFilterAvailability();
@@ -338,11 +352,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const schoolName = school ? school.name.replace(' High School', '') : 'School';
         GameDayCalendar.updateEvents(state.events, schoolName);
         GameDayStats.updateEvents(state.events, schoolName);
-        const dot = document.getElementById('sheetStatusDot');
-        if (dot) {
-          dot.style.background = '#10b981';
-          dot.title = 'Connected to Firestore (Live)';
-        }
         const timestampLabel = document.getElementById('lastUpdatedLabel');
         if (timestampLabel) {
           timestampLabel.textContent = `Updated: ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (Firestore Live)`;
@@ -676,6 +685,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       return `
         <article class="event-card event-card--agenda" tabindex="0" role="button" aria-label="View details for ${eventTitle} versus ${evt.opponent}" onclick="openGameModalById('${evt.id}')" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openGameModalById('${evt.id}'); }">
+          <div class="admin-card-actions" onclick="event.stopPropagation()">
+            <button type="button" class="admin-edit-btn" title="Edit Event" aria-label="Edit Event" onclick="event.stopPropagation(); openEventForm('${evt.id}');">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button type="button" class="admin-delete-btn" title="Delete Event" aria-label="Delete Event" onclick="event.stopPropagation(); confirmDeleteEvent('${evt.id}');">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
           <div class="event-sport-mark" style="--event-color: ${sportColor};"><i class="fa-solid ${sportIcon}" aria-hidden="true"></i></div>
           <div class="event-card-content">
             <p class="event-date-label">${formatRelativeEventDate(evt.date, todayStr)}</p>
@@ -695,53 +712,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- Modals Setup ---
   function setupModals() {
-    // Sheet Sync Modal
-    const sheetModal = document.getElementById('sheetModal');
-    const openSheetBtn = document.getElementById('btnOpenSheetModal');
-    const closeSheetBtn = document.getElementById('closeSheetModalBtn');
-    const sheetUrlInput = document.getElementById('googleSheetUrlInput');
-    const fetchSheetBtn = document.getElementById('btnFetchSheet');
-    const loadDefaultBtn = document.getElementById('btnLoadDefaultData');
-
-    if (openSheetBtn && sheetModal) {
-      openSheetBtn.addEventListener('click', () => {
-        sheetUrlInput.value = SheetsSync.getSavedSheetUrl();
-        sheetModal.style.display = 'flex';
-      });
-    }
-
-    if (closeSheetBtn && sheetModal) {
-      closeSheetBtn.addEventListener('click', () => {
-        sheetModal.style.display = 'none';
-      });
-    }
-
-    if (fetchSheetBtn) {
-      fetchSheetBtn.addEventListener('click', async () => {
-        const url = sheetUrlInput.value;
-        fetchSheetBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Syncing...';
-        const res = await SheetsSync.syncCustomSheetUrl(url);
-        fetchSheetBtn.innerHTML = '<i class="fa-solid fa-arrows-rotate"></i> Sync Live Sheet Now';
-
-        if (res.success) {
-          showToast(`Successfully synced ${res.count} events!`, 'success');
-          sheetModal.style.display = 'none';
-          await loadAndDistributeData();
-        } else {
-          showToast(`Sync error: ${res.error}`, 'error');
-        }
-      });
-    }
-
-    if (loadDefaultBtn) {
-      loadDefaultBtn.addEventListener('click', async () => {
-        SheetsSync.resetToSampleData();
-        showToast('Reset to Sugar-Salem High Diggers schedule.', 'info');
-        sheetModal.style.display = 'none';
-        await loadAndDistributeData();
-      });
-    }
-
     // Game Details Modal
     const gameModal = document.getElementById('gameModal');
     const closeGameModalBtn = document.getElementById('closeGameModalBtn');
@@ -753,7 +723,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Global Modal Backdrop click to close
     window.addEventListener('click', (e) => {
-      if (e.target === sheetModal) sheetModal.style.display = 'none';
       if (e.target === gameModal) gameModal.style.display = 'none';
     });
   }
@@ -967,4 +936,294 @@ document.addEventListener('DOMContentLoaded', async () => {
   function escapeQuotes(str) {
     return (str || '').replace(/'/g, "\\'");
   }
+
+  // --- Inline Admin Samsung Calendar Event Form ---
+  function setupEventForm() {
+    const overlay = document.getElementById('eventFormOverlay');
+    const form = document.getElementById('eventForm');
+    const backBtn = document.getElementById('efBackBtn');
+    const saveBtn = document.getElementById('efSaveBtn');
+    const deleteBtn = document.getElementById('efDeleteEventBtn');
+    const btnAdminAddEvent = document.getElementById('btnAdminAddEvent');
+    const confirmOverlay = document.getElementById('efConfirmOverlay');
+    const confirmCancelBtn = document.getElementById('efConfirmCancelBtn');
+    const confirmDeleteBtn = document.getElementById('efConfirmDeleteBtn');
+    const locationToggle = document.getElementById('efLocationToggle');
+    const locationTypeInput = document.getElementById('efLocationType');
+
+    if (!overlay || !form) return;
+
+    let pendingDeleteId = null;
+
+    // 3-dots Menu "Add Event" button
+    if (btnAdminAddEvent) {
+      btnAdminAddEvent.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const moreMenu = document.querySelector('.more-menu');
+        if (moreMenu) moreMenu.classList.remove('open');
+        openEventForm();
+      });
+    }
+
+    // Cancel / Back Button
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        closeEventForm();
+      });
+    }
+
+    // Save Button in Topbar
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        if (form.requestSubmit) {
+          form.requestSubmit();
+        } else {
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      });
+    }
+
+    // Location Toggle (Home / Away / Neutral)
+    if (locationToggle) {
+      locationToggle.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          locationToggle.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const val = btn.dataset.val || 'Home';
+          if (locationTypeInput) locationTypeInput.value = val;
+
+          // Auto-fill venue if switching to Home
+          const venueInput = document.getElementById('efVenueName');
+          const addressInput = document.getElementById('efVenueAddress');
+          const school = SCHOOL_OPTIONS.find(s => s.id === state.schoolId) || SCHOOL_OPTIONS[0];
+          if (val === 'Home' && venueInput && (!venueInput.value || venueInput.value.includes('Away'))) {
+            venueInput.value = `${school.name} Stadium`;
+            if (addressInput && !addressInput.value) {
+              addressInput.value = school.id === 'sugar-salem' ? '#1 Digger Dr, Sugar City, ID 83448' : '';
+            }
+          }
+        });
+      });
+    }
+
+    // Delete Button in Form
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => {
+        const id = document.getElementById('efEventId').value;
+        if (id) confirmDeleteEvent(id);
+      });
+    }
+
+    // Confirmation Modal buttons
+    if (confirmCancelBtn && confirmOverlay) {
+      confirmCancelBtn.addEventListener('click', () => {
+        confirmOverlay.classList.remove('open');
+        pendingDeleteId = null;
+      });
+    }
+
+    if (confirmDeleteBtn && confirmOverlay) {
+      confirmDeleteBtn.addEventListener('click', async () => {
+        if (!pendingDeleteId) return;
+        confirmDeleteBtn.disabled = true;
+        confirmDeleteBtn.textContent = 'Deleting...';
+        try {
+          await GameDayFirebase.deleteEvent(pendingDeleteId);
+          // Remove from local state
+          state.events = state.events.filter(e => e.id !== pendingDeleteId);
+          renderHeroMatchup();
+          renderFeed();
+          GameDayMap.updateVenues(state.events);
+          const school = SCHOOL_OPTIONS.find(option => option.id === state.schoolId);
+          const schoolName = school ? school.name.replace(' High School', '') : 'School';
+          GameDayCalendar.updateEvents(state.events, schoolName);
+          GameDayStats.updateEvents(state.events, schoolName);
+
+          showToast('Event deleted from schedule.', 'info');
+          confirmOverlay.classList.remove('open');
+          closeEventForm();
+        } catch (err) {
+          alert('Could not delete event: ' + err.message);
+        } finally {
+          confirmDeleteBtn.disabled = false;
+          confirmDeleteBtn.textContent = 'Delete';
+          pendingDeleteId = null;
+        }
+      });
+    }
+
+    // Form Submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const titleInput = document.getElementById('efEventName');
+      const dateInput = document.getElementById('efDate');
+      if (!titleInput.value.trim()) {
+        titleInput.focus();
+        showToast('Please enter an event title.', 'error');
+        return;
+      }
+      if (!dateInput.value) {
+        dateInput.focus();
+        showToast('Please select an event date.', 'error');
+        return;
+      }
+
+      const id = document.getElementById('efEventId').value || '';
+      const formData = new FormData(form);
+      const values = Object.fromEntries(formData.entries());
+
+      const ourScoreVal = values.ourScore !== '' && values.ourScore !== undefined && values.ourScore !== null
+        ? Number(values.ourScore) : null;
+      const oppScoreVal = values.oppScore !== '' && values.oppScore !== undefined && values.oppScore !== null
+        ? Number(values.oppScore) : null;
+
+      const eventPayload = {
+        eventName: values.eventName.trim(),
+        name: values.eventName.trim(),
+        sport: values.sport || 'Football',
+        level: values.level || 'Varsity',
+        gender: values.gender || 'Boys',
+        eventType: 'Game',
+        date: values.date,
+        time: values.startTime || 'TBA',
+        startTime: values.startTime || 'TBA',
+        endTime: values.endTime || '',
+        opponent: values.opponent ? values.opponent.trim() : '',
+        opponentMascot: values.opponentMascot ? values.opponentMascot.trim() : '',
+        locationType: values.locationType || 'Home',
+        venueName: values.venueName ? values.venueName.trim() : '',
+        venueAddress: values.venueAddress ? values.venueAddress.trim() : '',
+        status: values.status || 'Scheduled',
+        ourScore: ourScoreVal,
+        oppScore: oppScoreVal,
+        homeScore: ourScoreVal,
+        awayScore: oppScoreVal,
+        parkingInfo: values.parkingInfo ? values.parkingInfo.trim() : '',
+        highlights: values.highlights ? values.highlights.trim() : '',
+        schoolId: state.schoolId || 'sugar-salem'
+      };
+
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+      }
+
+      try {
+        const saved = await GameDayFirebase.saveEvent(id, eventPayload);
+        // Update local state immediately
+        const idx = state.events.findIndex(ev => ev.id === saved.id);
+        if (idx !== -1) {
+          state.events[idx] = saved;
+        } else {
+          state.events.push(saved);
+        }
+
+        renderHeroMatchup();
+        renderFeed();
+        GameDayMap.updateVenues(state.events);
+        const school = SCHOOL_OPTIONS.find(option => option.id === state.schoolId);
+        const schoolName = school ? school.name.replace(' High School', '') : 'School';
+        GameDayCalendar.updateEvents(state.events, schoolName);
+        GameDayStats.updateEvents(state.events, schoolName);
+
+        showToast(id ? 'Event updated successfully!' : 'Event created successfully!', 'success');
+        closeEventForm();
+      } catch (err) {
+        showToast('Error saving event: ' + err.message, 'error');
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save';
+        }
+      }
+    });
+
+    window.openEventForm = function(eventId = null) {
+      form.reset();
+      const formTitle = document.getElementById('efFormTitle');
+      const eventIdInput = document.getElementById('efEventId');
+      const deleteBtn = document.getElementById('efDeleteEventBtn');
+      const school = SCHOOL_OPTIONS.find(s => s.id === state.schoolId) || SCHOOL_OPTIONS[0];
+
+      if (eventId) {
+        // Edit Mode
+        const ev = state.events.find(e => e.id === eventId);
+        if (!ev) return;
+        if (formTitle) formTitle.textContent = 'Edit Event';
+        if (eventIdInput) eventIdInput.value = ev.id;
+        if (deleteBtn) deleteBtn.style.display = 'flex';
+
+        document.getElementById('efEventName').value = ev.eventName || ev.name || '';
+        document.getElementById('efSport').value = ev.sport || 'Football';
+        document.getElementById('efLevel').value = ev.level || 'Varsity';
+        document.getElementById('efGender').value = ev.gender || 'Boys';
+        document.getElementById('efDate').value = ev.date || '';
+        document.getElementById('efStartTime').value = ev.startTime || ev.time || '';
+        document.getElementById('efEndTime').value = ev.endTime || '';
+        document.getElementById('efOpponent').value = ev.opponent || '';
+        document.getElementById('efOpponentMascot').value = ev.opponentMascot || '';
+        document.getElementById('efVenueName').value = ev.venueName || ev.location || '';
+        document.getElementById('efVenueAddress').value = ev.venueAddress || ev.address || '';
+        document.getElementById('efStatus').value = ev.status || 'Scheduled';
+        document.getElementById('efOurScore').value = ev.ourScore !== null && ev.ourScore !== undefined ? ev.ourScore : '';
+        document.getElementById('efOppScore').value = ev.oppScore !== null && ev.oppScore !== undefined ? ev.oppScore : '';
+        document.getElementById('efParkingInfo').value = ev.parkingInfo || '';
+        document.getElementById('efHighlights').value = ev.highlights || '';
+
+        // Set location type toggle
+        const loc = ev.locationType || 'Home';
+        if (locationTypeInput) locationTypeInput.value = loc;
+        if (locationToggle) {
+          locationToggle.querySelectorAll('button').forEach(b => {
+            b.classList.toggle('active', (b.dataset.val || '').toLowerCase() === loc.toLowerCase());
+          });
+        }
+      } else {
+        // Add Mode
+        if (formTitle) formTitle.textContent = 'Add Event';
+        if (eventIdInput) eventIdInput.value = '';
+        if (deleteBtn) deleteBtn.style.display = 'none';
+
+        document.getElementById('efDate').value = getTodayISO();
+        document.getElementById('efSport').value = state.selectedSport !== 'all' ? capitalize(state.selectedSport) : 'Football';
+        document.getElementById('efLevel').value = 'Varsity';
+        document.getElementById('efGender').value = 'Boys';
+        document.getElementById('efStatus').value = 'Scheduled';
+        document.getElementById('efStartTime').value = '7:00 PM';
+        document.getElementById('efEndTime').value = '9:00 PM';
+        document.getElementById('efVenueName').value = `${school.name} Stadium`;
+        document.getElementById('efVenueAddress').value = school.id === 'sugar-salem' ? '#1 Digger Dr, Sugar City, ID 83448' : '';
+
+        if (locationTypeInput) locationTypeInput.value = 'Home';
+        if (locationToggle) {
+          locationToggle.querySelectorAll('button').forEach(b => {
+            b.classList.toggle('active', b.dataset.val === 'Home');
+          });
+        }
+      }
+
+      overlay.classList.add('open');
+      setTimeout(() => {
+        const titleInput = document.getElementById('efEventName');
+        if (titleInput) titleInput.focus();
+      }, 100);
+    };
+
+    window.closeEventForm = function() {
+      overlay.classList.remove('open');
+    };
+
+    window.confirmDeleteEvent = function(eventId) {
+      pendingDeleteId = eventId;
+      const ev = state.events.find(e => e.id === eventId);
+      const confirmText = document.getElementById('efConfirmText');
+      if (confirmText) {
+        confirmText.textContent = ev
+          ? `Are you sure you want to delete "${ev.eventName || ev.opponent || 'this event'}"? This cannot be undone.`
+          : 'Are you sure you want to delete this event? This cannot be undone.';
+      }
+      if (confirmOverlay) confirmOverlay.classList.add('open');
+    };
+  }
+
 });

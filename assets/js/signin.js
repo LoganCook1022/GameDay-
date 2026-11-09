@@ -257,9 +257,9 @@
 
     GameDayFirebase.isAdminUser(user).then(isAdmin => {
       if (isAdmin) {
-        signedInRole.textContent = 'You have administrator access for your school.';
+        signedInRole.textContent = 'You have administrator access. You can add, edit, and delete events directly on the schedule!';
         adminDashboardLink.href = adminUrl;
-        adminDashboardLink.hidden = false;
+        adminDashboardLink.hidden = true;
         if (requestAdminLink) requestAdminLink.hidden = true;
       } else {
         signedInRole.textContent = 'Regular account • schedules are public for everyone.';
