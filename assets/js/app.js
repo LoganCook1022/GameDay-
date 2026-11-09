@@ -783,6 +783,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         <button class="btn-primary" onclick="GameDayMap.openVenueByName('${escapeQuotes(game.venueName)}'); document.getElementById('gameModal').style.display='none';">
           <i class="fa-solid fa-map-location-dot"></i> View on App Map
         </button>
+        ${state.isAdmin ? `
+          <button type="button" class="btn-hero-action" style="grid-column: 1 / -1; margin-top: 8px; background: rgba(11, 49, 93, 0.08); color: var(--app-blue); border: 1px solid var(--app-blue); font-weight: 700; border-radius: 12px; padding: 10px; cursor: pointer;" onclick="document.getElementById('gameModal').style.display='none'; openEventForm('${game.id}');">
+            <i class="fa-solid fa-pen-to-square"></i> Edit Event (Admin)
+          </button>
+        ` : ''}
         </div>
       </section>
     `;

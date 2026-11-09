@@ -315,11 +315,50 @@ body.is-admin .event-card .admin-card-actions {
 }
 
 /* --- Admin menu items in ⋮ dropdown --- */
-.admin-menu-item {
+.menu-item.admin-menu-item {
   display: none !important;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  color: var(--app-ink, #102849);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.18s, color 0.18s;
+  box-sizing: border-box;
 }
-body.is-admin .admin-menu-item {
+.menu-item.admin-menu-item i {
+  color: #ffd12a;
+  font-size: 0.95rem;
+}
+.menu-item.admin-menu-item:hover {
+  background: rgba(11, 49, 93, 0.08);
+  color: var(--app-blue, #0b315d);
+}
+[data-theme="dark"] .menu-item.admin-menu-item {
+  color: #eef5ff;
+}
+[data-theme="dark"] .menu-item.admin-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+body.is-admin .menu-item.admin-menu-item {
   display: flex !important;
+}
+
+.menu-divider.admin-menu-item {
+  display: none !important;
+  height: 1px;
+  background: var(--app-line, #dbe5ef);
+  margin: 6px 0;
+  width: 100%;
+}
+body.is-admin .menu-divider.admin-menu-item {
+  display: block !important;
 }
 
 /* --- Confirm delete modal --- */
